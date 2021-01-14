@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<ruleset name="patchlevel/event-sourcing coding standard">
+    <arg value="p"/>
+    <arg value="s"/>
+    <arg name="colors"/>
+    <arg name="cache" value=".phpcs-cache"/>
+
+    <file>src</file>
+
+    <rule ref="PatchlevelCodingStandard" />
+</ruleset>

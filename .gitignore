@@ -1,0 +1,6 @@
+vendor/
+coverage/
+phpunit.xml
+.phpunit.result.cache
+.phpcs-cache
+phpstan.neon
