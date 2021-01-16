@@ -16,6 +16,22 @@ composer require patchlevel/event-sourcing-bundle
 ## config
 
 ```
+framework:
+    messenger:
+        buses:
+            event.bus:
+                default_middleware: allow_no_handlers
+```
+
+```
+doctrine:
+    dbal:
+        connections:
+            eventstore:
+                url: '%env(EVENTSTORE_URL)%'
+```
+
+```
 patchlevel_event_sourcing:
     aggregates:
         App\Domain\Profile\Profile: profile
