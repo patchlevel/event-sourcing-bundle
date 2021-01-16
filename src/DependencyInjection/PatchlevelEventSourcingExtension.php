@@ -77,9 +77,7 @@ class PatchlevelEventSourcingExtension extends Extension
                     array_flip($config['aggregates']),
                 ]);
             $container->setAlias(Store::class, SingleTableStore::class);
-        }
 
-        if ($config['storage_type'] !== 'multi_table') {
             return;
         }
 
