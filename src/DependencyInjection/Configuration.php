@@ -27,7 +27,7 @@ class Configuration implements ConfigurationInterface
             ->values(['single_table', 'multi_table'])
             ->defaultValue('multi_table')
             ->end()
-            ->scalarNode('dbal_conncetion')
+            ->scalarNode('dbal_connection')
             ->defaultValue('default')
             ->end()
             ->end();
