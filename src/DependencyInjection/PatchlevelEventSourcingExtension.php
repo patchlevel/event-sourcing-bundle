@@ -19,7 +19,6 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
-use function array_flip;
 use function sprintf;
 
 class PatchlevelEventSourcingExtension extends Extension
@@ -40,24 +39,20 @@ class PatchlevelEventSourcingExtension extends Extension
 
     private function configureEventBus(array $config, ContainerBuilder $container): void
     {
-        $messageBusId = sprintf('%s.bus', $config['message_bus']);
-
         $container->register(SymfonyEventBus::class)
-            ->setArguments([new Reference($messageBusId)]);
+            ->setArguments([new Reference($config['message_bus'])]);
 
         $container->setAlias(EventBus::class, SymfonyEventBus::class);
 
         $container->registerForAutoconfiguration(Listener::class)
-            ->addTag('messenger.message_handler', ['bus' => $messageBusId]);
+            ->addTag('messenger.message_handler', ['bus' => $config['message_bus']]);
     }
 
     private function configureProjection(array $config, ContainerBuilder $container): void
     {
-        $messageBusId = sprintf('%s.bus', $config['message_bus']);
-
         $container->register(ProjectionListener::class)
             ->setArguments([new Reference(ProjectionRepository::class)])
-            ->addTag('messenger.message_handler', ['bus' => $messageBusId]);
+            ->addTag('messenger.message_handler', ['bus' => $config['message_bus']]);
 
         $container->registerForAutoconfiguration(Projection::class)
             ->addTag('event_sourcing.projection');
@@ -74,7 +69,7 @@ class PatchlevelEventSourcingExtension extends Extension
             $container->register(SingleTableStore::class)
                 ->setArguments([
                     new Reference($dbalConnectionId),
-                    array_flip($config['aggregates']),
+                    $config['aggregates'],
                 ]);
             $container->setAlias(Store::class, SingleTableStore::class);
 
@@ -84,14 +79,14 @@ class PatchlevelEventSourcingExtension extends Extension
         $container->register(MultiTableStore::class)
             ->setArguments([
                 new Reference($dbalConnectionId),
-                array_flip($config['aggregates']),
+                $config['aggregates'],
             ]);
         $container->setAlias(Store::class, MultiTableStore::class);
     }
 
     private function configureRepositories(array $config, ContainerBuilder $container): void
     {
-        foreach ($config['aggregates'] as $aggregateName => $aggregateClass) {
+        foreach ($config['aggregates'] as  $aggregateClass => $aggregateName) {
             $id = sprintf('event_sourcing.%s_repository', $aggregateName);
 
             $container->register($id, Repository::class)

@@ -12,3 +12,13 @@ Small lightweight event-sourcing library.
 ```
 composer require patchlevel/event-sourcing-bundle
 ```
+
+## config
+
+```
+patchlevel_event_sourcing:
+    aggregates:
+        App\Domain\Profile\Profile: profile
+    message_bus: event.bus
+    dbal_connection: eventstore
+```
