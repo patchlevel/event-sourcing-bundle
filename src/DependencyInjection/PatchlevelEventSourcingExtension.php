@@ -14,6 +14,7 @@ use Patchlevel\EventSourcing\Projection\Projection;
 use Patchlevel\EventSourcing\Projection\ProjectionListener;
 use Patchlevel\EventSourcing\Projection\ProjectionRepository;
 use Patchlevel\EventSourcing\Repository\Repository;
+use Patchlevel\EventSourcing\Schema\DoctrineSchemaManager;
 use Patchlevel\EventSourcing\Schema\SchemaManager;
 use Patchlevel\EventSourcing\Store\MultiTableStore;
 use Patchlevel\EventSourcing\Store\SingleTableStore;
@@ -68,7 +69,8 @@ class PatchlevelEventSourcingExtension extends Extension
 
     private function configureStorage(array $config, ContainerBuilder $container): void
     {
-        $container->register(SchemaManager::class);
+        $container->register(DoctrineSchemaManager::class);
+        $container->setAlias(SchemaManager::class, DoctrineSchemaManager::class);
 
         $dbalConnectionId = sprintf('doctrine.dbal.%s_connection', $config['dbal_connection']);
 
