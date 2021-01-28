@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\DependencyInjection;
 
+use Patchlevel\EventSourcing\Console\CreateSchemaCommand;
+use Patchlevel\EventSourcing\Console\DropSchemaCommand;
+use Patchlevel\EventSourcing\Console\UpdateSchemaCommand;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\Listener;
 use Patchlevel\EventSourcing\EventBus\SymfonyEventBus;
@@ -11,6 +14,7 @@ use Patchlevel\EventSourcing\Projection\Projection;
 use Patchlevel\EventSourcing\Projection\ProjectionListener;
 use Patchlevel\EventSourcing\Projection\ProjectionRepository;
 use Patchlevel\EventSourcing\Repository\Repository;
+use Patchlevel\EventSourcing\Schema\SchemaManager;
 use Patchlevel\EventSourcing\Store\MultiTableStore;
 use Patchlevel\EventSourcing\Store\SingleTableStore;
 use Patchlevel\EventSourcing\Store\Store;
@@ -35,6 +39,7 @@ class PatchlevelEventSourcingExtension extends Extension
         $this->configureProjection($config, $container);
         $this->configureStorage($config, $container);
         $this->configureRepositories($config, $container);
+        $this->configureCommands($container);
     }
 
     private function configureEventBus(array $config, ContainerBuilder $container): void
@@ -63,6 +68,8 @@ class PatchlevelEventSourcingExtension extends Extension
 
     private function configureStorage(array $config, ContainerBuilder $container): void
     {
+        $container->register(SchemaManager::class);
+
         $dbalConnectionId = sprintf('doctrine.dbal.%s_connection', $config['dbal_connection']);
 
         if ($config['storage_type'] === 'single_table') {
@@ -81,12 +88,14 @@ class PatchlevelEventSourcingExtension extends Extension
                 new Reference($dbalConnectionId),
                 $config['aggregates'],
             ]);
-        $container->setAlias(Store::class, MultiTableStore::class);
+
+        $container->setAlias(Store::class, MultiTableStore::class)
+            ->setPublic(true);
     }
 
     private function configureRepositories(array $config, ContainerBuilder $container): void
     {
-        foreach ($config['aggregates'] as  $aggregateClass => $aggregateName) {
+        foreach ($config['aggregates'] as $aggregateClass => $aggregateName) {
             $id = sprintf('event_sourcing.%s_repository', $aggregateName);
 
             $container->register($id, Repository::class)
@@ -94,7 +103,32 @@ class PatchlevelEventSourcingExtension extends Extension
                     new Reference(Store::class),
                     new Reference(EventBus::class),
                     $aggregateClass,
-                ]);
+                ])
+                ->setPublic(true);
         }
+    }
+
+    private function configureCommands(ContainerBuilder $container): void
+    {
+        $container->register(CreateSchemaCommand::class)
+            ->setArguments([
+                new Reference(Store::class),
+                new Reference(SchemaManager::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(UpdateSchemaCommand::class)
+            ->setArguments([
+                new Reference(Store::class),
+                new Reference(SchemaManager::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(DropSchemaCommand::class)
+            ->setArguments([
+                new Reference(Store::class),
+                new Reference(SchemaManager::class),
+            ])
+            ->addTag('console.command');
     }
 }
