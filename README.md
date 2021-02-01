@@ -33,8 +33,9 @@ doctrine:
 
 ```
 patchlevel_event_sourcing:
+    store:
+        dbal_connection: eventstore
     aggregates:
         App\Domain\Profile\Profile: profile
     message_bus: event.bus
-    dbal_connection: eventstore
 ```

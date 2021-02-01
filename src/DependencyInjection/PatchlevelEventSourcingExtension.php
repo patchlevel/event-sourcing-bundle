@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\DependencyInjection;
 
-use Patchlevel\EventSourcing\Console\CreateSchemaCommand;
-use Patchlevel\EventSourcing\Console\DropSchemaCommand;
-use Patchlevel\EventSourcing\Console\UpdateSchemaCommand;
+use Patchlevel\EventSourcing\Console\ProjectionCreateCommand;
+use Patchlevel\EventSourcing\Console\ProjectionDropCommand;
+use Patchlevel\EventSourcing\Console\ProjectionRebuildCommand;
+use Patchlevel\EventSourcing\Console\SchemaCreateCommand;
+use Patchlevel\EventSourcing\Console\SchemaDropCommand;
+use Patchlevel\EventSourcing\Console\SchemaUpdateCommand;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\Listener;
 use Patchlevel\EventSourcing\EventBus\SymfonyEventBus;
@@ -39,7 +42,7 @@ class PatchlevelEventSourcingExtension extends Extension
         $this->configureEventBus($config, $container);
         $this->configureProjection($config, $container);
         $this->configureStorage($config, $container);
-        $this->configureRepositories($config, $container);
+        $this->configureAggregates($config, $container);
         $this->configureCommands($container);
     }
 
@@ -69,34 +72,50 @@ class PatchlevelEventSourcingExtension extends Extension
 
     private function configureStorage(array $config, ContainerBuilder $container): void
     {
-        $container->register(DoctrineSchemaManager::class);
-        $container->setAlias(SchemaManager::class, DoctrineSchemaManager::class);
+        if ($config['store']['schema_manager']) {
+            $container->setAlias(SchemaManager::class, $config['store']['schema_manager']);
+        } else {
+            $container->register(DoctrineSchemaManager::class);
+            $container->setAlias(SchemaManager::class, DoctrineSchemaManager::class);
+        }
 
-        $dbalConnectionId = sprintf('doctrine.dbal.%s_connection', $config['dbal_connection']);
+        $dbalConnectionId = sprintf('doctrine.dbal.%s_connection', $config['store']['dbal_connection']);
 
-        if ($config['storage_type'] === 'single_table') {
+        if ($config['store']['type'] === 'dbal_single_table') {
             $container->register(SingleTableStore::class)
                 ->setArguments([
                     new Reference($dbalConnectionId),
                     $config['aggregates'],
+                    $config['store']['options']['table_name'] ?? 'eventstore'
                 ]);
-            $container->setAlias(Store::class, SingleTableStore::class);
+
+            $container->setAlias(Store::class, SingleTableStore::class)
+                ->setPublic(true);
 
             return;
         }
 
-        $container->register(MultiTableStore::class)
-            ->setArguments([
-                new Reference($dbalConnectionId),
-                $config['aggregates'],
-            ]);
+        if ($config['store']['type'] === 'dbal_multi_table') {
+            $container->register(MultiTableStore::class)
+                ->setArguments([
+                    new Reference($dbalConnectionId),
+                    $config['aggregates'],
+                ]);
 
-        $container->setAlias(Store::class, MultiTableStore::class)
+            $container->setAlias(Store::class, MultiTableStore::class)
+                ->setPublic(true);
+
+            return;
+        }
+
+        $container->setAlias(Store::class, $config['store']['type'])
             ->setPublic(true);
     }
 
-    private function configureRepositories(array $config, ContainerBuilder $container): void
+    private function configureAggregates(array $config, ContainerBuilder $container): void
     {
+        $container->setParameter('event_sourcing.aggregates', $config['aggregates']);
+
         foreach ($config['aggregates'] as $aggregateClass => $aggregateName) {
             $id = sprintf('event_sourcing.%s_repository', $aggregateName);
 
@@ -112,24 +131,43 @@ class PatchlevelEventSourcingExtension extends Extension
 
     private function configureCommands(ContainerBuilder $container): void
     {
-        $container->register(CreateSchemaCommand::class)
+        $container->register(SchemaCreateCommand::class)
             ->setArguments([
                 new Reference(Store::class),
                 new Reference(SchemaManager::class),
             ])
             ->addTag('console.command');
 
-        $container->register(UpdateSchemaCommand::class)
+        $container->register(SchemaUpdateCommand::class)
             ->setArguments([
                 new Reference(Store::class),
                 new Reference(SchemaManager::class),
             ])
             ->addTag('console.command');
 
-        $container->register(DropSchemaCommand::class)
+        $container->register(SchemaDropCommand::class)
             ->setArguments([
                 new Reference(Store::class),
                 new Reference(SchemaManager::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(ProjectionCreateCommand::class)
+            ->setArguments([
+                new Reference(ProjectionRepository::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(ProjectionDropCommand::class)
+            ->setArguments([
+                new Reference(ProjectionRepository::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(ProjectionRebuildCommand::class)
+            ->setArguments([
+                new Reference(Store::class),
+                new Reference(ProjectionRepository::class),
             ])
             ->addTag('console.command');
     }

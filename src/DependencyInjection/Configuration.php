@@ -15,21 +15,34 @@ class Configuration implements ConfigurationInterface
 
         $rootNode = $treeBuilder->getRootNode();
         $rootNode->children()
+            ->arrayNode('store')
+            ->addDefaultsIfNotSet()
+            ->children()
+
+            ->enumNode('type')
+            ->values(['dbal_single_table', 'dbal_multi_table'])
+            ->defaultValue('dbal_single_table')
+            ->end()
+
+            ->scalarNode('dbal_connection')
+            ->defaultValue('default')
+            ->end()
+
+            ->scalarNode('schema_manager')->defaultNull()->end()
+
+            ->end()
+            ->end()
+
             ->scalarNode('message_bus')
             ->isRequired()
             ->cannotBeEmpty()
             ->end()
+
             ->arrayNode('aggregates')
             ->useAttributeAsKey('class')
             ->scalarPrototype()->end()
             ->end()
-            ->enumNode('storage_type')
-            ->values(['single_table', 'multi_table'])
-            ->defaultValue('multi_table')
-            ->end()
-            ->scalarNode('dbal_connection')
-            ->defaultValue('default')
-            ->end()
+
             ->end();
 
         return $treeBuilder;
