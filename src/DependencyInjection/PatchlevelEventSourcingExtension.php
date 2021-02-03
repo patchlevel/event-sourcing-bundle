@@ -13,6 +13,7 @@ use Patchlevel\EventSourcing\Console\SchemaUpdateCommand;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\Listener;
 use Patchlevel\EventSourcing\EventBus\SymfonyEventBus;
+use Patchlevel\EventSourcing\Projection\DefaultProjectionRepository;
 use Patchlevel\EventSourcing\Projection\Projection;
 use Patchlevel\EventSourcing\Projection\ProjectionListener;
 use Patchlevel\EventSourcing\Projection\ProjectionRepository;
@@ -66,8 +67,10 @@ class PatchlevelEventSourcingExtension extends Extension
         $container->registerForAutoconfiguration(Projection::class)
             ->addTag('event_sourcing.projection');
 
-        $container->register(ProjectionRepository::class)
+        $container->register(DefaultProjectionRepository::class)
             ->setArguments([new TaggedIteratorArgument('event_sourcing.projection')]);
+
+        $container->setAlias(ProjectionRepository::class, DefaultProjectionRepository::class);
     }
 
     private function configureStorage(array $config, ContainerBuilder $container): void
