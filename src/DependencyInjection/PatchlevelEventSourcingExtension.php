@@ -10,6 +10,8 @@ use Patchlevel\EventSourcing\Console\ProjectionRebuildCommand;
 use Patchlevel\EventSourcing\Console\SchemaCreateCommand;
 use Patchlevel\EventSourcing\Console\SchemaDropCommand;
 use Patchlevel\EventSourcing\Console\SchemaUpdateCommand;
+use Patchlevel\EventSourcing\Console\ShowCommand;
+use Patchlevel\EventSourcing\Console\WatchCommand;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\Listener;
 use Patchlevel\EventSourcing\EventBus\SymfonyEventBus;
@@ -23,6 +25,9 @@ use Patchlevel\EventSourcing\Schema\SchemaManager;
 use Patchlevel\EventSourcing\Store\MultiTableStore;
 use Patchlevel\EventSourcing\Store\SingleTableStore;
 use Patchlevel\EventSourcing\Store\Store;
+use Patchlevel\EventSourcing\Tool\Watch\WatchListener;
+use Patchlevel\EventSourcing\Tool\Watch\WatchServer;
+use Patchlevel\EventSourcing\Tool\Watch\WatchServerClient;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
@@ -44,7 +49,11 @@ class PatchlevelEventSourcingExtension extends Extension
         $this->configureProjection($config, $container);
         $this->configureStorage($config, $container);
         $this->configureAggregates($config, $container);
-        $this->configureCommands($container);
+        $this->configureCommands($config, $container);
+
+        if ($config['watch_server']['enabled']) {
+            $this->configureWatchServer($config, $container);
+        }
     }
 
     private function configureEventBus(array $config, ContainerBuilder $container): void
@@ -132,7 +141,7 @@ class PatchlevelEventSourcingExtension extends Extension
         }
     }
 
-    private function configureCommands(ContainerBuilder $container): void
+    private function configureCommands(array $config, ContainerBuilder $container): void
     {
         $container->register(SchemaCreateCommand::class)
             ->setArguments([
@@ -171,6 +180,32 @@ class PatchlevelEventSourcingExtension extends Extension
             ->setArguments([
                 new Reference(Store::class),
                 new Reference(ProjectionRepository::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(ShowCommand::class)
+            ->setArguments([
+                new Reference(Store::class),
+                $config['aggregates']
+            ])
+            ->addTag('console.command');
+    }
+
+    private function configureWatchServer(array $config, ContainerBuilder $container): void
+    {
+        $container->register(WatchServerClient::class)
+            ->setArguments([$config['watch_server']['host']]);
+
+        $container->register(WatchListener::class)
+            ->setArguments([new Reference(WatchServerClient::class)])
+            ->addTag('messenger.message_handler', ['bus' => $config['message_bus']]);
+
+        $container->register(WatchServer::class)
+            ->setArguments([$config['watch_server']['host']]);
+
+        $container->register(WatchCommand::class)
+            ->setArguments([
+                new Reference(WatchServer::class),
             ])
             ->addTag('console.command');
     }

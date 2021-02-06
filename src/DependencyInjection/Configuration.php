@@ -43,6 +43,17 @@ class Configuration implements ConfigurationInterface
             ->scalarPrototype()->end()
             ->end()
 
+            ->arrayNode('watch_server')
+            ->addDefaultsIfNotSet()
+            ->children()
+
+            ->booleanNode('enabled')->defaultValue(false)->end()
+
+            ->scalarNode('host')->defaultValue('127.0.0.1:5000')->end()
+
+            ->end()
+            ->end()
+
             ->end();
 
         return $treeBuilder;
