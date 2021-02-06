@@ -379,12 +379,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "eb6fba0658b78198afc9591d9be0f8f945492930"
+                "reference": "6c07754327518e1ceffad4d1814a0ddc3c7ba3b8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/eb6fba0658b78198afc9591d9be0f8f945492930",
-                "reference": "eb6fba0658b78198afc9591d9be0f8f945492930",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/6c07754327518e1ceffad4d1814a0ddc3c7ba3b8",
+                "reference": "6c07754327518e1ceffad4d1814a0ddc3c7ba3b8",
                 "shasum": ""
             },
             "require": {
@@ -437,7 +437,7 @@
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
                 "source": "https://github.com/patchlevel/event-sourcing/tree/tools"
             },
-            "time": "2021-02-04T11:07:30+00:00"
+            "time": "2021-02-06T11:32:11+00:00"
         },
         {
             "name": "psr/container",
