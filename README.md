@@ -1,11 +1,10 @@
-[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fpatchlevel%2Fevent-sourcing%2Fmaster)](https://dashboard.stryker-mutator.io/reports/github.com/patchlevel/event-sourcing/master)
-[![Type Coverage](https://shepherd.dev/github/patchlevel/event-sourcing-bundle/coverage.svg)](https://shepherd.dev/github/patchlevel/event-sourcing)
-[![Latest Stable Version](https://poser.pugx.org/patchlevel/event-sourcing-bundle/v)](//packagist.org/packages/patchlevel/event-sourcing)
-[![License](https://poser.pugx.org/patchlevel/event-sourcing-bundle/license)](//packagist.org/packages/patchlevel/event-sourcing)
+[![Type Coverage](https://shepherd.dev/github/patchlevel/event-sourcing-bundle/coverage.svg)](https://shepherd.dev/github/patchlevel/event-sourcing-bundle)
+[![Latest Stable Version](https://poser.pugx.org/patchlevel/event-sourcing-bundle/v)](//packagist.org/packages/patchlevel/event-sourcing-bundle)
+[![License](https://poser.pugx.org/patchlevel/event-sourcing-bundle/license)](//packagist.org/packages/patchlevel/event-sourcing-bundle)
 
-# event-sourcing
+# event-sourcing-bundle
 
-Small lightweight event-sourcing library.
+a symfony integration of a small lightweight [event-sourcing](https://github.com/patchlevel/event-sourcing) library.
 
 ## installation
 
@@ -35,7 +34,69 @@ doctrine:
 patchlevel_event_sourcing:
     store:
         dbal_connection: eventstore
+        type: dbal_multi_table
     aggregates:
         App\Domain\Profile\Profile: profile
     message_bus: event.bus
+```
+
+
+## commands
+
+### create schema
+
+```
+bin/console event-sourcing:schema:create
+```
+
+### update schema
+
+```
+bin/console event-sourcing:schema:update
+```
+
+### drop schema
+
+```
+bin/console event-sourcing:schema:update
+```
+
+### prepare projection
+
+```
+bin/console event-sourcing:projection:create
+```
+
+### drop projection
+
+```
+bin/console event-sourcing:projection:drop
+```
+
+### rebuild projection
+
+```
+bin/console event-sourcing:projection:rebuild
+```
+
+### watch server
+
+dev config:
+
+```
+patchlevel_event_sourcing:
+    watch_server:
+        enabled: true
+```
+
+command:
+
+```
+bin/console event-sourcing:watch
+```
+
+### show events
+
+```
+bin/console event-sourcing:show aggregate id
 ```
