@@ -379,12 +379,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "72e754a62c2c795b219289efe2d4984d82d54df5"
+                "reference": "3f06e9b7bc6bc20b822aa46a40caddbb9b25e92c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/72e754a62c2c795b219289efe2d4984d82d54df5",
-                "reference": "72e754a62c2c795b219289efe2d4984d82d54df5",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/3f06e9b7bc6bc20b822aa46a40caddbb9b25e92c",
+                "reference": "3f06e9b7bc6bc20b822aa46a40caddbb9b25e92c",
                 "shasum": ""
             },
             "require": {
@@ -438,7 +438,7 @@
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
                 "source": "https://github.com/patchlevel/event-sourcing/tree/master"
             },
-            "time": "2021-02-03T13:21:36+00:00"
+            "time": "2021-02-07T09:49:42+00:00"
         },
         {
             "name": "psr/container",
@@ -4268,16 +4268,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "0.12.71",
+            "version": "0.12.72",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "d508fa3b0ecc5fc91ac70c6c7ac2862f968ba2b5"
+                "reference": "ae32fb1c5e97979f424c3ccec4ee435a35754769"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/d508fa3b0ecc5fc91ac70c6c7ac2862f968ba2b5",
-                "reference": "d508fa3b0ecc5fc91ac70c6c7ac2862f968ba2b5",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/ae32fb1c5e97979f424c3ccec4ee435a35754769",
+                "reference": "ae32fb1c5e97979f424c3ccec4ee435a35754769",
                 "shasum": ""
             },
             "require": {
@@ -4308,7 +4308,7 @@
             "description": "PHPStan - PHP Static Analysis Tool",
             "support": {
                 "issues": "https://github.com/phpstan/phpstan/issues",
-                "source": "https://github.com/phpstan/phpstan/tree/0.12.71"
+                "source": "https://github.com/phpstan/phpstan/tree/0.12.72"
             },
             "funding": [
                 {
@@ -4324,7 +4324,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-02-01T18:24:00+00:00"
+            "time": "2021-02-06T18:34:03+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
