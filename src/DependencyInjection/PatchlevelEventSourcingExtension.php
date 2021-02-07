@@ -51,11 +51,16 @@ class PatchlevelEventSourcingExtension extends Extension
         $this->configureAggregates($config, $container);
         $this->configureCommands($config, $container);
 
-        if ($config['watch_server']['enabled']) {
-            $this->configureWatchServer($config, $container);
+        if (!$config['watch_server']['enabled']) {
+            return;
         }
+
+        $this->configureWatchServer($config, $container);
     }
 
+    /**
+     * @param array<string, mixed> $config
+     */
     private function configureEventBus(array $config, ContainerBuilder $container): void
     {
         $container->register(SymfonyEventBus::class)
@@ -67,6 +72,9 @@ class PatchlevelEventSourcingExtension extends Extension
             ->addTag('messenger.message_handler', ['bus' => $config['message_bus']]);
     }
 
+    /**
+     * @param array<string, mixed> $config
+     */
     private function configureProjection(array $config, ContainerBuilder $container): void
     {
         $container->register(ProjectionListener::class)
@@ -82,6 +90,9 @@ class PatchlevelEventSourcingExtension extends Extension
         $container->setAlias(ProjectionRepository::class, DefaultProjectionRepository::class);
     }
 
+    /**
+     * @param array<string, mixed> $config
+     */
     private function configureStorage(array $config, ContainerBuilder $container): void
     {
         if ($config['store']['schema_manager']) {
@@ -98,7 +109,7 @@ class PatchlevelEventSourcingExtension extends Extension
                 ->setArguments([
                     new Reference($dbalConnectionId),
                     $config['aggregates'],
-                    $config['store']['options']['table_name'] ?? 'eventstore'
+                    $config['store']['options']['table_name'] ?? 'eventstore',
                 ]);
 
             $container->setAlias(Store::class, SingleTableStore::class)
@@ -124,6 +135,9 @@ class PatchlevelEventSourcingExtension extends Extension
             ->setPublic(true);
     }
 
+    /**
+     * @param array<string, mixed> $config
+     */
     private function configureAggregates(array $config, ContainerBuilder $container): void
     {
         $container->setParameter('event_sourcing.aggregates', $config['aggregates']);
@@ -141,6 +155,9 @@ class PatchlevelEventSourcingExtension extends Extension
         }
     }
 
+    /**
+     * @param array<string, mixed> $config
+     */
     private function configureCommands(array $config, ContainerBuilder $container): void
     {
         $container->register(SchemaCreateCommand::class)
@@ -186,11 +203,14 @@ class PatchlevelEventSourcingExtension extends Extension
         $container->register(ShowCommand::class)
             ->setArguments([
                 new Reference(Store::class),
-                $config['aggregates']
+                $config['aggregates'],
             ])
             ->addTag('console.command');
     }
 
+    /**
+     * @param array<string, mixed> $config
+     */
     private function configureWatchServer(array $config, ContainerBuilder $container): void
     {
         $container->register(WatchServerClient::class)
