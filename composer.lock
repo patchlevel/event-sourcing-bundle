@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ced078c9db4c92484337cab63c086b74",
+    "content-hash": "8d73b19cc4169060aea6e8fa3edeb368",
     "packages": [
         {
             "name": "doctrine/cache",
@@ -375,16 +375,16 @@
         },
         {
             "name": "patchlevel/event-sourcing",
-            "version": "dev-master",
+            "version": "1.0.0-alpha",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "3f06e9b7bc6bc20b822aa46a40caddbb9b25e92c"
+                "reference": "3a643cfca5e60e09706da15fc3fbb04ae1de6cef"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/3f06e9b7bc6bc20b822aa46a40caddbb9b25e92c",
-                "reference": "3f06e9b7bc6bc20b822aa46a40caddbb9b25e92c",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/3a643cfca5e60e09706da15fc3fbb04ae1de6cef",
+                "reference": "3a643cfca5e60e09706da15fc3fbb04ae1de6cef",
                 "shasum": ""
             },
             "require": {
@@ -408,7 +408,6 @@
             "suggest": {
                 "symfony/messenger": "for an advanced message bus"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -436,9 +435,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
-                "source": "https://github.com/patchlevel/event-sourcing/tree/master"
+                "source": "https://github.com/patchlevel/event-sourcing/tree/1.0.0-alpha"
             },
-            "time": "2021-02-07T09:49:42+00:00"
+            "time": "2021-03-15T13:43:38+00:00"
         },
         {
             "name": "psr/container",
@@ -6804,7 +6803,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "patchlevel/event-sourcing": 20,
+        "patchlevel/event-sourcing": 15,
         "roave/security-advisories": 20
     },
     "prefer-stable": false,
