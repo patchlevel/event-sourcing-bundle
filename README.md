@@ -54,7 +54,7 @@ In your own repository, use this configuration to auto-wire the PatchLevel repos
 ```
 services:
     ...
-    App\Infrastructure\EventSourcing\Repository\CartRepository:
+    App\Infrastructure\EventSourcing\Repository\ProfileRepository:
       arguments:
         $repository: '@event_sourcing.profile_repository'
 ```
