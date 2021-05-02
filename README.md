@@ -116,7 +116,7 @@ bin/console event-sourcing:watch
 ### show events
 
 ```
-bin/console event-sourcing:show aggregate_id
+bin/console event-sourcing:show aggregate id
 ```
 
 ## Pipeline
