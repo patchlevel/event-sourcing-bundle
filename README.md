@@ -12,8 +12,9 @@ a symfony integration of a small lightweight [event-sourcing](https://github.com
 composer require patchlevel/event-sourcing-bundle
 ```
 
-## config
+## configuration
 
+### Add the event bus to the symfony messenger config:
 ```
 framework:
     messenger:
@@ -22,6 +23,7 @@ framework:
                 default_middleware: allow_no_handlers
 ```
 
+### Set the database connection 
 ```
 doctrine:
     dbal:
@@ -29,6 +31,10 @@ doctrine:
             eventstore:
                 url: '%env(EVENTSTORE_URL)%'
 ```
+
+### Define your aggregates with class namespace and the table name
+
+Class `App\Domain\Profile\Profile` is from the [libraries example](https://github.com/patchlevel/event-sourcing#define-aggregates) and is using the table name `profile` 
 
 ```
 patchlevel_event_sourcing:
@@ -40,6 +46,18 @@ patchlevel_event_sourcing:
     message_bus: event.bus
 ```
 
+### Define which repository the aggregates is using
+
+The service `@event_sourcing.profile_repository` with prefix `profile` is created magically from the configuration above. 
+In your own repository, use this configuration to auto-wire the PatchLevel repository accordingly to your aggregate. 
+
+```
+services:
+    ...
+    App\Infrastructure\EventSourcing\Repository\CartRepository:
+      arguments:
+        $repository: '@event_sourcing.profile_repository'
+```
 
 ## commands
 
@@ -98,7 +116,7 @@ bin/console event-sourcing:watch
 ### show events
 
 ```
-bin/console event-sourcing:show aggregate id
+bin/console event-sourcing:show aggregate_id
 ```
 
 ## Pipeline
