@@ -38,11 +38,15 @@ use function sprintf;
 class PatchlevelEventSourcingExtension extends Extension
 {
     /**
-     * {@inheritdoc}
+     * @param array<array-key, mixed> $configs
      */
-    public function load(array $configs, ContainerBuilder $container)
+    public function load(array $configs, ContainerBuilder $container): void
     {
         $configuration = new Configuration();
+
+        /**
+         * @var array{message_bus: string, watch_server: array{enabled: bool, host: string}, store: array{schema_manager: string, dbal_connection: string, type: string, options: array<string, mixed>}, aggregates: array<string, string>} $config
+         */
         $config = $this->processConfiguration($configuration, $configs);
 
         $this->configureEventBus($config, $container);
@@ -59,7 +63,7 @@ class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array<string, mixed> $config
+     * @param array{message_bus: string} $config
      */
     private function configureEventBus(array $config, ContainerBuilder $container): void
     {
@@ -73,7 +77,7 @@ class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array<string, mixed> $config
+     * @param array{message_bus: string} $config
      */
     private function configureProjection(array $config, ContainerBuilder $container): void
     {
@@ -91,7 +95,7 @@ class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array<string, mixed> $config
+     * @param array{store: array{schema_manager: string, dbal_connection: string, type: string, options: array<string, mixed>}, aggregates: array<string, string>} $config
      */
     private function configureStorage(array $config, ContainerBuilder $container): void
     {
@@ -136,7 +140,7 @@ class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array<string, mixed> $config
+     * @param array{aggregates: array<string, string>} $config
      */
     private function configureAggregates(array $config, ContainerBuilder $container): void
     {
@@ -156,7 +160,7 @@ class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array<string, mixed> $config
+     * @param array{aggregates: array<string, string>} $config
      */
     private function configureCommands(array $config, ContainerBuilder $container): void
     {
@@ -209,7 +213,7 @@ class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array<string, mixed> $config
+     * @param array{message_bus: string, watch_server: array{host: string}} $config
      */
     private function configureWatchServer(array $config, ContainerBuilder $container): void
     {
