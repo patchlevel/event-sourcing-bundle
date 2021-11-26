@@ -9,6 +9,10 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 class Configuration implements ConfigurationInterface
 {
+    /**
+     * @psalm-suppress MixedMethodCall
+     * @psalm-suppress PossiblyUndefinedMethod
+     */
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('patchlevel_event_sourcing');
