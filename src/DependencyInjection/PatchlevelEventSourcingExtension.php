@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\DependencyInjection;
 
+use Doctrine\Migrations\Configuration\Connection\ExistingConnection;
+use Doctrine\Migrations\Configuration\Migration\ConfigurationArray;
+use Doctrine\Migrations\DependencyFactory;
+use Doctrine\Migrations\Provider\SchemaProvider;
+use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
+use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionDropCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionRebuildCommand;
@@ -28,14 +34,16 @@ use Patchlevel\EventSourcing\Store\Store;
 use Patchlevel\EventSourcing\WatchServer\WatchListener;
 use Patchlevel\EventSourcing\WatchServer\WatchServer;
 use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
+use Patchlevel\EventSourcingBundle\Migration\EventSourcingSchemaProvider;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
+use function class_exists;
 use function sprintf;
 
-class PatchlevelEventSourcingExtension extends Extension
+final class PatchlevelEventSourcingExtension extends Extension
 {
     /**
      * @param array<array-key, mixed> $configs
@@ -45,7 +53,7 @@ class PatchlevelEventSourcingExtension extends Extension
         $configuration = new Configuration();
 
         /**
-         * @var array{message_bus: string, watch_server: array{enabled: bool, host: string}, store: array{schema_manager: string, dbal_connection: string, type: string, options: array<string, mixed>}, aggregates: array<string, string>} $config
+         * @var array{message_bus: string, watch_server: array{enabled: bool, host: string}, store: array{schema_manager: string, dbal_connection: string, type: string, options: array<string, mixed>}, aggregates: array<string, string>, migration: array{path: string, namespace: string}} $config
          */
         $config = $this->processConfiguration($configuration, $configs);
 
@@ -54,6 +62,10 @@ class PatchlevelEventSourcingExtension extends Extension
         $this->configureStorage($config, $container);
         $this->configureAggregates($config, $container);
         $this->configureCommands($config, $container);
+
+        if (class_exists(DependencyFactory::class)) {
+            $this->configureMigration($config, $container);
+        }
 
         if (!$config['watch_server']['enabled']) {
             return;
@@ -230,6 +242,50 @@ class PatchlevelEventSourcingExtension extends Extension
         $container->register(WatchCommand::class)
             ->setArguments([
                 new Reference(WatchServer::class),
+            ])
+            ->addTag('console.command');
+    }
+
+    /**
+     * @param array{store: array{dbal_connection: string}, migration: array{path: string, namespace: string}} $config
+     */
+    private function configureMigration(array $config, ContainerBuilder $container): void
+    {
+        $container->register('event_sourcing.migration.configuration', ConfigurationArray::class)
+            ->setArguments([
+                [
+                    'migrations_paths' => [$config['migration']['namespace'] => $config['migration']['path']],
+                ],
+            ]);
+
+        $container->register('event_sourcing.migration.connection', ExistingConnection::class)
+            ->setArguments([new Reference(sprintf('doctrine.dbal.%s_connection', $config['store']['dbal_connection']))]);
+
+        $container->register(EventSourcingSchemaProvider::class)
+            ->setArguments([new Reference(Store::class)]);
+
+        $container->register('event_sourcing.migration.dependency_factory', DependencyFactory::class)
+            ->setFactory([DependencyFactory::class, 'fromConnection'])
+            ->setArguments([
+                new Reference('event_sourcing.migration.configuration'),
+                new Reference('event_sourcing.migration.connection'),
+            ])
+            ->addMethodCall('setService', [
+                SchemaProvider::class,
+                new Reference(EventSourcingSchemaProvider::class),
+            ]);
+
+        $container->register('event_sourcing.command.diff', DiffCommand::class)
+            ->setArguments([
+                new Reference('event_sourcing.migration.dependency_factory'),
+                'event-sourcing:migration:diff',
+            ])
+            ->addTag('console.command');
+
+        $container->register('event_sourcing.command.migrate', MigrateCommand::class)
+            ->setArguments([
+                new Reference('event_sourcing.migration.dependency_factory'),
+                'event-sourcing:migration:migrate',
             ])
             ->addTag('console.command');
     }

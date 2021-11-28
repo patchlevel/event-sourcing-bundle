@@ -7,7 +7,7 @@ namespace Patchlevel\EventSourcingBundle\DependencyInjection;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
-class Configuration implements ConfigurationInterface
+final class Configuration implements ConfigurationInterface
 {
     /**
      * @psalm-suppress MixedMethodCall
@@ -54,6 +54,16 @@ class Configuration implements ConfigurationInterface
             ->booleanNode('enabled')->defaultValue(false)->end()
 
             ->scalarNode('host')->defaultValue('127.0.0.1:5000')->end()
+
+            ->end()
+            ->end()
+
+            ->arrayNode('migration')
+            ->addDefaultsIfNotSet()
+            ->children()
+
+            ->scalarNode('namespace')->defaultValue('EventSourcingMigrations')->end()
+            ->scalarNode('path')->defaultValue('%kernel.project_dir%/migrations')->end()
 
             ->end()
             ->end()
