@@ -298,33 +298,23 @@ final class PatchlevelEventSourcingExtension extends Extension
             ]);
 
         $container->register('event_sourcing.command.diff', DiffCommand::class)
-            ->setArguments([
-                new Reference('event_sourcing.migration.dependency_factory')
-            ])
+            ->setArguments([new Reference('event_sourcing.migration.dependency_factory')])
             ->addTag('console.command', ['command' => 'event-sourcing:migration:diff']);
 
         $container->register('event_sourcing.command.migrate', MigrateCommand::class)
-            ->setArguments([
-                new Reference('event_sourcing.migration.dependency_factory')
-            ])
+            ->setArguments([new Reference('event_sourcing.migration.dependency_factory')])
             ->addTag('console.command', ['command' => 'event-sourcing:migration:migrate']);
 
         $container->register('event_sourcing.command.current', CurrentCommand::class)
-            ->setArguments([
-                new Reference('event_sourcing.migration.dependency_factory')
-            ])
+            ->setArguments([new Reference('event_sourcing.migration.dependency_factory')])
             ->addTag('console.command', ['command' => 'event-sourcing:migration:current']);
 
         $container->register('event_sourcing.command.execute', ExecuteCommand::class)
-            ->setArguments([
-                new Reference('event_sourcing.migration.dependency_factory')
-            ])
+            ->setArguments([new Reference('event_sourcing.migration.dependency_factory')])
             ->addTag('console.command', ['command' => 'event-sourcing:migration:execute']);
 
         $container->register('event_sourcing.command.status', StatusCommand::class)
-            ->setArguments([
-                new Reference('event_sourcing.migration.dependency_factory')
-            ])
+            ->setArguments([new Reference('event_sourcing.migration.dependency_factory')])
             ->addTag('console.command', ['command' => 'event-sourcing:migration:status']);
     }
 }
