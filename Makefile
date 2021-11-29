@@ -25,7 +25,7 @@ phpunit: vendor                                                                 
 	vendor/bin/phpunit --testdox --colors=always -v $(OPTIONS)
 
 .PHONY: static
-static: phpstan psalm phpcs-check                                               ## run static analyser
+static: psalm phpstan phpcs-check                                               ## run static analyser
 
 test: phpunit                                                                   ## run tests
 
