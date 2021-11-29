@@ -421,12 +421,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "71be346b6c1b9c9d31c22ebd54f54d9c77ffc534"
+                "reference": "e9ce4690e7d072f2a96021dc5c319ff29bc77667"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/71be346b6c1b9c9d31c22ebd54f54d9c77ffc534",
-                "reference": "71be346b6c1b9c9d31c22ebd54f54d9c77ffc534",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/e9ce4690e7d072f2a96021dc5c319ff29bc77667",
+                "reference": "e9ce4690e7d072f2a96021dc5c319ff29bc77667",
                 "shasum": ""
             },
             "require": {
@@ -479,7 +479,7 @@
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
                 "source": "https://github.com/patchlevel/event-sourcing/tree/database-commands"
             },
-            "time": "2021-11-29T11:21:16+00:00"
+            "time": "2021-11-29T15:24:26+00:00"
         },
         {
             "name": "psr/cache",

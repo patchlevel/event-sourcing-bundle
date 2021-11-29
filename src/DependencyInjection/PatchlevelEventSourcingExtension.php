@@ -23,6 +23,7 @@ use Patchlevel\EventSourcing\Console\Command\SchemaDropCommand;
 use Patchlevel\EventSourcing\Console\Command\SchemaUpdateCommand;
 use Patchlevel\EventSourcing\Console\Command\ShowCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
+use Patchlevel\EventSourcing\Console\DoctrineHelper;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\Listener;
 use Patchlevel\EventSourcing\EventBus\SymfonyEventBus;
@@ -181,15 +182,19 @@ final class PatchlevelEventSourcingExtension extends Extension
      */
     private function configureCommands(array $config, ContainerBuilder $container): void
     {
+        $container->register(DoctrineHelper::class);
+
         $container->register(DatabaseCreateCommand::class)
             ->setArguments([
                 new Reference(Store::class),
+                new Reference(DoctrineHelper::class),
             ])
             ->addTag('console.command');
 
         $container->register(DatabaseDropCommand::class)
             ->setArguments([
                 new Reference(Store::class),
+                new Reference(DoctrineHelper::class),
             ])
             ->addTag('console.command');
 
