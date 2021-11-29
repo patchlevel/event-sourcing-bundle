@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8bdf226e1183f5f67bcf8606f0dd1260",
+    "content-hash": "485161c9de479586a714daa8fed9c7ba",
     "packages": [
         {
             "name": "doctrine/cache",
@@ -417,16 +417,16 @@
         },
         {
             "name": "patchlevel/event-sourcing",
-            "version": "dev-database-commands",
+            "version": "1.0.0-alpha2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "e9ce4690e7d072f2a96021dc5c319ff29bc77667"
+                "reference": "7ec9686d1f0294836097126c254d8037e91c5b4e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/e9ce4690e7d072f2a96021dc5c319ff29bc77667",
-                "reference": "e9ce4690e7d072f2a96021dc5c319ff29bc77667",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/7ec9686d1f0294836097126c254d8037e91c5b4e",
+                "reference": "7ec9686d1f0294836097126c254d8037e91c5b4e",
                 "shasum": ""
             },
             "require": {
@@ -477,9 +477,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
-                "source": "https://github.com/patchlevel/event-sourcing/tree/database-commands"
+                "source": "https://github.com/patchlevel/event-sourcing/tree/1.0.0-alpha2"
             },
-            "time": "2021-11-29T15:24:26+00:00"
+            "time": "2021-11-29T16:12:05+00:00"
         },
         {
             "name": "psr/cache",
@@ -7488,7 +7488,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "patchlevel/event-sourcing": 20,
+        "patchlevel/event-sourcing": 15,
         "roave/security-advisories": 20
     },
     "prefer-stable": false,
