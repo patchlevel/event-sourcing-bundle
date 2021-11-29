@@ -24,6 +24,7 @@ use Patchlevel\EventSourcing\Console\Command\SchemaUpdateCommand;
 use Patchlevel\EventSourcing\Console\Command\ShowCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
 use Patchlevel\EventSourcing\Console\DoctrineHelper;
+use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\Listener;
 use Patchlevel\EventSourcing\EventBus\SymfonyEventBus;
@@ -81,27 +82,42 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{message_bus: string} $config
+     * @param array{message_bus: ?string} $config
      */
     private function configureEventBus(array $config, ContainerBuilder $container): void
     {
-        $container->register(SymfonyEventBus::class)
-            ->setArguments([new Reference($config['message_bus'])]);
+        if ($config['message_bus']) {
+            $container->register(SymfonyEventBus::class)
+                ->setArguments([new Reference($config['message_bus'])]);
 
-        $container->setAlias(EventBus::class, SymfonyEventBus::class);
+            $container->setAlias(EventBus::class, SymfonyEventBus::class);
+
+            $container->registerForAutoconfiguration(Listener::class)
+                ->addTag('messenger.message_handler', ['bus' => $config['message_bus']]);
+
+            return;
+        }
+
+        $container->register(DefaultEventBus::class);
+        $container->setAlias(EventBus::class, DefaultEventBus::class);
 
         $container->registerForAutoconfiguration(Listener::class)
-            ->addTag('messenger.message_handler', ['bus' => $config['message_bus']]);
+            ->addTag('event_sourcing.event_listener');
     }
 
     /**
-     * @param array{message_bus: string} $config
+     * @param array{message_bus: ?string} $config
      */
     private function configureProjection(array $config, ContainerBuilder $container): void
     {
-        $container->register(ProjectionListener::class)
-            ->setArguments([new Reference(ProjectionRepository::class)])
-            ->addTag('messenger.message_handler', ['bus' => $config['message_bus']]);
+        $projectionListener = $container->register(ProjectionListener::class)
+            ->setArguments([new Reference(ProjectionRepository::class)]);
+
+        if ($config['message_bus']) {
+            $projectionListener->addTag('messenger.message_handler', ['bus' => $config['message_bus']]);
+        } else {
+            $projectionListener->addTag('event_sourcing.event_listener');
+        }
 
         $container->registerForAutoconfiguration(Projection::class)
             ->addTag('event_sourcing.projection');
@@ -247,16 +263,21 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{message_bus: string, watch_server: array{host: string}} $config
+     * @param array{message_bus: ?string, watch_server: array{host: string}} $config
      */
     private function configureWatchServer(array $config, ContainerBuilder $container): void
     {
         $container->register(WatchServerClient::class)
             ->setArguments([$config['watch_server']['host']]);
 
-        $container->register(WatchListener::class)
-            ->setArguments([new Reference(WatchServerClient::class)])
-            ->addTag('messenger.message_handler', ['bus' => $config['message_bus']]);
+        $listener = $container->register(WatchListener::class)
+            ->setArguments([new Reference(WatchServerClient::class)]);
+
+        if ($config['message_bus']) {
+            $listener->addTag('messenger.message_handler', ['bus' => $config['message_bus']]);
+        } else {
+            $listener->addTag('event_sourcing.event_listener');
+        }
 
         $container->register(WatchServer::class)
             ->setArguments([$config['watch_server']['host']]);

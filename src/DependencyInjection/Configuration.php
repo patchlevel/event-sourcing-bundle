@@ -38,8 +38,7 @@ final class Configuration implements ConfigurationInterface
             ->end()
 
             ->scalarNode('message_bus')
-            ->isRequired()
-            ->cannotBeEmpty()
+            ->defaultNull()
             ->end()
 
             ->arrayNode('aggregates')
