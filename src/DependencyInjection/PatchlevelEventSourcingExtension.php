@@ -8,8 +8,13 @@ use Doctrine\Migrations\Configuration\Connection\ExistingConnection;
 use Doctrine\Migrations\Configuration\Migration\ConfigurationArray;
 use Doctrine\Migrations\DependencyFactory;
 use Doctrine\Migrations\Provider\SchemaProvider;
+use Doctrine\Migrations\Tools\Console\Command\CurrentCommand;
 use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
+use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
 use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
+use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
+use Patchlevel\EventSourcing\Console\Command\DatabaseCreateCommand;
+use Patchlevel\EventSourcing\Console\Command\DatabaseDropCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionDropCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionRebuildCommand;
@@ -176,6 +181,18 @@ final class PatchlevelEventSourcingExtension extends Extension
      */
     private function configureCommands(array $config, ContainerBuilder $container): void
     {
+        $container->register(DatabaseCreateCommand::class)
+            ->setArguments([
+                new Reference(Store::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(DatabaseDropCommand::class)
+            ->setArguments([
+                new Reference(Store::class),
+            ])
+            ->addTag('console.command');
+
         $container->register(SchemaCreateCommand::class)
             ->setArguments([
                 new Reference(Store::class),
@@ -277,16 +294,32 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->register('event_sourcing.command.diff', DiffCommand::class)
             ->setArguments([
-                new Reference('event_sourcing.migration.dependency_factory'),
-                'event-sourcing:migration:diff',
+                new Reference('event_sourcing.migration.dependency_factory')
             ])
-            ->addTag('console.command');
+            ->addTag('console.command', ['command' => 'event-sourcing:migration:diff']);
 
         $container->register('event_sourcing.command.migrate', MigrateCommand::class)
             ->setArguments([
-                new Reference('event_sourcing.migration.dependency_factory'),
-                'event-sourcing:migration:migrate',
+                new Reference('event_sourcing.migration.dependency_factory')
             ])
-            ->addTag('console.command');
+            ->addTag('console.command', ['command' => 'event-sourcing:migration:migrate']);
+
+        $container->register('event_sourcing.command.current', CurrentCommand::class)
+            ->setArguments([
+                new Reference('event_sourcing.migration.dependency_factory')
+            ])
+            ->addTag('console.command', ['command' => 'event-sourcing:migration:current']);
+
+        $container->register('event_sourcing.command.execute', ExecuteCommand::class)
+            ->setArguments([
+                new Reference('event_sourcing.migration.dependency_factory')
+            ])
+            ->addTag('console.command', ['command' => 'event-sourcing:migration:execute']);
+
+        $container->register('event_sourcing.command.status', StatusCommand::class)
+            ->setArguments([
+                new Reference('event_sourcing.migration.dependency_factory')
+            ])
+            ->addTag('console.command', ['command' => 'event-sourcing:migration:status']);
     }
 }

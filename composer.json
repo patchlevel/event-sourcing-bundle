@@ -21,7 +21,7 @@
     "php": "^7.4|^8.0",
     "ext-json": "^7.4|^8.0",
     "doctrine/dbal": "^3.1.4",
-    "patchlevel/event-sourcing": "1.0.0-alpha",
+    "patchlevel/event-sourcing": "dev-database-commands",
     "psr/simple-cache": "^1.0.1",
     "symfony/messenger": "^4.4.18|^5.1.10",
     "symfony/dependency-injection": "^4.4.18|^5.1.10",
