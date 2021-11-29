@@ -59,7 +59,32 @@ services:
         $repository: '@event_sourcing.profile_repository'
 ```
 
+### Enable migrations
+
+You can use doctrine migration to create and update the event store schema. You only need to install following package `doctrine/migrations`.
+After it you has some new cli commands like `event-sourcing:migration:diff` and `event-sourcing:migration:migrate`.
+You can also change the namespace and the folder in the configuration.
+
+```
+patchlevel_event_sourcing:
+    migration:
+        namespace: EventSourcingMigrations
+        path: "%kernel.project_dir%/migrations"
+```
+
 ## commands
+
+### create database
+
+```
+bin/console event-sourcing:database:create
+```
+
+### drop database
+
+```
+bin/console event-sourcing:database:drop
+```
 
 ### create schema
 
