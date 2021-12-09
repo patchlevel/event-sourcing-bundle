@@ -34,6 +34,7 @@ use Patchlevel\EventSourcing\Projection\ProjectionListener;
 use Patchlevel\EventSourcing\Projection\ProjectionRepository;
 use Patchlevel\EventSourcing\Repository\Repository;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaManager;
+use Patchlevel\EventSourcing\Schema\MigrationSchemaProvider;
 use Patchlevel\EventSourcing\Schema\SchemaManager;
 use Patchlevel\EventSourcing\Store\MultiTableStore;
 use Patchlevel\EventSourcing\Store\SingleTableStore;
@@ -41,7 +42,6 @@ use Patchlevel\EventSourcing\Store\Store;
 use Patchlevel\EventSourcing\WatchServer\WatchListener;
 use Patchlevel\EventSourcing\WatchServer\WatchServer;
 use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
-use Patchlevel\EventSourcingBundle\Migration\EventSourcingSchemaProvider;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
@@ -304,7 +304,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register('event_sourcing.migration.connection', ExistingConnection::class)
             ->setArguments([new Reference(sprintf('doctrine.dbal.%s_connection', $config['store']['dbal_connection']))]);
 
-        $container->register(EventSourcingSchemaProvider::class)
+        $container->register(MigrationSchemaProvider::class)
             ->setArguments([new Reference(Store::class)]);
 
         $container->register('event_sourcing.migration.dependency_factory', DependencyFactory::class)
@@ -315,7 +315,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             ])
             ->addMethodCall('setService', [
                 SchemaProvider::class,
-                new Reference(EventSourcingSchemaProvider::class),
+                new Reference(MigrationSchemaProvider::class),
             ]);
 
         $container->register('event_sourcing.command.diff', DiffCommand::class)
