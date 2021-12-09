@@ -42,7 +42,8 @@ patchlevel_event_sourcing:
         dbal_connection: eventstore
         type: dbal_multi_table
     aggregates:
-        App\Domain\Profile\Profile: profile
+        profile:
+            class: App\Domain\Profile\Profile
     message_bus: event.bus
 ```
 

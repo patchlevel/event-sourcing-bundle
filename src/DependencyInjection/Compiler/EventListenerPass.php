@@ -10,8 +10,6 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
 use function array_keys;
-use function assert;
-use function is_string;
 
 class EventListenerPass implements CompilerPassInterface
 {
