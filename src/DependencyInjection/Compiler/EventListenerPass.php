@@ -22,6 +22,7 @@ class EventListenerPass implements CompilerPassInterface
         }
 
         foreach (array_keys($container->findTaggedServiceIds('event_sourcing.event_listener')) as $id) {
+            /** @psalm-suppress RedundantConditionGivenDocblockType */
             assert(is_string($id));
             $container->getDefinition(DefaultEventBus::class)->addMethodCall('addListener', [new Reference($id)]);
         }
