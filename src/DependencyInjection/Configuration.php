@@ -79,7 +79,7 @@ final class Configuration implements ConfigurationInterface
 
             ->arrayPrototype()
             ->children()
-            ->enumNode('type')->values(['psr6', 'psr16', 'service'])->end()
+            ->enumNode('type')->values(['psr6', 'psr16', 'custom'])->end()
             ->scalarNode('id')->end()
             ->end()
             ->end()
