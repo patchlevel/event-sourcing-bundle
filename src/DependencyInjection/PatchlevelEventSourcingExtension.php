@@ -36,6 +36,9 @@ use Patchlevel\EventSourcing\Repository\Repository;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaManager;
 use Patchlevel\EventSourcing\Schema\MigrationSchemaProvider;
 use Patchlevel\EventSourcing\Schema\SchemaManager;
+use Patchlevel\EventSourcing\Snapshot\Psr16SnapshotStore;
+use Patchlevel\EventSourcing\Snapshot\Psr6SnapshotStore;
+use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
 use Patchlevel\EventSourcing\Store\MultiTableStore;
 use Patchlevel\EventSourcing\Store\SingleTableStore;
 use Patchlevel\EventSourcing\Store\Store;
@@ -60,13 +63,14 @@ final class PatchlevelEventSourcingExtension extends Extension
         $configuration = new Configuration();
 
         /**
-         * @var array{message_bus: string, watch_server: array{enabled: bool, host: string}, store: array{schema_manager: string, dbal_connection: string, type: string, options: array<string, mixed>}, aggregates: array<string, string>, migration: array{path: string, namespace: string}} $config
+         * @var array{message_bus: string, watch_server: array{enabled: bool, host: string}, store: array{schema_manager: string, dbal_connection: string, type: string, options: array<string, mixed>}, aggregates: array<string, array{class: string, snapshot_store: ?string}>, snapshot_stores: array<string, array{type: string, id: string}>, migration: array{path: string, namespace: string}} $config
          */
         $config = $this->processConfiguration($configuration, $configs);
 
         $this->configureEventBus($config, $container);
         $this->configureProjection($config, $container);
         $this->configureStorage($config, $container);
+        $this->configureSnapshots($config, $container);
         $this->configureAggregates($config, $container);
         $this->configureCommands($config, $container);
 
@@ -129,7 +133,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{store: array{schema_manager: string, dbal_connection: string, type: string, options: array<string, mixed>}, aggregates: array<string, string>} $config
+     * @param array{store: array{schema_manager: string, dbal_connection: string, type: string, options: array<string, mixed>}, aggregates: array<string, array{class: string, snapshot_store: ?string}>} $config
      */
     private function configureStorage(array $config, ContainerBuilder $container): void
     {
@@ -146,7 +150,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             $container->register(SingleTableStore::class)
                 ->setArguments([
                     new Reference($dbalConnectionId),
-                    $config['aggregates'],
+                    $this->aggregateHashMap($config['aggregates']),
                     $config['store']['options']['table_name'] ?? 'eventstore',
                 ]);
 
@@ -160,7 +164,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             $container->register(MultiTableStore::class)
                 ->setArguments([
                     new Reference($dbalConnectionId),
-                    $config['aggregates'],
+                    $this->aggregateHashMap($config['aggregates']),
                 ]);
 
             $container->setAlias(Store::class, MultiTableStore::class)
@@ -174,27 +178,61 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{aggregates: array<string, string>} $config
+     * @param array{snapshot_stores: array<string, array{type: string, id: string}>} $config
+     */
+    private function configureSnapshots(array $config, ContainerBuilder $container): void
+    {
+        foreach ($config['snapshot_stores'] as $name => $definition) {
+            $id = sprintf('event_sourcing.snapshot_store.%s', $name);
+
+            if ($definition['type'] === 'psr6') {
+                $container->register($id, Psr6SnapshotStore::class)
+                    ->setArguments([new Reference($definition['id'])]);
+
+                continue;
+            }
+
+            if ($definition['type'] === 'psr16') {
+                $container->register($id, Psr16SnapshotStore::class)
+                    ->setArguments([new Reference($definition['id'])]);
+
+                continue;
+            }
+
+            $container->register($id, SnapshotStore::class)
+                ->setArguments([new Reference($definition['id'])]);
+        }
+    }
+
+    /**
+     * @param array{aggregates: array<string, array{class: string, snapshot_store: ?string}>} $config
      */
     private function configureAggregates(array $config, ContainerBuilder $container): void
     {
         $container->setParameter('event_sourcing.aggregates', $config['aggregates']);
 
-        foreach ($config['aggregates'] as $aggregateClass => $aggregateName) {
+        foreach ($config['aggregates'] as $aggregateName => $definition) {
+            $snapshot = null;
+
+            if ($definition['snapshot_store']) {
+                $snapshot = new Reference(sprintf('event_sourcing.snapshot_store.%s', $definition['snapshot_store']));
+            }
+
             $id = sprintf('event_sourcing.%s_repository', $aggregateName);
 
             $container->register($id, Repository::class)
                 ->setArguments([
                     new Reference(Store::class),
                     new Reference(EventBus::class),
-                    $aggregateClass,
+                    $definition['class'],
+                    $snapshot,
                 ])
                 ->setPublic(true);
         }
     }
 
     /**
-     * @param array{aggregates: array<string, string>} $config
+     * @param array{aggregates: array<string, array{class: string, snapshot_store: ?string}>} $config
      */
     private function configureCommands(array $config, ContainerBuilder $container): void
     {
@@ -257,7 +295,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(ShowCommand::class)
             ->setArguments([
                 new Reference(Store::class),
-                $config['aggregates'],
+                $this->aggregateHashMap($config['aggregates']),
             ])
             ->addTag('console.command');
     }
@@ -337,5 +375,21 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register('event_sourcing.command.status', StatusCommand::class)
             ->setArguments([new Reference('event_sourcing.migration.dependency_factory')])
             ->addTag('console.command', ['command' => 'event-sourcing:migration:status']);
+    }
+
+    /**
+     * @param array<string, array{class: string, snapshot_store: ?string}> $aggregateDefinition
+     *
+     * @return array<string, string>
+     */
+    private function aggregateHashMap(array $aggregateDefinition): array
+    {
+        $result = [];
+
+        foreach ($aggregateDefinition as $name => $definition) {
+            $result[$definition['class']] = $name;
+        }
+
+        return $result;
     }
 }

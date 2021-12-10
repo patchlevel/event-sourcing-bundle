@@ -42,8 +42,15 @@ final class Configuration implements ConfigurationInterface
             ->end()
 
             ->arrayNode('aggregates')
-            ->useAttributeAsKey('class')
-            ->scalarPrototype()->end()
+            ->useAttributeAsKey('name')
+
+            ->arrayPrototype()
+            ->children()
+            ->scalarNode('class')->end()
+            ->scalarNode('snapshot_store')->defaultNull()->end()
+            ->end()
+            ->end()
+
             ->end()
 
             ->arrayNode('watch_server')
@@ -65,6 +72,18 @@ final class Configuration implements ConfigurationInterface
             ->scalarNode('path')->defaultValue('%kernel.project_dir%/migrations')->end()
 
             ->end()
+            ->end()
+
+            ->arrayNode('snapshot_stores')
+            ->useAttributeAsKey('name')
+
+            ->arrayPrototype()
+            ->children()
+            ->enumNode('type')->values(['psr6', 'psr16', 'custom'])->end()
+            ->scalarNode('id')->end()
+            ->end()
+            ->end()
+
             ->end()
 
             ->end();
