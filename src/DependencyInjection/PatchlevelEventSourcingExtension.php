@@ -36,6 +36,7 @@ use Patchlevel\EventSourcing\Repository\Repository;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaManager;
 use Patchlevel\EventSourcing\Schema\MigrationSchemaProvider;
 use Patchlevel\EventSourcing\Schema\SchemaManager;
+use Patchlevel\EventSourcing\Snapshot\Psr16SnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\Psr6SnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
 use Patchlevel\EventSourcing\Store\MultiTableStore;
@@ -62,7 +63,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $configuration = new Configuration();
 
         /**
-         * @var array{message_bus: string, watch_server: array{enabled: bool, host: string}, store: array{schema_manager: string, dbal_connection: string, type: string, options: array<string, mixed>}, aggregates: array<string, array{class: string, snapshot: ?string}>, snapshots: array<string, array{type: string, cache: ?string, id: ?string}>, migration: array{path: string, namespace: string}} $config
+         * @var array{message_bus: string, watch_server: array{enabled: bool, host: string}, store: array{schema_manager: string, dbal_connection: string, type: string, options: array<string, mixed>}, aggregates: array<string, array{class: string, snapshot_store: ?string}>, snapshot_stores: array<string, array{type: string, id: string}>, migration: array{path: string, namespace: string}} $config
          */
         $config = $this->processConfiguration($configuration, $configs);
 
@@ -132,7 +133,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{store: array{schema_manager: string, dbal_connection: string, type: string, options: array<string, mixed>}, aggregates: array<string, array{class: string, snapshot: ?string}>} $config
+     * @param array{store: array{schema_manager: string, dbal_connection: string, type: string, options: array<string, mixed>}, aggregates: array<string, array{class: string, snapshot_store: ?string}>} $config
      */
     private function configureStorage(array $config, ContainerBuilder $container): void
     {
@@ -177,23 +178,24 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{snapshots: array<string, array{type: string, cache: ?string, id: ?string}>} $config
+     * @param array{snapshot_stores: array<string, array{type: string, id: string}>} $config
      */
     private function configureSnapshots(array $config, ContainerBuilder $container): void
     {
-        foreach ($config['snapshots'] as $name => $definition) {
-            $id = sprintf('event_sourcing.snapshot.%s', $name);
+        foreach ($config['snapshot_stores'] as $name => $definition) {
+            $id = sprintf('event_sourcing.snapshot_store.%s', $name);
 
-            if ($definition['type'] === 'cache' && $definition['cache']) {
-                $cacheId = sprintf('cache.%s', $definition['cache']);
-
+            if ($definition['type'] === 'psr6') {
                 $container->register($id, Psr6SnapshotStore::class)
-                    ->setArguments([new Reference($cacheId)]);
+                    ->setArguments([new Reference($definition['id'])]);
 
                 continue;
             }
 
-            if ($definition['type'] !== 'service' || !$definition['id']) {
+            if ($definition['type'] === 'psr16') {
+                $container->register($id, Psr16SnapshotStore::class)
+                    ->setArguments([new Reference($definition['id'])]);
+
                 continue;
             }
 
@@ -203,7 +205,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{aggregates: array<string, array{class: string, snapshot: ?string}>} $config
+     * @param array{aggregates: array<string, array{class: string, snapshot_store: ?string}>} $config
      */
     private function configureAggregates(array $config, ContainerBuilder $container): void
     {
@@ -212,8 +214,8 @@ final class PatchlevelEventSourcingExtension extends Extension
         foreach ($config['aggregates'] as $aggregateName => $definition) {
             $snapshot = null;
 
-            if ($definition['snapshot']) {
-                $snapshot = new Reference(sprintf('event_sourcing.snapshot.%s', $definition['snapshot']));
+            if ($definition['snapshot_store']) {
+                $snapshot = new Reference(sprintf('event_sourcing.snapshot_store.%s', $definition['snapshot_store']));
             }
 
             $id = sprintf('event_sourcing.%s_repository', $aggregateName);
@@ -230,7 +232,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{aggregates: array<string, array{class: string, snapshot: ?string}>} $config
+     * @param array{aggregates: array<string, array{class: string, snapshot_store: ?string}>} $config
      */
     private function configureCommands(array $config, ContainerBuilder $container): void
     {
@@ -376,7 +378,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array<string, array{class: string, snapshot: ?string}> $aggregateDefinition
+     * @param array<string, array{class: string, snapshot_store: ?string}> $aggregateDefinition
      *
      * @return array<string, string>
      */

@@ -60,17 +60,17 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                 'aggregates' => [
                     'profile' => [
                         'class' => SnapshotableProfile::class,
-                        'snapshot' => 'default'
+                        'snapshot_store' => 'default'
                     ],
                 ],
                 'migration' => [
                     'namespace' => 'Foo',
                     'path' => 'src'
                 ],
-                'snapshots' => [
+                'snapshot_stores' => [
                     'default' => [
-                        'type' => 'cache',
-                        'cache' => 'default'
+                        'type' => 'psr6',
+                        'id' => 'cache.default'
                     ]
                 ],
                 'watch_server' => [

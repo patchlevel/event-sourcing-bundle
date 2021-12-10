@@ -47,7 +47,7 @@ final class Configuration implements ConfigurationInterface
             ->arrayPrototype()
             ->children()
             ->scalarNode('class')->end()
-            ->scalarNode('snapshot')->defaultNull()->end()
+            ->scalarNode('snapshot_store')->defaultNull()->end()
             ->end()
             ->end()
 
@@ -74,14 +74,13 @@ final class Configuration implements ConfigurationInterface
             ->end()
             ->end()
 
-            ->arrayNode('snapshots')
+            ->arrayNode('snapshot_stores')
             ->useAttributeAsKey('name')
 
             ->arrayPrototype()
             ->children()
-            ->enumNode('type')->values(['cache', 'service'])->end()
-            ->scalarNode('cache')->defaultNull()->end()
-            ->scalarNode('id')->defaultNull()->end()
+            ->enumNode('type')->values(['psr6', 'psr16', 'service'])->end()
+            ->scalarNode('id')->end()
             ->end()
             ->end()
 
