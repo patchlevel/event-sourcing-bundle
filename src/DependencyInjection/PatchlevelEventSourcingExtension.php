@@ -41,7 +41,6 @@ use Patchlevel\EventSourcing\Schema\MigrationSchemaProvider;
 use Patchlevel\EventSourcing\Schema\SchemaManager;
 use Patchlevel\EventSourcing\Snapshot\Psr16SnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\Psr6SnapshotStore;
-use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
 use Patchlevel\EventSourcing\Store\MultiTableStore;
 use Patchlevel\EventSourcing\Store\SingleTableStore;
 use Patchlevel\EventSourcing\Store\Store;
@@ -68,7 +67,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $configuration = new Configuration();
 
         /**
-         * @var array{message_bus: string, watch_server: array{enabled: bool, host: string}, store: array{schema_manager: string, service: ?string, url: ?string, type: string, options: array<string, mixed>}, aggregates: array<string, array{class: string, snapshot_store: ?string}>, snapshot_stores: array<string, array{type: string, id: string}>, migration: array{path: string, namespace: string}} $config
+         * @var array{event_bus: ?array{type: string, service: string}, watch_server: array{enabled: bool, host: string}, connection: ?array{service: ?string, url: ?string}, store: array{schema_manager: string, type: string, options: array<string, mixed>}, aggregates: array<string, array{class: string, snapshot_store: ?string}>, snapshot_stores: array<string, array{type: string, service: string}>, migration: array{path: string, namespace: string}} $config
          */
         $config = $this->processConfiguration($configuration, $configs);
 
@@ -152,27 +151,28 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->setAlias(ProjectionRepository::class, DefaultProjectionRepository::class);
     }
 
-
     /**
      * @param array{connection: array{url: ?string, service: ?string}} $config
      */
     private function configureConnection(array $config, ContainerBuilder $container): void
     {
         if ($config['connection']['url']) {
-            $container->register('event_sourcing.dbal_connection',Connection::class)
+            $container->register('event_sourcing.dbal_connection', Connection::class)
                 ->setFactory([DriverManager::class, 'getConnection'])
                 ->setArguments([
                     [
                         'url' => $config['connection']['url'],
-                    ]
+                    ],
                 ]);
 
             return;
         }
 
-        if ($config['connection']['service']) {
-            $container->setAlias('event_sourcing.dbal_connection', $config['connection']['service']);
+        if (!$config['connection']['service']) {
+            return;
         }
+
+        $container->setAlias('event_sourcing.dbal_connection', $config['connection']['service']);
     }
 
     /**
@@ -200,16 +200,18 @@ final class PatchlevelEventSourcingExtension extends Extension
             return;
         }
 
-        if ($config['store']['type'] === 'multi_table') {
-            $container->register(MultiTableStore::class)
-                ->setArguments([
-                    new Reference('event_sourcing.dbal_connection'),
-                    $this->aggregateHashMap($config['aggregates']),
-                    $config['store']['options']['table_name'] ?? 'eventstore',
-                ]);
-
-            $container->setAlias(Store::class, MultiTableStore::class);
+        if ($config['store']['type'] !== 'multi_table') {
+            return;
         }
+
+        $container->register(MultiTableStore::class)
+            ->setArguments([
+                new Reference('event_sourcing.dbal_connection'),
+                $this->aggregateHashMap($config['aggregates']),
+                $config['store']['options']['table_name'] ?? 'eventstore',
+            ]);
+
+        $container->setAlias(Store::class, MultiTableStore::class);
     }
 
     /**
@@ -256,7 +258,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                         $definition['class'],
                         new Reference(
                             sprintf('event_sourcing.snapshot_store.%s', $definition['snapshot_store'])
-                        )
+                        ),
                     ])
                     ->setPublic(true);
             } else {
@@ -264,7 +266,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                     ->setArguments([
                         new Reference(Store::class),
                         new Reference(EventBus::class),
-                        $definition['class']
+                        $definition['class'],
                     ])
                     ->setPublic(true);
             }
@@ -341,7 +343,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{message_bus: ?string, watch_server: array{host: string}} $config
+     * @param array{event_bus: ?array{type: string, service: string}, watch_server: array{host: string}} $config
      */
     private function configureWatchServer(array $config, ContainerBuilder $container): void
     {
