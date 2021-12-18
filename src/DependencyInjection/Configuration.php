@@ -17,6 +17,7 @@ final class Configuration implements ConfigurationInterface
     {
         $treeBuilder = new TreeBuilder('patchlevel_event_sourcing');
 
+        // @codingStandardsIgnoreStart
         $rootNode = $treeBuilder->getRootNode();
         $rootNode->children()
             ->arrayNode('connection')
@@ -84,6 +85,7 @@ final class Configuration implements ConfigurationInterface
             ->end()
 
         ->end();
+        // @codingStandardsIgnoreEnd
 
         return $treeBuilder;
     }
