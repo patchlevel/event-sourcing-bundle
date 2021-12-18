@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\DependencyInjection;
 
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DriverManager;
 use Doctrine\Migrations\Configuration\Connection\ExistingConnection;
 use Doctrine\Migrations\Configuration\Migration\ConfigurationArray;
 use Doctrine\Migrations\DependencyFactory;
@@ -32,7 +34,8 @@ use Patchlevel\EventSourcing\Projection\DefaultProjectionRepository;
 use Patchlevel\EventSourcing\Projection\Projection;
 use Patchlevel\EventSourcing\Projection\ProjectionListener;
 use Patchlevel\EventSourcing\Projection\ProjectionRepository;
-use Patchlevel\EventSourcing\Repository\Repository;
+use Patchlevel\EventSourcing\Repository\DefaultRepository;
+use Patchlevel\EventSourcing\Repository\SnapshotRepository;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaManager;
 use Patchlevel\EventSourcing\Schema\MigrationSchemaProvider;
 use Patchlevel\EventSourcing\Schema\SchemaManager;
@@ -42,6 +45,8 @@ use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
 use Patchlevel\EventSourcing\Store\MultiTableStore;
 use Patchlevel\EventSourcing\Store\SingleTableStore;
 use Patchlevel\EventSourcing\Store\Store;
+use Patchlevel\EventSourcing\WatchServer\DefaultWatchServer;
+use Patchlevel\EventSourcing\WatchServer\DefaultWatchServerClient;
 use Patchlevel\EventSourcing\WatchServer\WatchListener;
 use Patchlevel\EventSourcing\WatchServer\WatchServer;
 use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
@@ -63,12 +68,17 @@ final class PatchlevelEventSourcingExtension extends Extension
         $configuration = new Configuration();
 
         /**
-         * @var array{message_bus: string, watch_server: array{enabled: bool, host: string}, store: array{schema_manager: string, dbal_connection: string, type: string, options: array<string, mixed>}, aggregates: array<string, array{class: string, snapshot_store: ?string}>, snapshot_stores: array<string, array{type: string, id: string}>, migration: array{path: string, namespace: string}} $config
+         * @var array{message_bus: string, watch_server: array{enabled: bool, host: string}, store: array{schema_manager: string, service: ?string, url: ?string, type: string, options: array<string, mixed>}, aggregates: array<string, array{class: string, snapshot_store: ?string}>, snapshot_stores: array<string, array{type: string, id: string}>, migration: array{path: string, namespace: string}} $config
          */
         $config = $this->processConfiguration($configuration, $configs);
 
+        if (!isset($config['connection'])) {
+            return;
+        }
+
         $this->configureEventBus($config, $container);
         $this->configureProjection($config, $container);
+        $this->configureConnection($config, $container);
         $this->configureStorage($config, $container);
         $this->configureSnapshots($config, $container);
         $this->configureAggregates($config, $container);
@@ -86,39 +96,49 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{message_bus: ?string} $config
+     * @param array{event_bus: ?array{type: string, service: string}} $config
      */
     private function configureEventBus(array $config, ContainerBuilder $container): void
     {
-        if ($config['message_bus']) {
-            $container->register(SymfonyEventBus::class)
-                ->setArguments([new Reference($config['message_bus'])]);
-
-            $container->setAlias(EventBus::class, SymfonyEventBus::class);
+        if (!isset($config['event_bus'])) {
+            $container->register(DefaultEventBus::class);
+            $container->setAlias(EventBus::class, DefaultEventBus::class);
 
             $container->registerForAutoconfiguration(Listener::class)
-                ->addTag('messenger.message_handler', ['bus' => $config['message_bus']]);
+                ->addTag('event_sourcing.event_listener');
 
             return;
         }
 
-        $container->register(DefaultEventBus::class);
-        $container->setAlias(EventBus::class, DefaultEventBus::class);
+        if ($config['event_bus']['type'] === 'symfony') {
+            $container->register(SymfonyEventBus::class)
+                ->setArguments([new Reference($config['event_bus']['service'])]);
+
+            $container->setAlias(EventBus::class, SymfonyEventBus::class);
+
+            $container->registerForAutoconfiguration(Listener::class)
+                ->addTag('messenger.message_handler', ['bus' => $config['event_bus']['service']]);
+
+            return;
+        }
+
+        $container->register($config['event_bus']['service'], EventBus::class);
+        $container->setAlias(EventBus::class, $config['event_bus']['service']);
 
         $container->registerForAutoconfiguration(Listener::class)
             ->addTag('event_sourcing.event_listener');
     }
 
     /**
-     * @param array{message_bus: ?string} $config
+     * @param array{event_bus: ?array{type: string, service: string}} $config
      */
     private function configureProjection(array $config, ContainerBuilder $container): void
     {
         $projectionListener = $container->register(ProjectionListener::class)
             ->setArguments([new Reference(ProjectionRepository::class)]);
 
-        if ($config['message_bus']) {
-            $projectionListener->addTag('messenger.message_handler', ['bus' => $config['message_bus']]);
+        if (isset($config['event_bus']) && $config['event_bus']['type'] === 'symfony') {
+            $projectionListener->addTag('messenger.message_handler', ['bus' => $config['event_bus']['service']]);
         } else {
             $projectionListener->addTag('event_sourcing.event_listener');
         }
@@ -132,8 +152,31 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->setAlias(ProjectionRepository::class, DefaultProjectionRepository::class);
     }
 
+
     /**
-     * @param array{store: array{schema_manager: string, dbal_connection: string, type: string, options: array<string, mixed>}, aggregates: array<string, array{class: string, snapshot_store: ?string}>} $config
+     * @param array{connection: array{url: ?string, service: ?string}} $config
+     */
+    private function configureConnection(array $config, ContainerBuilder $container): void
+    {
+        if ($config['connection']['url']) {
+            $container->register('event_sourcing.dbal_connection',Connection::class)
+                ->setFactory([DriverManager::class, 'getConnection'])
+                ->setArguments([
+                    [
+                        'url' => $config['connection']['url'],
+                    ]
+                ]);
+
+            return;
+        }
+
+        if ($config['connection']['service']) {
+            $container->setAlias('event_sourcing.dbal_connection', $config['connection']['service']);
+        }
+    }
+
+    /**
+     * @param array{store: array{schema_manager: string, type: string, options: array<string, mixed>}, aggregates: array<string, array{class: string, snapshot_store: ?string}>} $config
      */
     private function configureStorage(array $config, ContainerBuilder $container): void
     {
@@ -144,41 +187,33 @@ final class PatchlevelEventSourcingExtension extends Extension
             $container->setAlias(SchemaManager::class, DoctrineSchemaManager::class);
         }
 
-        $dbalConnectionId = sprintf('doctrine.dbal.%s_connection', $config['store']['dbal_connection']);
-
-        if ($config['store']['type'] === 'dbal_single_table') {
+        if ($config['store']['type'] === 'single_table') {
             $container->register(SingleTableStore::class)
                 ->setArguments([
-                    new Reference($dbalConnectionId),
+                    new Reference('event_sourcing.dbal_connection'),
                     $this->aggregateHashMap($config['aggregates']),
                     $config['store']['options']['table_name'] ?? 'eventstore',
                 ]);
 
-            $container->setAlias(Store::class, SingleTableStore::class)
-                ->setPublic(true);
+            $container->setAlias(Store::class, SingleTableStore::class);
 
             return;
         }
 
-        if ($config['store']['type'] === 'dbal_multi_table') {
+        if ($config['store']['type'] === 'multi_table') {
             $container->register(MultiTableStore::class)
                 ->setArguments([
-                    new Reference($dbalConnectionId),
+                    new Reference('event_sourcing.dbal_connection'),
                     $this->aggregateHashMap($config['aggregates']),
+                    $config['store']['options']['table_name'] ?? 'eventstore',
                 ]);
 
-            $container->setAlias(Store::class, MultiTableStore::class)
-                ->setPublic(true);
-
-            return;
+            $container->setAlias(Store::class, MultiTableStore::class);
         }
-
-        $container->setAlias(Store::class, $config['store']['type'])
-            ->setPublic(true);
     }
 
     /**
-     * @param array{snapshot_stores: array<string, array{type: string, id: string}>} $config
+     * @param array{snapshot_stores: array<string, array{type: string, service: string}>} $config
      */
     private function configureSnapshots(array $config, ContainerBuilder $container): void
     {
@@ -187,20 +222,19 @@ final class PatchlevelEventSourcingExtension extends Extension
 
             if ($definition['type'] === 'psr6') {
                 $container->register($id, Psr6SnapshotStore::class)
-                    ->setArguments([new Reference($definition['id'])]);
+                    ->setArguments([new Reference($definition['service'])]);
 
                 continue;
             }
 
             if ($definition['type'] === 'psr16') {
                 $container->register($id, Psr16SnapshotStore::class)
-                    ->setArguments([new Reference($definition['id'])]);
+                    ->setArguments([new Reference($definition['service'])]);
 
                 continue;
             }
 
-            $container->register($id, SnapshotStore::class)
-                ->setArguments([new Reference($definition['id'])]);
+            $container->setAlias($id, $definition['service']);
         }
     }
 
@@ -212,22 +246,28 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->setParameter('event_sourcing.aggregates', $config['aggregates']);
 
         foreach ($config['aggregates'] as $aggregateName => $definition) {
-            $snapshot = null;
+            $id = sprintf('event_sourcing.repository.%s', $aggregateName);
 
             if ($definition['snapshot_store']) {
-                $snapshot = new Reference(sprintf('event_sourcing.snapshot_store.%s', $definition['snapshot_store']));
+                $container->register($id, SnapshotRepository::class)
+                    ->setArguments([
+                        new Reference(Store::class),
+                        new Reference(EventBus::class),
+                        $definition['class'],
+                        new Reference(
+                            sprintf('event_sourcing.snapshot_store.%s', $definition['snapshot_store'])
+                        )
+                    ])
+                    ->setPublic(true);
+            } else {
+                $container->register($id, DefaultRepository::class)
+                    ->setArguments([
+                        new Reference(Store::class),
+                        new Reference(EventBus::class),
+                        $definition['class']
+                    ])
+                    ->setPublic(true);
             }
-
-            $id = sprintf('event_sourcing.%s_repository', $aggregateName);
-
-            $container->register($id, Repository::class)
-                ->setArguments([
-                    new Reference(Store::class),
-                    new Reference(EventBus::class),
-                    $definition['class'],
-                    $snapshot,
-                ])
-                ->setPublic(true);
         }
     }
 
@@ -305,20 +345,24 @@ final class PatchlevelEventSourcingExtension extends Extension
      */
     private function configureWatchServer(array $config, ContainerBuilder $container): void
     {
-        $container->register(WatchServerClient::class)
+        $container->register(DefaultWatchServerClient::class)
             ->setArguments([$config['watch_server']['host']]);
+
+        $container->setAlias(WatchServerClient::class, DefaultWatchServerClient::class);
 
         $listener = $container->register(WatchListener::class)
             ->setArguments([new Reference(WatchServerClient::class)]);
 
-        if ($config['message_bus']) {
-            $listener->addTag('messenger.message_handler', ['bus' => $config['message_bus']]);
+        if (isset($config['event_bus']) && $config['event_bus']['type'] === 'symfony') {
+            $listener->addTag('messenger.message_handler', ['bus' => $config['event_bus']['service']]);
         } else {
             $listener->addTag('event_sourcing.event_listener');
         }
 
-        $container->register(WatchServer::class)
+        $container->register(DefaultWatchServer::class)
             ->setArguments([$config['watch_server']['host']]);
+
+        $container->setAlias(WatchServer::class, DefaultWatchServer::class);
 
         $container->register(WatchCommand::class)
             ->setArguments([
@@ -328,7 +372,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{store: array{dbal_connection: string}, migration: array{path: string, namespace: string}} $config
+     * @param array{migration: array{path: string, namespace: string}} $config
      */
     private function configureMigration(array $config, ContainerBuilder $container): void
     {
@@ -340,7 +384,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             ]);
 
         $container->register('event_sourcing.migration.connection', ExistingConnection::class)
-            ->setArguments([new Reference(sprintf('doctrine.dbal.%s_connection', $config['store']['dbal_connection']))]);
+            ->setArguments([new Reference('event_sourcing.dbal_connection')]);
 
         $container->register(MigrationSchemaProvider::class)
             ->setArguments([new Reference(Store::class)]);
@@ -356,23 +400,23 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(MigrationSchemaProvider::class),
             ]);
 
-        $container->register('event_sourcing.command.diff', DiffCommand::class)
+        $container->register('event_sourcing.command.migration_diff', DiffCommand::class)
             ->setArguments([new Reference('event_sourcing.migration.dependency_factory')])
             ->addTag('console.command', ['command' => 'event-sourcing:migration:diff']);
 
-        $container->register('event_sourcing.command.migrate', MigrateCommand::class)
+        $container->register('event_sourcing.command.migration_migrate', MigrateCommand::class)
             ->setArguments([new Reference('event_sourcing.migration.dependency_factory')])
             ->addTag('console.command', ['command' => 'event-sourcing:migration:migrate']);
 
-        $container->register('event_sourcing.command.current', CurrentCommand::class)
+        $container->register('event_sourcing.command.migration_current', CurrentCommand::class)
             ->setArguments([new Reference('event_sourcing.migration.dependency_factory')])
             ->addTag('console.command', ['command' => 'event-sourcing:migration:current']);
 
-        $container->register('event_sourcing.command.execute', ExecuteCommand::class)
+        $container->register('event_sourcing.command.migration_execute', ExecuteCommand::class)
             ->setArguments([new Reference('event_sourcing.migration.dependency_factory')])
             ->addTag('console.command', ['command' => 'event-sourcing:migration:execute']);
 
-        $container->register('event_sourcing.command.status', StatusCommand::class)
+        $container->register('event_sourcing.command.migration_status', StatusCommand::class)
             ->setArguments([new Reference('event_sourcing.migration.dependency_factory')])
             ->addTag('console.command', ['command' => 'event-sourcing:migration:status']);
     }
