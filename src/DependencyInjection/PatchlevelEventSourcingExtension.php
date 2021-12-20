@@ -35,6 +35,7 @@ use Patchlevel\EventSourcing\Projection\Projection;
 use Patchlevel\EventSourcing\Projection\ProjectionListener;
 use Patchlevel\EventSourcing\Projection\ProjectionRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
+use Patchlevel\EventSourcing\Repository\Repository;
 use Patchlevel\EventSourcing\Repository\SnapshotRepository;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaManager;
 use Patchlevel\EventSourcing\Schema\MigrationSchemaProvider;
@@ -270,6 +271,8 @@ final class PatchlevelEventSourcingExtension extends Extension
                     ])
                     ->setPublic(true);
             }
+
+            $container->registerAliasForArgument($id, Repository::class, $aggregateName . 'Repository');
         }
     }
 
