@@ -17,76 +17,75 @@ final class Configuration implements ConfigurationInterface
     {
         $treeBuilder = new TreeBuilder('patchlevel_event_sourcing');
 
+        // @codingStandardsIgnoreStart
         $rootNode = $treeBuilder->getRootNode();
         $rootNode->children()
+            ->arrayNode('connection')
+                ->children()
+                    ->scalarNode('service')->defaultNull()->end()
+                    ->scalarNode('url')->defaultNull()->end()
+                ->end()
+            ->end()
+
             ->arrayNode('store')
-            ->addDefaultsIfNotSet()
-            ->children()
-
-            ->enumNode('type')
-            ->values(['dbal_single_table', 'dbal_multi_table'])
-            ->defaultValue('dbal_single_table')
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->enumNode('type')
+                        ->values(['single_table', 'multi_table'])
+                        ->defaultValue('multi_table')
+                    ->end()
+                    ->scalarNode('schema_manager')->defaultNull()->end()
+                ->end()
             ->end()
 
-            ->scalarNode('dbal_connection')
-            ->defaultValue('default')
-            ->end()
-
-            ->scalarNode('schema_manager')->defaultNull()->end()
-
-            ->end()
-            ->end()
-
-            ->scalarNode('message_bus')
-            ->defaultNull()
+            ->arrayNode('event_bus')
+                ->children()
+                    ->enumNode('type')
+                        ->values(['symfony', 'custom'])
+                        ->defaultValue('symfony')
+                    ->end()
+                    ->scalarNode('service')->defaultNull()->end()
+                ->end()
             ->end()
 
             ->arrayNode('aggregates')
-            ->useAttributeAsKey('name')
-
-            ->arrayPrototype()
-            ->children()
-            ->scalarNode('class')->end()
-            ->scalarNode('snapshot_store')->defaultNull()->end()
-            ->end()
-            ->end()
-
+                ->useAttributeAsKey('name')
+                ->arrayPrototype()
+                    ->children()
+                        ->scalarNode('class')->end()
+                        ->scalarNode('snapshot_store')->defaultNull()->end()
+                    ->end()
+                ->end()
             ->end()
 
             ->arrayNode('watch_server')
-            ->addDefaultsIfNotSet()
-            ->children()
-
-            ->booleanNode('enabled')->defaultValue(false)->end()
-
-            ->scalarNode('host')->defaultValue('127.0.0.1:5000')->end()
-
-            ->end()
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->booleanNode('enabled')->defaultValue(false)->end()
+                    ->scalarNode('host')->defaultValue('127.0.0.1:5000')->end()
+                ->end()
             ->end()
 
             ->arrayNode('migration')
-            ->addDefaultsIfNotSet()
-            ->children()
-
-            ->scalarNode('namespace')->defaultValue('EventSourcingMigrations')->end()
-            ->scalarNode('path')->defaultValue('%kernel.project_dir%/migrations')->end()
-
-            ->end()
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->scalarNode('namespace')->defaultValue('EventSourcingMigrations')->end()
+                    ->scalarNode('path')->defaultValue('%kernel.project_dir%/migrations')->end()
+                ->end()
             ->end()
 
             ->arrayNode('snapshot_stores')
-            ->useAttributeAsKey('name')
-
-            ->arrayPrototype()
-            ->children()
-            ->enumNode('type')->values(['psr6', 'psr16', 'custom'])->end()
-            ->scalarNode('id')->end()
-            ->end()
-            ->end()
-
+                ->useAttributeAsKey('name')
+                ->arrayPrototype()
+                    ->children()
+                        ->enumNode('type')->values(['psr6', 'psr16', 'custom'])->defaultValue('psr6')->end()
+                        ->scalarNode('service')->end()
+                    ->end()
+                ->end()
             ->end()
 
-            ->end();
+        ->end();
+        // @codingStandardsIgnoreEnd
 
         return $treeBuilder;
     }

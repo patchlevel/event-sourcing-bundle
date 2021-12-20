@@ -14,37 +14,19 @@ composer require patchlevel/event-sourcing-bundle
 
 ## configuration
 
-### Add the event bus to the symfony messenger config:
-```
-framework:
-    messenger:
-        buses:
-            event.bus:
-                default_middleware: allow_no_handlers
-```
-
-### Set the database connection 
-```
-doctrine:
-    dbal:
-        connections:
-            eventstore:
-                url: '%env(EVENTSTORE_URL)%'
-```
-
 ### Define your aggregates with class namespace and the table name
 
 Class `App\Domain\Profile\Profile` is from the [libraries example](https://github.com/patchlevel/event-sourcing#define-aggregates) and is using the table name `profile` 
 
 ```
 patchlevel_event_sourcing:
+    connection:
+        url: '%env(EVENTSTORE_URL)%'
     store:
-        dbal_connection: eventstore
-        type: dbal_multi_table
+        type: multi_table
     aggregates:
         profile:
             class: App\Domain\Profile\Profile
-    message_bus: event.bus
 ```
 
 ### Define which repository the aggregates is using
@@ -57,7 +39,7 @@ services:
     ...
     App\Infrastructure\EventSourcing\Repository\ProfileRepository:
       arguments:
-        $repository: '@event_sourcing.profile_repository'
+        $repository: '@event_sourcing.repository.profile'
 ```
 
 ### Enable migrations
@@ -92,8 +74,7 @@ and enter the id from the cache service.
 patchlevel_event_sourcing:
     snapshot_stores:
         default:
-            type: psr6
-            id: event_sourcing.cache
+            service: event_sourcing.cache
 ```
 
 Finally you have to tell the aggregate that it should use this snapshot store.
