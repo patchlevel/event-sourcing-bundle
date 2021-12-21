@@ -1,25 +1,21 @@
+# Tools
 
-command:
+## Show events
 
-```
-bin/console event-sourcing:watch
-```
-
-### show events
-
-```
+```bash
 bin/console event-sourcing:show aggregate id
 ```
 
-
-### watch server
+## Watch events
 
 dev config:
 
-```
+```yaml
 patchlevel_event_sourcing:
     watch_server:
         enabled: true
 ```
 
-
+```bash
+bin/console event-sourcing:watch
+```

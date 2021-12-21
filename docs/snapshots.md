@@ -1,10 +1,23 @@
+# Snapshots
 
+Some aggregates can have a large number of events.
+This is not a problem if there are a few hundred.
+But if the number gets bigger at some point, then loading and rebuilding can become slow.
+The `snapshot` system can be used to control this.
 
-### Enable snapshots
+Normally, the events are all executed again on the aggregate in order to rebuild the current state.
+With a `snapshot`, we can shorten the way in which we temporarily save the current state of the aggregate.
+When loading it is checked whether the snapshot exists.
+If a hit exists, the aggregate is built up with the help of the snapshot.
+A check is then made to see whether further events have existed since the snapshot
+and these are then also executed on the aggregate.
+Here, however, only the last events are loaded from the database and not all.
 
-You can define a snapshot store for individual aggregates. You can use symfony cache to define the target of the snapshotstore.
+## Using Symfony Cache
 
-```
+You can use symfony cache to define the target of the snapshot store.
+
+```yaml
 framework:
     cache:
         pools:
@@ -12,19 +25,20 @@ framework:
                 adapter: cache.adapter.filesystem
 ```
 
-After this, you need define the snapshot store. Symfony cache implement the psr6 interface, so we need choose this type
+After this, you need define the snapshot store. 
+Symfony cache implement the psr6 interface, so we need choose this type
 and enter the id from the cache service.
 
-```
+```yaml
 patchlevel_event_sourcing:
     snapshot_stores:
         default:
             service: event_sourcing.cache
 ```
 
-Finally you have to tell the aggregate that it should use this snapshot store.
+Finally, you have to tell the aggregate that it should use this snapshot store.
 
-```
+```yaml
 patchlevel_event_sourcing:
     aggregates:
         profile:

@@ -8,7 +8,7 @@ a symfony integration of a small lightweight [event-sourcing](https://github.com
 
 ## Installation
 
-```
+```bash
 composer require patchlevel/event-sourcing-bundle
 ```
 
