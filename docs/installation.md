@@ -53,7 +53,7 @@ patchlevel_event_sourcing:
 Finally we have to fill the ENV variable with a connection url.
 
 ```dotenv
-EVENTSTORE_URL: mysql://user:secret@localhost/app
+EVENTSTORE_URL=mysql://user:secret@localhost/app
 ```
 
 > :book: You can find out more about what a connection url looks like [here](https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html#connecting-using-a-url).

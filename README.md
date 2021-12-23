@@ -424,7 +424,7 @@ final class HotelController
 
 ```
 
-> :book: todo: command bus
+> :book: You can also use a [command bus](docs/event_bus.md).
 
 Consult the [bundle documentation](#documentation) 
 or [library documentation](https://github.com/patchlevel/event-sourcing/#documentation) for more information. 
