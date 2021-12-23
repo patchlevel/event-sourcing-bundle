@@ -8,14 +8,17 @@ a symfony integration of a small lightweight [event-sourcing](https://github.com
 
 ## Installation
 
-```
+```bash
 composer require patchlevel/event-sourcing-bundle
 ```
 
-If you don't use the symfony flex recipe for this bundle, you need to follow
+> :warning: If you don't use the symfony flex recipe for this bundle, you need to follow
 this [installation documentation](docs/installation.md).
 
 ## Documentation
+
+We recommend reading the documentation for the [library](https://github.com/patchlevel/event-sourcing) first, 
+as this documentation only deals with bundle integration.
 
 * [Repository](docs/repository.md)
 * [Event Bus](docs/event_bus.md)
