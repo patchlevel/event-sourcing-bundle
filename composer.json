@@ -46,8 +46,8 @@
   },
   "conflict": {
     "doctrine/migrations": "<3.3",
-    "symfony/console": "<4.4",
-    "symfony/cache": "<4.4"
+    "symfony/cache": "<4.4",
+    "symfony/messenger": "<4.4"
   },
   "config": {
     "preferred-install": {
