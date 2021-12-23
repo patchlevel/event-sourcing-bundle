@@ -2,7 +2,7 @@
   "name": "patchlevel/event-sourcing-bundle",
   "type": "symfony-bundle",
   "license": "MIT",
-  "description": "todo",
+  "description": "symfony bundle for patchlevel/event-sourcing",
   "keywords": [
     "event-sourcing"
   ],
@@ -18,8 +18,8 @@
     }
   ],
   "require": {
-    "php": "^7.4|^8.0",
-    "ext-json": "^7.4|^8.0",
+    "php": "~7.4.0|~8.0.0",
+    "ext-json": "~7.4.0|~8.0.0",
     "doctrine/dbal": "^3.1.4",
     "patchlevel/event-sourcing": "^1.0.0",
     "psr/simple-cache": "^1.0.1",
@@ -30,7 +30,7 @@
     "symfony/console": "^4.4.18|^5.1.10"
   },
   "require-dev": {
-    "ext-pdo_sqlite": "^7.4|^8.0",
+    "ext-pdo_sqlite": "~7.4.0|~8.0.0",
     "doctrine/migrations": "^3.3",
     "infection/infection": "^0.21.5",
     "patchlevel/coding-standard": "^1.1.1",
