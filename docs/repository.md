@@ -6,14 +6,28 @@ The [design pattern](https://martinfowler.com/eaaCatalog/repository.html) of the
 Every aggregate needs a repository to be stored.
 And each repository is only responsible for one aggregate.
 
-## Explicit dependency injection
+## Use repositories
 
-The service `@event_sourcing.repository.profile` with suffix `profile` is created magically from the configuration above.
-In your own repository, use this configuration to auto-wire the PatchLevel repository accordingly to your aggregate.
+Every aggregate that has been defined and registered automatically has a repository.
+These repositories can also be auto-updated. 
+To do this, you have to use the Typehint repository and structure the variable as follows. 
+Aggregate name with a `Repository` suffix. For example we have the aggregate `hotel`,
+then you can build the typhint as follows: `Patchlevel\EventSourcing\Repository\Repository $hotelRepository`.
 
-```yaml
-services:
-    App\Domain\Hotel\HotelRepository:
-        arguments:
-            $repository: '@event_sourcing.repository.profile'
+```php
+use Patchlevel\EventSourcing\Repository\Repository;
+
+final class HotelController
+{
+    private Repository $hotelRepository;
+
+    public function __construct(Repository $hotelRepository) 
+    {
+        $this->hotelRepository = $hotelRepository;
+    }
+    
+    // ...
+}
 ```
+
+> :book: You can find out more about autowire [here](https://symfony.com/doc/current/service_container.html#binding-arguments-by-name-or-type)
