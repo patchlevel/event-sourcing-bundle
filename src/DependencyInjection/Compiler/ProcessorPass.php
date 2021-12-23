@@ -11,7 +11,7 @@ use Symfony\Component\DependencyInjection\Reference;
 
 use function array_keys;
 
-class EventListenerPass implements CompilerPassInterface
+class ProcessorPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
@@ -19,7 +19,7 @@ class EventListenerPass implements CompilerPassInterface
             return;
         }
 
-        foreach (array_keys($container->findTaggedServiceIds('event_sourcing.event_listener')) as $id) {
+        foreach (array_keys($container->findTaggedServiceIds('event_sourcing.processor')) as $id) {
             $container->getDefinition(DefaultEventBus::class)->addMethodCall('addListener', [new Reference($id)]);
         }
     }
