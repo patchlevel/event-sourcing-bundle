@@ -18,16 +18,15 @@
     }
   ],
   "require": {
-    "php": "~7.4.0|~8.0.0",
-    "ext-json": "~7.4.0|~8.0.0",
-    "patchlevel/event-sourcing": "^1.0.1",
-    "symfony/dependency-injection": "^4.4.18|^5.1.10",
-    "symfony/http-kernel": "^4.4.18|^5.1.10",
-    "symfony/config": "^4.4.18|^5.1.10",
-    "symfony/console": "^4.4.18|^5.1.10"
+    "php": "~8.0.0|~8.1.0",
+    "patchlevel/event-sourcing": "^1.1.0",
+    "symfony/dependency-injection": "^4.4.34|5.4.0|^6.0.0",
+    "symfony/http-kernel": "^4.4.34|5.4.0|^6.0.0",
+    "symfony/config": "^4.4.34|5.4.0|^6.0.0",
+    "symfony/console": "^4.4.34|5.4.0|^6.0.0"
   },
   "require-dev": {
-    "ext-pdo_sqlite": "~7.4.0|~8.0.0",
+    "ext-pdo_sqlite": "~8.0.0|~8.1.0",
     "doctrine/migrations": "^3.3.2",
     "infection/infection": "^0.21.5",
     "patchlevel/coding-standard": "^1.1.1",
@@ -35,8 +34,8 @@
     "phpstan/phpstan": "^1.2.0",
     "phpunit/phpunit": "^9.5.10",
     "roave/security-advisories": "dev-master",
-    "symfony/messenger": "^4.4.18|^5.1.10",
-    "symfony/var-dumper": "^5.3.11",
+    "symfony/messenger": "^4.4.34|5.4.0|^6.0.0",
+    "symfony/var-dumper": "^5.4.0|^6.0.0",
     "vimeo/psalm": "^4.13.1"
   },
   "suggest": {
