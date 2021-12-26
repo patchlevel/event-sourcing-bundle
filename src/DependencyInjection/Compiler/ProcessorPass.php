@@ -10,6 +10,10 @@ use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
+use function assert;
+use function is_string;
+use function ksort;
+
 class ProcessorPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
@@ -18,17 +22,23 @@ class ProcessorPass implements CompilerPassInterface
             $this->processDefaultEventBus($container);
         }
 
-        if ($container->hasDefinition(SymfonyEventBus::class)) {
-            $this->processSymfonyEventBus($container);
+        if (!$container->hasDefinition(SymfonyEventBus::class)) {
+            return;
         }
+
+        $this->processSymfonyEventBus($container);
     }
 
     private function processDefaultEventBus(ContainerBuilder $container): void
     {
-        /** @var array<int, array<string>> $groupedProcessors */
+        /** @var array<int, list<string>> $groupedProcessors */
         $groupedProcessors = [];
 
+        /**
+         * @var array{priority: ?int} $attributes
+         */
         foreach ($container->findTaggedServiceIds('event_sourcing.processor') as $id => $attributes) {
+            assert(is_string($id));
             $priority = $attributes['priority'] ?? 0;
             $groupedProcessors[$priority][] = $id;
         }
@@ -47,7 +57,11 @@ class ProcessorPass implements CompilerPassInterface
     {
         $eventBusService = $container->getParameter('event_sourcing.event_bus_service');
 
+        /**
+         * @var array{priority: ?int} $attributes
+         */
         foreach ($container->findTaggedServiceIds('event_sourcing.processor') as $id => $attributes) {
+            assert(is_string($id));
             $processor = $container->getDefinition($id);
             $processor->addTag(
                 'messenger.message_handler',
