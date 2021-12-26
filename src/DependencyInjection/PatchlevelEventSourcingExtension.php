@@ -100,12 +100,12 @@ final class PatchlevelEventSourcingExtension extends Extension
      */
     private function configureEventBus(array $config, ContainerBuilder $container): void
     {
+        $container->registerForAutoconfiguration(Listener::class)
+            ->addTag('event_sourcing.processor');
+
         if (!isset($config['event_bus'])) {
             $container->register(DefaultEventBus::class);
             $container->setAlias(EventBus::class, DefaultEventBus::class);
-
-            $container->registerForAutoconfiguration(Listener::class)
-                ->addTag('event_sourcing.processor');
 
             return;
         }
@@ -115,18 +115,13 @@ final class PatchlevelEventSourcingExtension extends Extension
                 ->setArguments([new Reference($config['event_bus']['service'])]);
 
             $container->setAlias(EventBus::class, SymfonyEventBus::class);
-
-            $container->registerForAutoconfiguration(Listener::class)
-                ->addTag('messenger.message_handler', ['bus' => $config['event_bus']['service']]);
+            $container->setParameter('event_sourcing.event_bus_service', $config['event_bus']['service']);
 
             return;
         }
 
         $container->register($config['event_bus']['service'], EventBus::class);
         $container->setAlias(EventBus::class, $config['event_bus']['service']);
-
-        $container->registerForAutoconfiguration(Listener::class)
-            ->addTag('event_sourcing.processor');
     }
 
     /**
@@ -134,14 +129,9 @@ final class PatchlevelEventSourcingExtension extends Extension
      */
     private function configureProjection(array $config, ContainerBuilder $container): void
     {
-        $projectionListener = $container->register(ProjectionListener::class)
-            ->setArguments([new Reference(ProjectionRepository::class)]);
-
-        if (isset($config['event_bus']) && $config['event_bus']['type'] === 'symfony') {
-            $projectionListener->addTag('messenger.message_handler', ['bus' => $config['event_bus']['service']]);
-        } else {
-            $projectionListener->addTag('event_sourcing.processor');
-        }
+        $container->register(ProjectionListener::class)
+            ->setArguments([new Reference(ProjectionRepository::class)])
+            ->addTag('event_sourcing.processor');
 
         $container->registerForAutoconfiguration(Projection::class)
             ->addTag('event_sourcing.projection');
@@ -355,14 +345,9 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->setAlias(WatchServerClient::class, DefaultWatchServerClient::class);
 
-        $listener = $container->register(WatchListener::class)
-            ->setArguments([new Reference(WatchServerClient::class)]);
-
-        if (isset($config['event_bus']) && $config['event_bus']['type'] === 'symfony') {
-            $listener->addTag('messenger.message_handler', ['bus' => $config['event_bus']['service']]);
-        } else {
-            $listener->addTag('event_sourcing.processor');
-        }
+        $container->register(WatchListener::class)
+            ->setArguments([new Reference(WatchServerClient::class)])
+            ->addTag('event_sourcing.processor');
 
         $container->register(DefaultWatchServer::class)
             ->setArguments([$config['watch_server']['host']]);
