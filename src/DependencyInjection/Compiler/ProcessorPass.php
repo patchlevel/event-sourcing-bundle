@@ -25,20 +25,21 @@ class ProcessorPass implements CompilerPassInterface
 
     private function processDefaultEventBus(ContainerBuilder $container): void
     {
-        /** @var array<int, array<string>> $processors */
-        $processors = [];
+        /** @var array<int, array<string>> $groupedProcessors */
+        $groupedProcessors = [];
 
         foreach ($container->findTaggedServiceIds('event_sourcing.processor') as $id => $attributes) {
             $priority = $attributes['priority'] ?? 0;
-            $processors[$priority][] = $id;
+            $groupedProcessors[$priority][] = $id;
         }
 
-        ksort($processors);
-
+        ksort($groupedProcessors);
         $eventBus = $container->getDefinition(DefaultEventBus::class);
 
-        foreach ($processors as $id) {
-            $eventBus->addMethodCall('addListener', [new Reference($id)]);
+        foreach ($groupedProcessors as $processors) {
+            foreach ($processors as $id) {
+                $eventBus->addMethodCall('addListener', [new Reference($id)]);
+            }
         }
     }
 
