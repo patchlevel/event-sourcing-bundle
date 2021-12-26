@@ -77,7 +77,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         }
 
         $this->configureEventBus($config, $container);
-        $this->configureProjection($config, $container);
+        $this->configureProjection($container);
         $this->configureConnection($config, $container);
         $this->configureStorage($config, $container);
         $this->configureSnapshots($config, $container);
@@ -124,10 +124,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->setAlias(EventBus::class, $config['event_bus']['service']);
     }
 
-    /**
-     * @param array{event_bus: ?array{type: string, service: string}} $config
-     */
-    private function configureProjection(array $config, ContainerBuilder $container): void
+    private function configureProjection(ContainerBuilder $container): void
     {
         $container->register(ProjectionListener::class)
             ->setArguments([new Reference(ProjectionRepository::class)])
@@ -336,7 +333,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{event_bus: ?array{type: string, service: string}, watch_server: array{host: string}} $config
+     * @param array{watch_server: array{host: string}} $config
      */
     private function configureWatchServer(array $config, ContainerBuilder $container): void
     {
