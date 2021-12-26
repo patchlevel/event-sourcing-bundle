@@ -376,9 +376,7 @@ final class HotelController
         $this->hotelRepository = $hotelRepository;
     }
 
-    /**
-     * @Route("/create", methods={"POST"})
-     */
+    #[Route("/create", methods:["POST"])]
     public function createAction(Request $request): JsonResponse
     {
         $name = $request->request->get('name'); // need validation!
@@ -391,9 +389,7 @@ final class HotelController
         return new JsonResponse(['id' => $id->toString()]);
     }
     
-    /**
-     * @Route("/:id/check-in", methods={"POST"})
-     */
+    #[Route("/:id/check-in", methods:["POST"])]
     public function createAction(string $id, Request $request): JsonResponse
     {
         $id = Uuid::fromString($id);
@@ -405,10 +401,8 @@ final class HotelController
 
         return new JsonResponse(['id' => $id->toString()]);
     }
-    
-    /**
-     * @Route("/:id/check-out", methods={"POST"})
-     */
+
+     #[Route("/:id/check-out", methods:["POST"])]
     public function createAction(string $id, Request $request): JsonResponse
     {
         $id = Uuid::fromString($id);

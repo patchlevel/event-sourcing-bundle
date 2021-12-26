@@ -43,3 +43,6 @@ framework:
             event.bus:
                 default_middleware: allow_no_handlers
 ```
+
+> :warning: You should deactivate the autoconfigure feature for the handlers, 
+> otherwise they will be registered in both handlers.
