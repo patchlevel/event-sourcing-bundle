@@ -33,7 +33,7 @@ class ProcessorPass implements CompilerPassInterface
         $groupedProcessors = [];
 
         /**
-         * @var list<array{priority: ?int}> $attributes
+         * @var list<array{priority: ?int}> $tags
          */
         foreach ($container->findTaggedServiceIds('event_sourcing.processor') as $id => $tags) {
             foreach ($tags as $attributes) {
@@ -57,7 +57,7 @@ class ProcessorPass implements CompilerPassInterface
         $eventBusService = $container->getParameter('event_sourcing.event_bus_service');
 
         /**
-         * @var list<array{priority: ?int}> $attributes
+         * @var list<array{priority: ?int}> $tags
          */
         foreach ($container->findTaggedServiceIds('event_sourcing.processor') as $id => $tags) {
             foreach ($tags as $attributes) {
