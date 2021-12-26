@@ -50,6 +50,8 @@ use Patchlevel\EventSourcing\WatchServer\DefaultWatchServerClient;
 use Patchlevel\EventSourcing\WatchServer\WatchListener;
 use Patchlevel\EventSourcing\WatchServer\WatchServer;
 use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
+use Patchlevel\EventSourcingBundle\DataCollector\EventCollector;
+use Patchlevel\EventSourcingBundle\DataCollector\EventListener;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
@@ -83,6 +85,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureSnapshots($config, $container);
         $this->configureAggregates($config, $container);
         $this->configureCommands($container);
+        $this->configureProfiler($container);
 
         if (class_exists(DependencyFactory::class)) {
             $this->configureMigration($config, $container);
@@ -403,6 +406,17 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register('event_sourcing.command.migration_status', StatusCommand::class)
             ->setArguments([new Reference('event_sourcing.migration.dependency_factory')])
             ->addTag('console.command', ['command' => 'event-sourcing:migration:status']);
+    }
+
+    private function configureProfiler(ContainerBuilder $container): void
+    {
+        $container->register(EventListener::class)
+            ->addTag('event_sourcing.processor')
+            ->addTag('kernel.reset', ['method' => 'clear']);
+
+        $container->register(EventCollector::class)
+            ->setArguments([new Reference(EventListener::class)])
+            ->addTag('data_collector');
     }
 
     /**
