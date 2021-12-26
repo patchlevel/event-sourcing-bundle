@@ -10,6 +10,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
+/**
+ * @psalm-type DataType = array{
+ *    events: list<AggregateChanged<array<string, mixed>>>
+ * }
+ * @psalm-property DataType $data
+ */
 class EventCollector extends AbstractDataCollector
 {
     private EventListener $eventListener;
