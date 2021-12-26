@@ -296,7 +296,7 @@ final class HotelProjection implements Projection
 }
 ```
 
-> :warning: autoconfigure need to be enabled, otherwise you need add the tag.
+> :warning: autoconfigure need to be enabled, otherwise you need add the `event_sourcing.projection` tag.
 
 > :book: You can find out more about projections [here](./docs/projection.md).
 
@@ -339,7 +339,7 @@ final class SendCheckInEmailListener implements Listener
 }
 ```
 
-> :warning: autoconfigure need to be enabled, otherwise you need add the tag.
+> :warning: autoconfigure need to be enabled, otherwise you need add the `event_sourcing.processor` tag.
 
 > :book: You can find out more about processor [here](./docs/processor.md).
 
