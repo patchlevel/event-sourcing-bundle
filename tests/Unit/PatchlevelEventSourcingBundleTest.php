@@ -49,7 +49,6 @@ use Psr\Cache\CacheItemPoolInterface;
 use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\Messenger\DependencyInjection\MessengerPass;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 class PatchlevelEventSourcingBundleTest extends TestCase
@@ -202,7 +201,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
     {
         $container = new ContainerBuilder();
         $container->setDefinition(Processor1::class, new Definition(Processor1::class))
-            ->addTag('event_sourcing.processor', ['priority' => 128]);
+            ->addTag('event_sourcing.processor', ['priority' => -64]);
         $container->setDefinition(Processor2::class, new Definition(Processor2::class))
             ->addTag('event_sourcing.processor');
 
@@ -221,13 +220,13 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertEquals(
             [
                 'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1' => [
-                    ['priority' => 128],
+                    ['priority' => -64],
                 ],
                 'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor2' => [
                     [],
                 ],
                 'Patchlevel\EventSourcing\Projection\ProjectionListener' => [
-                    ['priority' => 64],
+                    ['priority' => -32],
                 ],
             ],
             $container->findTaggedServiceIds('event_sourcing.processor')
@@ -238,7 +237,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
     {
         $container = new ContainerBuilder();
         $container->setDefinition(Processor1::class, new Definition(Processor1::class))
-            ->addTag('event_sourcing.processor', ['priority' => 128]);
+            ->addTag('event_sourcing.processor', ['priority' => -64]);
         $container->setDefinition(Processor2::class, new Definition(Processor2::class))
             ->addTag('event_sourcing.processor');
 
@@ -260,13 +259,13 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertEquals(
             [
                 'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1' => [
-                    ['bus' => 'event.bus', 'priority' => 128],
+                    ['bus' => 'event.bus', 'priority' => -64],
                 ],
                 'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor2' => [
                     ['bus' => 'event.bus', 'priority' => 0],
                 ],
                 'Patchlevel\EventSourcing\Projection\ProjectionListener' => [
-                    ['bus' => 'event.bus', 'priority' => 64],
+                    ['bus' => 'event.bus', 'priority' => -32],
                 ],
             ],
             $container->findTaggedServiceIds('messenger.message_handler')
@@ -569,7 +568,6 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         $compilerPassConfig = $container->getCompilerPassConfig();
         $compilerPassConfig->setRemovingPasses([]);
         $compilerPassConfig->addPass(new TestCaseAllPublicCompilerPass());
-        $compilerPassConfig->addPass(new MessengerPass());
 
         $container->compile();
     }

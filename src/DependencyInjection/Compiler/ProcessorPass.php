@@ -42,7 +42,7 @@ class ProcessorPass implements CompilerPassInterface
             }
         }
 
-        ksort($groupedProcessors);
+        krsort($groupedProcessors);
         $eventBus = $container->getDefinition(DefaultEventBus::class);
 
         foreach ($groupedProcessors as $processors) {
