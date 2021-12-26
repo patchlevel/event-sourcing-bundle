@@ -33,11 +33,13 @@ class ProcessorPass implements CompilerPassInterface
         $groupedProcessors = [];
 
         /**
-         * @var array{priority: ?int} $attributes
+         * @var list<array{priority: ?int}> $attributes
          */
-        foreach ($container->findTaggedServiceIds('event_sourcing.processor') as $id => $attributes) {
-            $priority = $attributes['priority'] ?? 0;
-            $groupedProcessors[$priority][] = $id;
+        foreach ($container->findTaggedServiceIds('event_sourcing.processor') as $id => $tags) {
+            foreach ($tags as $attributes) {
+                $priority = $attributes['priority'] ?? 0;
+                $groupedProcessors[$priority][] = $id;
+            }
         }
 
         ksort($groupedProcessors);
@@ -55,17 +57,19 @@ class ProcessorPass implements CompilerPassInterface
         $eventBusService = $container->getParameter('event_sourcing.event_bus_service');
 
         /**
-         * @var array{priority: ?int} $attributes
+         * @var list<array{priority: ?int}> $attributes
          */
-        foreach ($container->findTaggedServiceIds('event_sourcing.processor') as $id => $attributes) {
-            $processor = $container->getDefinition($id);
-            $processor->addTag(
-                'messenger.message_handler',
-                [
-                    'bus' => $eventBusService,
-                    'priority' => $attributes['priority'] ?? 0,
-                ]
-            );
+        foreach ($container->findTaggedServiceIds('event_sourcing.processor') as $id => $tags) {
+            foreach ($tags as $attributes) {
+                $processor = $container->getDefinition($id);
+                $processor->addTag(
+                    'messenger.message_handler',
+                    [
+                        'bus' => $eventBusService,
+                        'priority' => $attributes['priority'] ?? 0,
+                    ]
+                );
+            }
         }
     }
 }

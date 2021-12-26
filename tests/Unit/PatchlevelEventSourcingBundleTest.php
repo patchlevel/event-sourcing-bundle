@@ -39,6 +39,8 @@ use Patchlevel\EventSourcing\WatchServer\WatchServer;
 use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
+use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1;
+use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor2;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Profile;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\SnapshotableProfile;
 use PHPUnit\Framework\TestCase;
@@ -46,6 +48,8 @@ use Prophecy\PhpUnit\ProphecyTrait;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\Messenger\DependencyInjection\MessengerPass;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 class PatchlevelEventSourcingBundleTest extends TestCase
@@ -92,7 +96,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         $container = new ContainerBuilder();
         $this->compileContainer(
             $container,
-                [
+            [
                 'patchlevel_event_sourcing' => [
                     'connection' => [
                         'service' => 'doctrine.dbal.eventstore_connection',
@@ -118,7 +122,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     'store' => [
                         'type' => 'single_table',
                     ],
-                ]
+                ],
             ]
         );
 
@@ -138,7 +142,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     'store' => [
                         'type' => 'multi_table',
                     ],
-                ]
+                ],
             ]
         );
 
@@ -185,7 +189,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     ],
                     'event_bus' => [
                         'type' => 'custom',
-                        'service' => 'my_event_bus'
+                        'service' => 'my_event_bus',
                     ],
                 ],
             ]
@@ -194,9 +198,49 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertEquals($eventBus, $container->get(EventBus::class));
     }
 
+    public function testProcessorListener()
+    {
+        $container = new ContainerBuilder();
+        $container->setDefinition(Processor1::class, new Definition(Processor1::class))
+            ->addTag('event_sourcing.processor', ['priority' => 128]);
+        $container->setDefinition(Processor2::class, new Definition(Processor2::class))
+            ->addTag('event_sourcing.processor');
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(DefaultEventBus::class, $container->get(EventBus::class));
+        self::assertEquals(
+            [
+                'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1' => [
+                    ['priority' => 128],
+                ],
+                'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor2' => [
+                    [],
+                ],
+                'Patchlevel\EventSourcing\Projection\ProjectionListener' => [
+                    ['priority' => 64],
+                ],
+            ],
+            $container->findTaggedServiceIds('event_sourcing.processor')
+        );
+    }
+
     public function testSymfonyEventBus()
     {
         $container = new ContainerBuilder();
+        $container->setDefinition(Processor1::class, new Definition(Processor1::class))
+            ->addTag('event_sourcing.processor', ['priority' => 128]);
+        $container->setDefinition(Processor2::class, new Definition(Processor2::class))
+            ->addTag('event_sourcing.processor');
 
         $this->compileContainer(
             $container,
@@ -206,13 +250,27 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
                     'event_bus' => [
-                        'service' => 'event.bus'
+                        'service' => 'event.bus',
                     ],
                 ],
             ]
         );
 
         self::assertInstanceOf(SymfonyEventBus::class, $container->get(EventBus::class));
+        self::assertEquals(
+            [
+                'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1' => [
+                    ['bus' => 'event.bus', 'priority' => 128],
+                ],
+                'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor2' => [
+                    ['bus' => 'event.bus', 'priority' => 0],
+                ],
+                'Patchlevel\EventSourcing\Projection\ProjectionListener' => [
+                    ['bus' => 'event.bus', 'priority' => 64],
+                ],
+            ],
+            $container->findTaggedServiceIds('messenger.message_handler')
+        );
     }
 
     public function testPsr6SnapshotStore()
@@ -228,9 +286,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     ],
                     'snapshot_stores' => [
                         'default' => [
-                            'service' => 'cache.default'
-                        ]
-                    ]
+                            'service' => 'cache.default',
+                        ],
+                    ],
                 ],
             ]
         );
@@ -255,9 +313,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     'snapshot_stores' => [
                         'default' => [
                             'type' => 'psr16',
-                            'service' => 'simple_cache'
-                        ]
-                    ]
+                            'service' => 'simple_cache',
+                        ],
+                    ],
                 ],
             ]
         );
@@ -282,9 +340,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     'snapshot_stores' => [
                         'default' => [
                             'type' => 'custom',
-                            'service' => 'my_snapshot_store'
-                        ]
-                    ]
+                            'service' => 'my_snapshot_store',
+                        ],
+                    ],
                 ],
             ]
         );
@@ -307,8 +365,8 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
                     'watch_server' => [
-                        'enabled' => true
-                    ]
+                        'enabled' => true,
+                    ],
                 ],
             ]
         );
@@ -333,11 +391,11 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
                     'event_bus' => [
-                        'service' => 'event.bus'
+                        'service' => 'event.bus',
                     ],
                     'watch_server' => [
-                        'enabled' => true
-                    ]
+                        'enabled' => true,
+                    ],
                 ],
             ]
         );
@@ -359,9 +417,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     ],
                     'aggregates' => [
                         'profile' => [
-                            'class' => Profile::class
-                        ]
-                    ]
+                            'class' => Profile::class,
+                        ],
+                    ],
                 ],
             ]
         );
@@ -383,14 +441,14 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     'aggregates' => [
                         'profile' => [
                             'class' => SnapshotableProfile::class,
-                            'snapshot_store' => 'default'
-                        ]
+                            'snapshot_store' => 'default',
+                        ],
                     ],
                     'snapshot_stores' => [
                         'default' => [
-                            'service' => 'cache.default'
-                        ]
-                    ]
+                            'service' => 'cache.default',
+                        ],
+                    ],
                 ],
             ]
         );
@@ -408,7 +466,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                 'patchlevel_event_sourcing' => [
                     'connection' => [
                         'service' => 'doctrine.dbal.eventstore_connection',
-                    ]
+                    ],
                 ],
             ]
         );
@@ -434,7 +492,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                 'patchlevel_event_sourcing' => [
                     'connection' => [
                         'service' => 'doctrine.dbal.eventstore_connection',
-                    ]
+                    ],
                 ],
             ]
         );
@@ -464,7 +522,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     ],
                     'event_bus' => [
                         'type' => 'symfony',
-                        'service' => 'event.bus'
+                        'service' => 'event.bus',
                     ],
                     'aggregates' => [
                         'profile' => [
@@ -511,6 +569,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         $compilerPassConfig = $container->getCompilerPassConfig();
         $compilerPassConfig->setRemovingPasses([]);
         $compilerPassConfig->addPass(new TestCaseAllPublicCompilerPass());
+        $compilerPassConfig->addPass(new MessengerPass());
 
         $container->compile();
     }

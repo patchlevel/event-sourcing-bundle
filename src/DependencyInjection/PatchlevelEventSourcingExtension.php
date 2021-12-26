@@ -128,7 +128,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     {
         $container->register(ProjectionListener::class)
             ->setArguments([new Reference(ProjectionRepository::class)])
-            ->addTag('event_sourcing.processor');
+            ->addTag('event_sourcing.processor', ['priority' => 64]);
 
         $container->registerForAutoconfiguration(Projection::class)
             ->addTag('event_sourcing.projection');
