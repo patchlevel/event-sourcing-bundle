@@ -29,10 +29,10 @@ class TestCaseAllPublicCompilerPass implements CompilerPassInterface
 
     private function isOwnService(string $id): bool
     {
-        if (strpos($id, self::SERVICE_PREFIX) === 0) {
+        if (str_starts_with($id, self::SERVICE_PREFIX)) {
             return true;
         }
 
-        return strpos($id, self::NAMESPACE_PREFIX) === 0;
+        return str_starts_with($id, self::NAMESPACE_PREFIX);
     }
 }
