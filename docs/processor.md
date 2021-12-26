@@ -49,7 +49,7 @@ services:
         - event_sourcing.processor
 ```
 
-## Priority
+## Priority (since v1.2)
 
 You can also determine the `priority` in which the processors are executed. 
 The higher the priority, the earlier the processor is executed. 
