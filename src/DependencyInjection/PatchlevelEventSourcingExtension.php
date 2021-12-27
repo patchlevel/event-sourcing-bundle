@@ -415,7 +415,10 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->addTag('kernel.reset', ['method' => 'clear']);
 
         $container->register(EventCollector::class)
-            ->setArguments([new Reference(EventListener::class)])
+            ->setArguments([
+                new Reference(EventListener::class),
+                '%event_sourcing.aggregates%'
+            ])
             ->addTag('data_collector');
     }
 
