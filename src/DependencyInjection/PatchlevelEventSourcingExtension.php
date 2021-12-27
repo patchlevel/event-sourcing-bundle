@@ -82,7 +82,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureStorage($config, $container);
         $this->configureSnapshots($config, $container);
         $this->configureAggregates($config, $container);
-        $this->configureCommands($config, $container);
+        $this->configureCommands($container);
 
         if (class_exists(DependencyFactory::class)) {
             $this->configureMigration($config, $container);
@@ -164,7 +164,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{store: array{schema_manager: string, type: string, options: array<string, mixed>}, aggregates: array<string, array{class: string, snapshot_store: ?string}>} $config
+     * @param array{store: array{schema_manager: string, type: string, options: array<string, mixed>}} $config
      */
     private function configureStorage(array $config, ContainerBuilder $container): void
     {
@@ -263,10 +263,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         }
     }
 
-    /**
-     * @param array{aggregates: array<string, array{class: string, snapshot_store: ?string}>} $config
-     */
-    private function configureCommands(array $config, ContainerBuilder $container): void
+    private function configureCommands(ContainerBuilder $container): void
     {
         $container->register(DoctrineHelper::class);
 
