@@ -179,7 +179,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             $container->register(SingleTableStore::class)
                 ->setArguments([
                     new Reference('event_sourcing.dbal_connection'),
-                    $this->aggregateHashMap($config['aggregates']),
+                    '%event_sourcing.aggregates%',
                     $config['store']['options']['table_name'] ?? 'eventstore',
                 ]);
 
@@ -195,7 +195,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(MultiTableStore::class)
             ->setArguments([
                 new Reference('event_sourcing.dbal_connection'),
-                $this->aggregateHashMap($config['aggregates']),
+                '%event_sourcing.aggregates%',
                 $config['store']['options']['table_name'] ?? 'eventstore',
             ]);
 
@@ -233,7 +233,7 @@ final class PatchlevelEventSourcingExtension extends Extension
      */
     private function configureAggregates(array $config, ContainerBuilder $container): void
     {
-        $container->setParameter('event_sourcing.aggregates', $config['aggregates']);
+        $container->setParameter('event_sourcing.aggregates', $this->aggregateHashMap($config['aggregates']));
 
         foreach ($config['aggregates'] as $aggregateName => $definition) {
             $id = sprintf('event_sourcing.repository.%s', $aggregateName);
@@ -327,7 +327,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(ShowCommand::class)
             ->setArguments([
                 new Reference(Store::class),
-                $this->aggregateHashMap($config['aggregates']),
+                '%event_sourcing.aggregates%',
             ])
             ->addTag('console.command');
     }

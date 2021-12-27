@@ -53,6 +53,29 @@ bin/console event-sourcing:schema:udapte
 bin/console event-sourcing:schema:drop
 ```
 
+## Use doctrine connection
+
+If you have installed the [doctrine bundle](https://github.com/doctrine/DoctrineBundle), 
+you can also define the connection via doctrine and then use it in the store.
+
+```yaml
+doctrine:
+    dbal:
+        connections:
+            eventstore:
+                url: '%env(EVENTSTORE_URL)%'
+
+patchlevel_event_sourcing:
+    connection:
+        service: doctrine.dbal.eventstore_connection
+```
+
+> :warning: You should avoid that this connection or database is used by other tools or libraries. 
+> Create for e.g. doctrine orm its own database and connection.
+
+> :book: You can find out more about the dbal configuration 
+> [here](https://symfony.com/bundles/DoctrineBundle/current/configuration.html).
+
 ## Migration
 
 You can also manage your schema with doctrine migrations.
