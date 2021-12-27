@@ -417,7 +417,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(EventCollector::class)
             ->setArguments([
                 new Reference(EventListener::class),
-                '%event_sourcing.aggregates%'
+                '%event_sourcing.aggregates%',
             ])
             ->addTag('data_collector');
     }

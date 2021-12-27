@@ -25,7 +25,6 @@ class EventCollector extends AbstractDataCollector
     private array $aggregates;
 
     /**
-     * @param EventListener $eventListener
      * @param array<class-string<AggregateRoot>, string> $aggregates
      */
     public function __construct(EventListener $eventListener, array $aggregates)
@@ -40,7 +39,7 @@ class EventCollector extends AbstractDataCollector
 
         $this->data = [
             'events' => $events,
-            'aggregates' => $this->aggregates
+            'aggregates' => $this->aggregates,
         ];
     }
 
