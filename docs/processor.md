@@ -48,3 +48,24 @@ services:
       tags:
         - event_sourcing.processor
 ```
+
+## Priority (since v1.2)
+
+You can also determine the `priority` in which the processors are executed. 
+The higher the priority, the earlier the processor is executed. 
+You have to add the tag manually and specify the priority.
+
+```yaml
+services:
+    App\Domain\Hotel\Listener\SendCheckInEmailListener:
+      autoconfigure: false
+      tags:
+        - name: event_sourcing.processor
+          priority: 16
+```
+
+> :warning: You have to deactivate the `autoconfigure` for this service, 
+> otherwise the service will be added twice.
+
+> :book: The `projection` listener has a priority of `-32`, 
+> to do things after the projection, you have to be lower.
