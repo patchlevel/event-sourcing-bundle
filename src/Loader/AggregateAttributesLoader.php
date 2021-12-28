@@ -56,7 +56,7 @@ class AggregateAttributesLoader
 
                 $attributedAggregateClasses[$arguments['name']] = [
                     'class' => $class->getName(),
-                    'snapshot_store' => isset($arguments['snapshot_store']) && is_string($arguments['snapshot_store']) ? $arguments['snapshot_store'] :  null,
+                    'snapshot_store' => isset($arguments['snapshotStore']) && is_string($arguments['snapshotStore']) ? $arguments['snapshotStore'] :  null,
                 ];
             }
         }

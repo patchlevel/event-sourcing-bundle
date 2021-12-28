@@ -527,11 +527,17 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                             'class' => Profile::class,
                         ],
                     ],
+                    'snapshot_stores' => [
+                        'default' => [
+                            'service' => 'cache.default',
+                        ],
+                    ],
                 ],
             ]
         );
 
         self::assertInstanceOf(DefaultRepository::class, $container->get('event_sourcing.repository.profileWithAttribute'));
+        self::assertInstanceOf(SnapshotRepository::class, $container->get('event_sourcing.repository.snapshotableProfileWithAttribute'));
     }
 
     public function testFullBuild()
