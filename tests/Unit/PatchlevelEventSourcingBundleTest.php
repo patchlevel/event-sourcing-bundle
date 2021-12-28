@@ -521,7 +521,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     'connection' => [
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
-                    'aggregates_paths' => __DIR__ . '/../Fixtures',
+                    'aggregates_paths' => [__DIR__ . '/../Fixtures'],
                     'aggregates' => [
                         'profile' => [
                             'class' => Profile::class,
@@ -554,7 +554,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                         'type' => 'symfony',
                         'service' => 'event.bus',
                     ],
-                    'aggregates_paths' => __DIR__ . '/../Fixtures',
+                    'aggregates_paths' => [__DIR__ . '/../Fixtures'],
                     'aggregates' => [
                         'profile' => [
                             'class' => SnapshotableProfile::class,

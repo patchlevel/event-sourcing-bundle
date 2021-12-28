@@ -52,12 +52,15 @@ use Patchlevel\EventSourcing\WatchServer\WatchServer;
 use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
 use Patchlevel\EventSourcingBundle\DataCollector\EventCollector;
 use Patchlevel\EventSourcingBundle\DataCollector\EventListener;
+use Patchlevel\EventSourcingBundle\Loader\AggregateAttributesLoader;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
+use function array_merge;
 use function class_exists;
+use function is_string;
 use function sprintf;
 
 final class PatchlevelEventSourcingExtension extends Extension
@@ -70,7 +73,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $configuration = new Configuration();
 
         /**
-         * @var array{event_bus: ?array{type: string, service: string}, watch_server: array{enabled: bool, host: string}, connection: ?array{service: ?string, url: ?string}, store: array{schema_manager: string, type: string, options: array<string, mixed>}, aggregates: array<string, array{class: string, snapshot_store: ?string}>, snapshot_stores: array<string, array{type: string, service: string}>, migration: array{path: string, namespace: string}} $config
+         * @var array{event_bus: ?array{type: string, service: string}, watch_server: array{enabled: bool, host: string}, connection: ?array{service: ?string, url: ?string}, store: array{schema_manager: string, type: string, options: array<string, mixed>}, aggregates_paths: list<string>, aggregates: array<string, array{class: string, snapshot_store: ?string}>, snapshot_stores: array<string, array{type: string, service: string}>, migration: array{path: string, namespace: string}} $config
          */
         $config = $this->processConfiguration($configuration, $configs);
 
@@ -232,32 +235,14 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{aggregates: array<string, array{class: string, snapshot_store: ?string}>} $config
+     * @param array{aggregates_paths: list<string>, aggregates: array<string, array{class: string, snapshot_store: ?string}>} $config
      */
     private function configureAggregates(array $config, ContainerBuilder $container): void
     {
         $aggregates = $config['aggregates'];
-        $attributedAggregateClasses = [];
 
-        // @TODO: this should probably be an array and not a string
-        if (is_string($config['aggregates_paths'])) {
-            $astLocator = (new BetterReflection())->astLocator();
-            $directoriesSourceLocator = new DirectoriesSourceLocator([$config['aggregates_paths']], $astLocator);
-            $reflector = new DefaultReflector($directoriesSourceLocator);
-            $classes = $reflector->reflectAllClasses();
-
-            foreach ($classes as $class) {
-                $attributes = $class->getAttributes();
-                foreach ($attributes as $attribute) {
-                    if ($attribute->getName() === Aggregate::class) {
-                        $attributedAggregateClasses[$attribute->getArguments()['name']] = [
-                            'class' => $class->getName(),
-                            'snapshot_store' => $attribute->getArguments()['snapshot_store'] ?? null,
-                        ];
-                    }
-                }
-            }
-        }
+        $loader = new AggregateAttributesLoader($config['aggregates_paths']);
+        $attributedAggregateClasses = $loader->load();
 
         $aggregates = array_merge($aggregates, $attributedAggregateClasses);
 
@@ -266,7 +251,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         foreach ($aggregates as $aggregateName => $definition) {
             $id = sprintf('event_sourcing.repository.%s', $aggregateName);
 
-            if ($definition['snapshot_store']) {
+            if (is_string($definition['snapshot_store'])) {
                 $container->register($id, SnapshotRepository::class)
                     ->setArguments([
                         new Reference(Store::class),
