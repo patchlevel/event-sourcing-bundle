@@ -236,9 +236,34 @@ final class PatchlevelEventSourcingExtension extends Extension
      */
     private function configureAggregates(array $config, ContainerBuilder $container): void
     {
-        $container->setParameter('event_sourcing.aggregates', $this->aggregateHashMap($config['aggregates']));
+        $aggregates = $config['aggregates'];
+        $attributedAggregateClasses = [];
 
-        foreach ($config['aggregates'] as $aggregateName => $definition) {
+        // @TODO: this should probably be an array and not a string
+        if (is_string($config['aggregates_paths'])) {
+            $astLocator = (new BetterReflection())->astLocator();
+            $directoriesSourceLocator = new DirectoriesSourceLocator([$config['aggregates_paths']], $astLocator);
+            $reflector = new DefaultReflector($directoriesSourceLocator);
+            $classes = $reflector->reflectAllClasses();
+
+            foreach ($classes as $class) {
+                $attributes = $class->getAttributes();
+                foreach ($attributes as $attribute) {
+                    if ($attribute->getName() === Aggregate::class) {
+                        $attributedAggregateClasses[$attribute->getArguments()['name']] = [
+                            'class' => $class->getName(),
+                            'snapshot_store' => $attribute->getArguments()['snapshot_store'] ?? null,
+                        ];
+                    }
+                }
+            }
+        }
+
+        $aggregates = array_merge($aggregates, $attributedAggregateClasses);
+
+        $container->setParameter('event_sourcing.aggregates', $this->aggregateHashMap($aggregates));
+
+        foreach ($aggregates as $aggregateName => $definition) {
             $id = sprintf('event_sourcing.repository.%s', $aggregateName);
 
             if ($definition['snapshot_store']) {

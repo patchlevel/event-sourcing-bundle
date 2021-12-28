@@ -48,6 +48,8 @@ final class Configuration implements ConfigurationInterface
                 ->end()
             ->end()
 
+            ->scalarNode('aggregates_paths')->defaultNull()->end()
+
             ->arrayNode('aggregates')
                 ->useAttributeAsKey('name')
                 ->arrayPrototype()

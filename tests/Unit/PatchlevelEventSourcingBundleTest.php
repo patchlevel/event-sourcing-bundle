@@ -43,6 +43,7 @@ use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor2;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Profile;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\SnapshotableProfile;
+use Patchlevel\EventSourcingBundle\Attributes\Aggregate;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Psr\Cache\CacheItemPoolInterface;
@@ -509,6 +510,30 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(StatusCommand::class, $container->get('event_sourcing.command.migration_status'));
     }
 
+    public function testDefaultRepositoryWithAttributeAggregate()
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'aggregates_paths' => __DIR__ . '/../Fixtures',
+                    'aggregates' => [
+                        'profile' => [
+                            'class' => Profile::class,
+                        ],
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(DefaultRepository::class, $container->get('event_sourcing.repository.profileWithAttribute'));
+    }
+
     public function testFullBuild()
     {
         $container = new ContainerBuilder();
@@ -529,6 +554,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                         'type' => 'symfony',
                         'service' => 'event.bus',
                     ],
+                    'aggregates_paths' => __DIR__ . '/../Fixtures',
                     'aggregates' => [
                         'profile' => [
                             'class' => SnapshotableProfile::class,
