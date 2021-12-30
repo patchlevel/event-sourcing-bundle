@@ -41,6 +41,7 @@ use Patchlevel\EventSourcing\Repository\SnapshotRepository;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaManager;
 use Patchlevel\EventSourcing\Schema\MigrationSchemaProvider;
 use Patchlevel\EventSourcing\Schema\SchemaManager;
+use Patchlevel\EventSourcing\Snapshot\BatchSnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\Psr16SnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\Psr6SnapshotStore;
 use Patchlevel\EventSourcing\Store\MultiTableStore;
@@ -78,7 +79,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $configuration = new Configuration();
 
         /**
-         * @var array{event_bus: ?array{type: string, service: string}, watch_server: array{enabled: bool, host: string}, connection: ?array{service: ?string, url: ?string}, store: array{schema_manager: string, type: string, options: array<string, mixed>}, aggregates_paths: list<string>, aggregates: array<string, array{class: string, snapshot_store: ?string}>, snapshot_stores: array<string, array{type: string, service: string}>, migration: array{path: string, namespace: string}} $config
+         * @var array{event_bus: ?array{type: string, service: string}, watch_server: array{enabled: bool, host: string}, connection: ?array{service: ?string, url: ?string}, store: array{schema_manager: string, type: string, options: array<string, mixed>}, aggregates_paths: list<string>, aggregates: array<string, array{class: string, snapshot_store: ?string}>, snapshot_stores: array<string, array{type: string, service: string, batch_size: ?int}>, migration: array{path: string, namespace: string}} $config
          */
         $config = $this->processConfiguration($configuration, $configs);
 
@@ -214,28 +215,35 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{snapshot_stores: array<string, array{type: string, service: string}>} $config
+     * @param array{snapshot_stores: array<string, array{type: string, service: string, batch_size: ?int}>} $config
      */
     private function configureSnapshots(array $config, ContainerBuilder $container): void
     {
         foreach ($config['snapshot_stores'] as $name => $definition) {
-            $id = sprintf('event_sourcing.snapshot_store.%s', $name);
+            $targetId = $definition['service'];
+            $realId = sprintf('event_sourcing.snapshot_store.%s', $name);
+            $snapshotId = $definition['batch_size'] === null ? $realId : $realId . '.inner';
 
             if ($definition['type'] === 'psr6') {
-                $container->register($id, Psr6SnapshotStore::class)
-                    ->setArguments([new Reference($definition['service'])]);
-
-                continue;
+                $container->register($snapshotId, Psr6SnapshotStore::class)
+                    ->setArguments([new Reference($targetId)]);
             }
 
             if ($definition['type'] === 'psr16') {
-                $container->register($id, Psr16SnapshotStore::class)
-                    ->setArguments([new Reference($definition['service'])]);
+                $container->register($snapshotId, Psr16SnapshotStore::class)
+                    ->setArguments([new Reference($targetId)]);
+            }
 
+            if ($definition['type'] === 'custom') {
+                $container->setAlias($snapshotId, $targetId);
+            }
+
+            if ($definition['batch_size'] === null) {
                 continue;
             }
 
-            $container->setAlias($id, $definition['service']);
+            $container->register($realId, BatchSnapshotStore::class)
+                ->setArguments([new Reference($snapshotId), $definition['batch_size']]);
         }
     }
 

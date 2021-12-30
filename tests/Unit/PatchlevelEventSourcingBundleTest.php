@@ -27,6 +27,7 @@ use Patchlevel\EventSourcing\Repository\DefaultRepository;
 use Patchlevel\EventSourcing\Repository\Repository;
 use Patchlevel\EventSourcing\Repository\SnapshotRepository;
 use Patchlevel\EventSourcing\Schema\SchemaManager;
+use Patchlevel\EventSourcing\Snapshot\BatchSnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\Psr16SnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\Psr6SnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
@@ -354,6 +355,35 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertEquals($customSnapshotStore, $container->get('event_sourcing.snapshot_store.default'));
+    }
+
+    public function testSnapshotStoreWithBatchSize()
+    {
+        $simpleCache = $this->prophesize(CacheInterface::class)->reveal();
+
+        $container = new ContainerBuilder();
+        $container->set('simple_cache', $simpleCache);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'snapshot_stores' => [
+                        'default' => [
+                            'type' => 'psr16',
+                            'service' => 'simple_cache',
+                            'batch_size' => 20
+                        ],
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(BatchSnapshotStore::class, $container->get('event_sourcing.snapshot_store.default'));
+        self::assertInstanceOf(Psr16SnapshotStore::class, $container->get('event_sourcing.snapshot_store.default.inner'));
     }
 
     public function testWatchServer()

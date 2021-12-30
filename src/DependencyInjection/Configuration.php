@@ -86,6 +86,7 @@ final class Configuration implements ConfigurationInterface
                     ->children()
                         ->enumNode('type')->values(['psr6', 'psr16', 'custom'])->defaultValue('psr6')->end()
                         ->scalarNode('service')->end()
+                        ->scalarNode('batch_size')->defaultNull()->end()
                     ->end()
                 ->end()
             ->end()
