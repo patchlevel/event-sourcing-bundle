@@ -540,6 +540,36 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(SnapshotRepository::class, $container->get('event_sourcing.repository.snapshotableProfileWithAttribute'));
     }
 
+    public function testDefaultRepositoryWithAttributeAggregateAggregatePathSingleValue()
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'aggregates_paths' => __DIR__ . '/../Fixtures',
+                    'aggregates' => [
+                        'profile' => [
+                            'class' => Profile::class,
+                        ],
+                    ],
+                    'snapshot_stores' => [
+                        'default' => [
+                            'service' => 'cache.default',
+                        ],
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(DefaultRepository::class, $container->get('event_sourcing.repository.profileWithAttribute'));
+        self::assertInstanceOf(SnapshotRepository::class, $container->get('event_sourcing.repository.snapshotableProfileWithAttribute'));
+    }
+
     public function testFullBuild()
     {
         $container = new ContainerBuilder();

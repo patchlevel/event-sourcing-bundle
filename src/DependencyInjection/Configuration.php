@@ -49,6 +49,7 @@ final class Configuration implements ConfigurationInterface
             ->end()
 
             ->arrayNode('aggregates_paths')
+                ->beforeNormalization()->castToArray()->end()
                 ->defaultValue([])
                 ->scalarPrototype()->end()
             ->end()
