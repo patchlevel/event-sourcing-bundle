@@ -6,36 +6,29 @@ namespace Patchlevel\EventSourcingBundle\Loader;
 
 use Patchlevel\EventSourcingBundle\Attributes\Aggregate;
 use ReflectionClass;
+use ReflectionException;
 use Symfony\Component\Finder\Finder;
 
 use function count;
 use function get_declared_classes;
-use function is_string;
 
 class AggregateAttributesLoader
 {
-    /** @var list<string> */
-    private array $paths;
-
     /**
      * @param list<string> $paths
-     */
-    public function __construct(array $paths)
-    {
-        $this->paths = $paths;
-    }
-
-    /**
+     *
      * @return array<string, array{class: string, snapshot_store: ?string}>
+     *
+     * @throws ReflectionException
      */
-    public function load(): array
+    public function load(array $paths): array
     {
-        if (count($this->paths) === 0) {
+        if (count($paths) === 0) {
             return [];
         }
 
         $files = (new Finder())
-            ->in($this->paths)
+            ->in($paths)
             ->files()
             ->name('*.php');
 
@@ -58,20 +51,13 @@ class AggregateAttributesLoader
         $classes = get_declared_classes();
         foreach ($classes as $class) {
             $reflection = new ReflectionClass($class);
-            $attributes = $reflection->getAttributes();
+            $attributes = $reflection->getAttributes(Aggregate::class);
             foreach ($attributes as $attribute) {
-                if ($attribute->getName() !== Aggregate::class) {
-                    continue;
-                }
-
                 $aggregate = $attribute->newInstance();
-                if (!$aggregate instanceof Aggregate) {
-                    continue;
-                }
 
                 $attributedAggregateClasses[$aggregate->getName()] = [
                     'class' => $reflection->getName(),
-                    'snapshot_store' => is_string($aggregate->getSnapshotStore()) ? $aggregate->getSnapshotStore() : null,
+                    'snapshot_store' => $aggregate->getSnapshotStore(),
                 ];
             }
         }

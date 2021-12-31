@@ -241,10 +241,11 @@ final class PatchlevelEventSourcingExtension extends Extension
     {
         $aggregates = $config['aggregates'];
 
-        $loader = new AggregateAttributesLoader($config['aggregates_paths']);
-        $attributedAggregateClasses = $loader->load();
+        if ($config['aggregates_paths']) {
+            $attributedAggregateClasses = (new AggregateAttributesLoader())->load($config['aggregates_paths']);
 
-        $aggregates = array_merge($aggregates, $attributedAggregateClasses);
+            $aggregates = array_merge($aggregates, $attributedAggregateClasses);
+        }
 
         $container->setParameter('event_sourcing.aggregates', $this->aggregateHashMap($aggregates));
 
