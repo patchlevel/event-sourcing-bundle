@@ -60,6 +60,7 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
 use function array_merge;
 use function class_exists;
+use function count;
 use function is_string;
 use function sprintf;
 
@@ -241,7 +242,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     {
         $aggregates = $config['aggregates'];
 
-        if ($config['aggregates_paths']) {
+        if (count($config['aggregates_paths']) > 0) {
             $attributedAggregateClasses = (new AggregateAttributesLoader())->load($config['aggregates_paths']);
 
             $aggregates = array_merge($aggregates, $attributedAggregateClasses);
