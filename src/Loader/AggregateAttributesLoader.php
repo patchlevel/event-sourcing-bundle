@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\Loader;
 
-use Exception;
 use Patchlevel\EventSourcingBundle\Attributes\Aggregate;
-use Roave\BetterReflection\BetterReflection;
-use Roave\BetterReflection\Reflector\DefaultReflector;
-use Roave\BetterReflection\SourceLocator\Type\DirectoriesSourceLocator;
+use ReflectionClass;
+use Symfony\Component\Finder\Finder;
 
 use function count;
+use function get_declared_classes;
 use function is_string;
 
 class AggregateAttributesLoader
@@ -35,28 +34,44 @@ class AggregateAttributesLoader
             return [];
         }
 
-        $astLocator = (new BetterReflection())->astLocator();
-        $directoriesSourceLocator = new DirectoriesSourceLocator($this->paths, $astLocator);
-        $reflector = new DefaultReflector($directoriesSourceLocator);
-        $classes = $reflector->reflectAllClasses();
+        $files = (new Finder())
+            ->in($this->paths)
+            ->files()
+            ->name('*.php');
+
+        if (!$files->hasResults()) {
+            return [];
+        }
+
+        foreach ($files as $file) {
+            $path = $file->getRealPath();
+            if (!$path) {
+                continue;
+            }
+
+            /** @psalm-suppress all */
+            require_once $path;
+        }
 
         $attributedAggregateClasses = [];
+
+        $classes = get_declared_classes();
         foreach ($classes as $class) {
-            $attributes = $class->getAttributes();
+            $reflection = new ReflectionClass($class);
+            $attributes = $reflection->getAttributes();
             foreach ($attributes as $attribute) {
                 if ($attribute->getName() !== Aggregate::class) {
                     continue;
                 }
 
-                $arguments = $attribute->getArguments();
-
-                if (!is_string($arguments['name'])) {
-                    throw new Exception('aggregate name must be string');
+                $aggregate = $attribute->newInstance();
+                if (!$aggregate instanceof Aggregate) {
+                    continue;
                 }
 
-                $attributedAggregateClasses[$arguments['name']] = [
-                    'class' => $class->getName(),
-                    'snapshot_store' => isset($arguments['snapshotStore']) && is_string($arguments['snapshotStore']) ? $arguments['snapshotStore'] :  null,
+                $attributedAggregateClasses[$aggregate->getName()] = [
+                    'class' => $reflection->getName(),
+                    'snapshot_store' => is_string($aggregate->getSnapshotStore()) ? $aggregate->getSnapshotStore() : null,
                 ];
             }
         }
