@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\Loader;
 
+use InvalidArgumentException;
 use Patchlevel\EventSourcingBundle\Attributes\Aggregate;
 use ReflectionClass;
 use ReflectionException;
 use Symfony\Component\Finder\Finder;
 
+use function array_key_exists;
 use function count;
 use function get_declared_classes;
+use function sprintf;
 
 class AggregateAttributesLoader
 {
@@ -54,6 +57,17 @@ class AggregateAttributesLoader
             $attributes = $reflection->getAttributes(Aggregate::class);
             foreach ($attributes as $attribute) {
                 $aggregate = $attribute->newInstance();
+
+                if (array_key_exists($aggregate->getName(), $attributedAggregateClasses)) {
+                    throw new InvalidArgumentException(
+                        sprintf(
+                            'found duplicate aggregate name "%s", it was found in class "%s" and "%s"',
+                            $aggregate->getName(),
+                            $class,
+                            $attributedAggregateClasses[$aggregate->getName()]['class']
+                        )
+                    );
+                }
 
                 $attributedAggregateClasses[$aggregate->getName()] = [
                     'class' => $reflection->getName(),

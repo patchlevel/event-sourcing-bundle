@@ -43,7 +43,6 @@ use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor2;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Profile;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\SnapshotableProfile;
-use Patchlevel\EventSourcingBundle\Attributes\Aggregate;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Psr\Cache\CacheItemPoolInterface;
@@ -51,6 +50,7 @@ use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\Messenger\MessageBusInterface;
+use InvalidArgumentException;
 
 class PatchlevelEventSourcingBundleTest extends TestCase
 {
@@ -521,7 +521,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     'connection' => [
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
-                    'aggregates_paths' => [__DIR__ . '/../Fixtures'],
+                    'aggregates_paths' => [__DIR__ . '/../Fixtures/AttributedAggregates'],
                     'aggregates' => [
                         'profile' => [
                             'class' => Profile::class,
@@ -551,7 +551,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     'connection' => [
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
-                    'aggregates_paths' => __DIR__ . '/../Fixtures',
+                    'aggregates_paths' => __DIR__ . '/../Fixtures/AttributedAggregates',
                     'aggregates' => [
                         'profile' => [
                             'class' => Profile::class,
@@ -568,6 +568,34 @@ class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertInstanceOf(DefaultRepository::class, $container->get('event_sourcing.repository.profileWithAttribute'));
         self::assertInstanceOf(SnapshotRepository::class, $container->get('event_sourcing.repository.snapshotableProfileWithAttribute'));
+    }
+
+    public function testDefaultRepositoryWithAttributeAggregateMergeError()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'aggregates_paths' => [__DIR__ . '/../Fixtures/AttributedAggregates'],
+                    'aggregates' => [
+                        'profileWithAttribute' => [
+                            'class' => Profile::class,
+                        ],
+                    ],
+                    'snapshot_stores' => [
+                        'default' => [
+                            'service' => 'cache.default',
+                        ],
+                    ],
+                ],
+            ]
+        );
     }
 
     public function testFullBuild()
@@ -590,7 +618,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                         'type' => 'symfony',
                         'service' => 'event.bus',
                     ],
-                    'aggregates_paths' => [__DIR__ . '/../Fixtures'],
+                    'aggregates_paths' => [__DIR__ . '/../Fixtures/AttributedAggregates'],
                     'aggregates' => [
                         'profile' => [
                             'class' => SnapshotableProfile::class,

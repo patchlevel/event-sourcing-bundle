@@ -1,6 +1,6 @@
 <?php
 
-namespace Patchlevel\EventSourcingBundle\Tests\Fixtures;
+namespace Patchlevel\EventSourcingBundle\Tests\Fixtures\AttributedAggregates;
 
 use Patchlevel\EventSourcing\Aggregate\AggregateChanged;
 use Patchlevel\EventSourcing\Aggregate\AggregateRoot;

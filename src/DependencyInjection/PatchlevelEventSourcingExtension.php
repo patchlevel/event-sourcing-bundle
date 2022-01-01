@@ -15,6 +15,7 @@ use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
 use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
 use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
+use InvalidArgumentException;
 use Patchlevel\EventSourcing\Console\Command\DatabaseCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\DatabaseDropCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionCreateCommand;
@@ -58,9 +59,12 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
+use function array_intersect_key;
+use function array_keys;
 use function array_merge;
 use function class_exists;
 use function count;
+use function implode;
 use function is_string;
 use function sprintf;
 
@@ -244,6 +248,13 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         if (count($config['aggregates_paths']) > 0) {
             $attributedAggregateClasses = (new AggregateAttributesLoader())->load($config['aggregates_paths']);
+            $duplicates = array_intersect_key($aggregates, $attributedAggregateClasses);
+
+            if (count($duplicates) > 0) {
+                $duplicateNames =  implode(',', array_keys($duplicates));
+
+                throw new InvalidArgumentException('found following duplicate aggregate names: ' . $duplicateNames);
+            }
 
             $aggregates = array_merge($aggregates, $attributedAggregateClasses);
         }
