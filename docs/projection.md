@@ -77,7 +77,7 @@ final class HotelProjection implements Projection
 }
 ```
 
-If you have the symfony default service setting with `autowire`and `autoconfiger` enabled,
+If you have the symfony default service setting with `autowire`and `autoconfigure` enabled,
 the projection is automatically recognized and registered at the `Projection` interface.
 Otherwise you have to define the projection in the symfony service file:
 
