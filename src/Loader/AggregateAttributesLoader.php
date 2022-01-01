@@ -15,7 +15,7 @@ use function count;
 use function get_declared_classes;
 use function sprintf;
 
-class AggregateAttributesLoader
+final class AggregateAttributesLoader
 {
     /**
      * @param list<string> $paths
