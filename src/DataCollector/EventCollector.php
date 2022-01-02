@@ -18,10 +18,9 @@ use const DATE_ATOM;
 
 /**
  * @psalm-type DataType = array{
- *    events: list<Event>,
+ *    events: list<array{class: class-string<AggregateChanged>, aggregateId: string, payload: Data, playhead: int, recordedOn: string}>,
  *    aggregates: array<class-string<AggregateRoot>, string>
  * }
- * @psalm-type Event array{class: class-string<AggregateChanged>, aggregateId: string, payload: Data, playhead: int, recordedOn: string}
  * @psalm-property DataType $data
  */
 class EventCollector extends AbstractDataCollector
@@ -66,9 +65,7 @@ class EventCollector extends AbstractDataCollector
     }
 
     /**
-     * @return list<array<string, mixed>>
-     *
-     * @psalm-return list<Event>
+     * @return list<array{class: class-string<AggregateChanged>, aggregateId: string, payload: Data, playhead: int, recordedOn: string}>
      */
     public function getEvents(): array
     {
