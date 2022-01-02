@@ -9,20 +9,19 @@ use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
 use Symfony\Bundle\FrameworkBundle\DataCollector\AbstractDataCollector;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\VarDumper\Cloner\Data;
 use Throwable;
+
+use function array_map;
+
+use const DATE_ATOM;
 
 /**
  * @psalm-type DataType = array{
  *    events: list<Event>,
  *    aggregates: array<class-string<AggregateRoot>, string>
  * }
- * @psalm-type Event = array{
- *    class: string,
- *    aggregateId: string,
- *    payload: \Symfony\Component\VarDumper\Cloner\Data,
- *    playhead: int,
- *    recordedOn: string
- * }
+ * @psalm-type Event array{class: class-string<AggregateChanged>, aggregateId: string, payload: Data, playhead: int, recordedOn: string}
  * @psalm-property DataType $data
  */
 class EventCollector extends AbstractDataCollector
@@ -67,7 +66,9 @@ class EventCollector extends AbstractDataCollector
     }
 
     /**
-     * @return list<AggregateChanged<array<string, mixed>>>
+     * @return list<array<string, mixed>>
+     *
+     * @psalm-return list<Event>
      */
     public function getEvents(): array
     {
