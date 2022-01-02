@@ -1,5 +1,7 @@
 {% extends '@WebProfiler/Profiler/layout.html.twig' %}
 
+{% import _self as _ %}
+
 {% block toolbar %}
     {% set icon %}
         {{ include('@PatchlevelEventSourcing/Collector/icon.svg') }}
@@ -13,5 +15,99 @@
         </div>
     {% endset %}
 
-    {{ include('@WebProfiler/Profiler/toolbar_item.html.twig', { link: false }) }}
+    {{ include('@WebProfiler/Profiler/toolbar_item.html.twig') }}
 {% endblock %}
+
+{% block menu %}
+    <span class="label">
+        <span class="icon">
+            {{ include('@PatchlevelEventSourcing/Collector/icon.svg') }}
+        </span>
+        <strong>Event-Sourcing</strong>
+        <span class="count">{{ collector.events|length }}</span>
+    </span>
+{% endblock %}
+
+{% block head %}
+    {{ parent() }}
+    <style>
+        .event-item tbody tr td:first-child {
+            width: 170px;
+        }
+
+        .short-class-name {
+            color: #56DB3A;
+        }
+
+        .class-name {
+            color: #FF8400;
+        }
+    </style>
+{% endblock %}
+
+{% block panel %}
+    <h2>Aggregates</h2>
+    <table>
+        <tr>
+            <th>Class</th>
+            <th>Name</th>
+        </tr>
+        {% for class, name in collector.aggregates %}
+            <tr>
+                <td>{{ _.display_class(class) }}</td>
+                <td>{{ name }}</td>
+            </tr>
+        {% else %}
+            <div class="empty">
+                No aggregates were defined.
+            </div>
+        {% endfor %}
+    </table>
+
+    <h2>Events</h2>
+    {% for event in collector.events %}
+        <table class="event-item">
+            <thead>
+            <tr>
+                <th colspan="2">
+                    {{ _.display_class(event.class) }}
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="text-bold">Aggregate ID</td>
+                <td>{{ event.aggregateId }}</td>
+            </tr>
+            <tr>
+                <td class="text-bold">Playhead</td>
+                <td>{{ event.playhead }}</td>
+            </tr>
+            <tr>
+                <td class="text-bold">Payload</td>
+                <td>{{ profiler_dump(event.payload) }}</td>
+            </tr>
+            <tr>
+                <td class="text-bold">Recorded on</td>
+                <td>{{ event.recordedOn }}</td>
+            </tr>
+            </tbody>
+        </table>
+    {% else %}
+        <div class="empty">
+            No events happened.
+        </div>
+    {% endfor %}
+{% endblock %}
+
+{% macro display_class(class) %}
+    <span class="class-name">
+    {% for part in class|split('\\') %}
+        {%- if loop.last -%}
+            <span class="short-class-name">{{- part -}}</span>
+        {%- else -%}
+            {{- part -}}\
+        {%- endif -%}
+    {%~ endfor %}
+    </span>
+{% endmacro %}

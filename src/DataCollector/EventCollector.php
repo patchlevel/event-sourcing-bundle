@@ -13,8 +13,15 @@ use Throwable;
 
 /**
  * @psalm-type DataType = array{
- *    events: list<AggregateChanged<array<string, mixed>>>,
+ *    events: list<Event>,
  *    aggregates: array<class-string<AggregateRoot>, string>
+ * }
+ * @psalm-type Event = array{
+ *    class: string,
+ *    aggregateId: string,
+ *    payload: \Symfony\Component\VarDumper\Cloner\Data,
+ *    playhead: int,
+ *    recordedOn: string
  * }
  * @psalm-property DataType $data
  */
@@ -35,7 +42,18 @@ class EventCollector extends AbstractDataCollector
 
     public function collect(Request $request, Response $response, ?Throwable $exception = null): void
     {
-        $events = $this->eventListener->get();
+        $events = array_map(
+            function (AggregateChanged $event) {
+                return [
+                    'class' => $event::class,
+                    'aggregateId' => $event->aggregateId(),
+                    'payload' => $this->cloneVar($event->payload()),
+                    'playhead' => $event->playhead(),
+                    'recordedOn' => $event->recordedOn()?->format(DATE_ATOM),
+                ];
+            },
+            $this->eventListener->get()
+        );
 
         $this->data = [
             'events' => $events,
