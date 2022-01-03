@@ -12,7 +12,7 @@ use Symfony\Component\DependencyInjection\Reference;
 
 use function krsort;
 
-class ProcessorPass implements CompilerPassInterface
+final class ProcessorPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {

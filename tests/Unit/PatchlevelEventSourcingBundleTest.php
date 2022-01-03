@@ -228,6 +228,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                 'Patchlevel\EventSourcing\Projection\ProjectionListener' => [
                     ['priority' => -32],
                 ],
+                'Patchlevel\EventSourcingBundle\DataCollector\EventListener' => [
+                    []
+                ]
             ],
             $container->findTaggedServiceIds('event_sourcing.processor')
         );
@@ -267,6 +270,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                 'Patchlevel\EventSourcing\Projection\ProjectionListener' => [
                     ['bus' => 'event.bus', 'priority' => -32],
                 ],
+                'Patchlevel\EventSourcingBundle\DataCollector\EventListener' => [
+                    ['bus' => 'event.bus', 'priority' => 0],
+                ]
             ],
             $container->findTaggedServiceIds('messenger.message_handler')
         );
