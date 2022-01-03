@@ -7,7 +7,7 @@ namespace Patchlevel\EventSourcingBundle\DataCollector;
 use Patchlevel\EventSourcing\Aggregate\AggregateChanged;
 use Patchlevel\EventSourcing\EventBus\Listener;
 
-class EventListener implements Listener
+final class EventListener implements Listener
 {
     /** @var list<AggregateChanged<array<string, mixed>>> */
     private array $events = [];

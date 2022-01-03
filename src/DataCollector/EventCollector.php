@@ -23,7 +23,7 @@ use const DATE_ATOM;
  * }
  * @psalm-property DataType $data
  */
-class EventCollector extends AbstractDataCollector
+final class EventCollector extends AbstractDataCollector
 {
     private EventListener $eventListener;
     /** @var array<class-string<AggregateRoot>, string> */
