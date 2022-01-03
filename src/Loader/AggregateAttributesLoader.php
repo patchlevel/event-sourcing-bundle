@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Patchlevel\EventSourcingBundle\Loader;
 
 use InvalidArgumentException;
-use Patchlevel\EventSourcingBundle\Attributes\Aggregate;
+use Patchlevel\EventSourcingBundle\Attribute\Aggregate;
 use ReflectionClass;
 use ReflectionException;
 use Symfony\Component\Finder\Finder;

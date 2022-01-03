@@ -4,7 +4,7 @@ namespace Patchlevel\EventSourcingBundle\Tests\Fixtures\AttributedAggregatesSame
 
 use Patchlevel\EventSourcing\Aggregate\AggregateChanged;
 use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
-use Patchlevel\EventSourcingBundle\Attributes\Aggregate;
+use Patchlevel\EventSourcingBundle\Attribute\Aggregate;
 
 #[Aggregate(name: 'profileWithAttribute')]
 class ProfileWithAttribute extends AggregateRoot

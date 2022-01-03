@@ -5,7 +5,7 @@ namespace Patchlevel\EventSourcingBundle\Tests\Fixtures\AttributedAggregates;
 use Patchlevel\EventSourcing\Aggregate\AggregateChanged;
 use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
 use Patchlevel\EventSourcing\Aggregate\SnapshotableAggregateRoot;
-use Patchlevel\EventSourcingBundle\Attributes\Aggregate;
+use Patchlevel\EventSourcingBundle\Attribute\Aggregate;
 
 #[Aggregate(name: 'snapshotableProfileWithAttribute', snapshotStore: 'default')]
 class SnapshotableProfileWithAttribute extends SnapshotableAggregateRoot

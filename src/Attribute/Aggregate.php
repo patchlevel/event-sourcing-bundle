@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Patchlevel\EventSourcingBundle\Attributes;
+namespace Patchlevel\EventSourcingBundle\Attribute;
 
 use Attribute;
 

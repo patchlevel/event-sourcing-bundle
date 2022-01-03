@@ -251,7 +251,7 @@ namespace App\Domain\Hotel;
 
 use Patchlevel\EventSourcing\Aggregate\AggregateChanged;
 use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
-use Patchlevel\EventSourcingBundle\Attributes\Aggregate;
+use Patchlevel\EventSourcingBundle\Attribute\Aggregate;
 
 #[Aggregate(name: 'hotel', snapshotStore: 'default')]
 final class Hotel extends AggregateRoot
