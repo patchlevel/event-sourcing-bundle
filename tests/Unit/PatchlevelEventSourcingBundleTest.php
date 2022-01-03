@@ -598,6 +598,29 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         );
     }
 
+    public function testDefaultRepositoryWithAttributeAggregateSameNameError()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'aggregates_paths' => [__DIR__ . '/../Fixtures/AttributedAggregatesSameName'],
+                    'snapshot_stores' => [
+                        'default' => [
+                            'service' => 'cache.default',
+                        ],
+                    ],
+                ],
+            ]
+        );
+    }
+
     public function testFullBuild()
     {
         $container = new ContainerBuilder();

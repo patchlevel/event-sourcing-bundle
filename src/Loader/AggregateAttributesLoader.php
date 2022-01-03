@@ -13,6 +13,7 @@ use Symfony\Component\Finder\Finder;
 use function array_key_exists;
 use function count;
 use function get_declared_classes;
+use function in_array;
 use function sprintf;
 
 final class AggregateAttributesLoader
@@ -39,6 +40,7 @@ final class AggregateAttributesLoader
             return [];
         }
 
+        $includedFiles = [];
         foreach ($files as $file) {
             $path = $file->getRealPath();
             if (!$path) {
@@ -47,6 +49,8 @@ final class AggregateAttributesLoader
 
             /** @psalm-suppress all */
             require_once $path;
+
+            $includedFiles[] = $path;
         }
 
         $attributedAggregateClasses = [];
@@ -54,6 +58,16 @@ final class AggregateAttributesLoader
         $classes = get_declared_classes();
         foreach ($classes as $class) {
             $reflection = new ReflectionClass($class);
+            $fileName = $reflection->getFileName();
+
+            if ($fileName === false) {
+                continue;
+            }
+
+            if (!in_array($fileName, $includedFiles, true)) {
+                continue;
+            }
+
             $attributes = $reflection->getAttributes(Aggregate::class);
             foreach ($attributes as $attribute) {
                 $aggregate = $attribute->newInstance();
