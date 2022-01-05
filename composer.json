@@ -20,10 +20,10 @@
   "require": {
     "php": "~8.0.0|~8.1.0",
     "patchlevel/event-sourcing": "^1.1.0",
-    "symfony/dependency-injection": "^4.4.34|5.4.0|^6.0.0",
-    "symfony/http-kernel": "^4.4.34|5.4.0|^6.0.0",
-    "symfony/config": "^4.4.34|5.4.0|^6.0.0",
-    "symfony/console": "^4.4.34|5.4.0|^6.0.0"
+    "symfony/dependency-injection": "^4.4.34|^5.4.0|^6.0.0",
+    "symfony/http-kernel": "^4.4.34|^5.4.0|^6.0.0",
+    "symfony/config": "^4.4.34|^5.4.0|^6.0.0",
+    "symfony/console": "^4.4.34|^5.4.0|^6.0.0"
   },
   "require-dev": {
     "ext-pdo_sqlite": "~8.0.0|~8.1.0",
@@ -34,7 +34,7 @@
     "phpstan/phpstan": "^1.2.0",
     "phpunit/phpunit": "^9.5.10",
     "roave/security-advisories": "dev-master",
-    "symfony/messenger": "^4.4.34|5.4.0|^6.0.0",
+    "symfony/messenger": "^4.4.34|^5.4.0|^6.0.0",
     "symfony/var-dumper": "^5.4.0|^6.0.0",
     "vimeo/psalm": "^4.13.1"
   },
@@ -52,7 +52,12 @@
     "preferred-install": {
       "*": "dist"
     },
-    "sort-packages": true
+    "sort-packages": true,
+    "allow-plugins": {
+      "composer/package-versions-deprecated": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "infection/extension-installer": true
+    }
   },
   "autoload": {
     "psr-4": {
