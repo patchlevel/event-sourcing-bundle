@@ -243,6 +243,31 @@ patchlevel_event_sourcing:
       class: App\Domain\Hotel\Hotel
 ```
 
+or by adding the corresponding aggregate attribute.
+The snapshotStore is optional and `null` by default.
+
+```php
+namespace App\Domain\Hotel;
+
+use Patchlevel\EventSourcing\Aggregate\AggregateChanged;
+use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
+use Patchlevel\EventSourcingBundle\Attribute\Aggregate;
+
+#[Aggregate(name: 'hotel', snapshotStore: 'default')]
+final class Hotel extends AggregateRoot
+{
+    protected function apply(AggregateChanged $event): void
+    {
+    
+    }
+
+    public function aggregateRootId(): string
+    {
+        return '1';
+    }
+}
+```
+
 ### Define projections
 
 So that we can see all the hotels on our website 
