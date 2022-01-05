@@ -39,6 +39,8 @@ use Patchlevel\EventSourcing\WatchServer\WatchServer;
 use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
+use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1;
+use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor2;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Profile;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\SnapshotableProfile;
 use PHPUnit\Framework\TestCase;
@@ -46,7 +48,9 @@ use Prophecy\PhpUnit\ProphecyTrait;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\Messenger\MessageBusInterface;
+use InvalidArgumentException;
 
 class PatchlevelEventSourcingBundleTest extends TestCase
 {
@@ -92,7 +96,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         $container = new ContainerBuilder();
         $this->compileContainer(
             $container,
-                [
+            [
                 'patchlevel_event_sourcing' => [
                     'connection' => [
                         'service' => 'doctrine.dbal.eventstore_connection',
@@ -118,7 +122,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     'store' => [
                         'type' => 'single_table',
                     ],
-                ]
+                ],
             ]
         );
 
@@ -138,7 +142,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     'store' => [
                         'type' => 'multi_table',
                     ],
-                ]
+                ],
             ]
         );
 
@@ -185,7 +189,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     ],
                     'event_bus' => [
                         'type' => 'custom',
-                        'service' => 'my_event_bus'
+                        'service' => 'my_event_bus',
                     ],
                 ],
             ]
@@ -194,9 +198,52 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertEquals($eventBus, $container->get(EventBus::class));
     }
 
+    public function testProcessorListener()
+    {
+        $container = new ContainerBuilder();
+        $container->setDefinition(Processor1::class, new Definition(Processor1::class))
+            ->addTag('event_sourcing.processor', ['priority' => -64]);
+        $container->setDefinition(Processor2::class, new Definition(Processor2::class))
+            ->addTag('event_sourcing.processor');
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(DefaultEventBus::class, $container->get(EventBus::class));
+        self::assertEquals(
+            [
+                'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1' => [
+                    ['priority' => -64],
+                ],
+                'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor2' => [
+                    [],
+                ],
+                'Patchlevel\EventSourcing\Projection\ProjectionListener' => [
+                    ['priority' => -32],
+                ],
+                'Patchlevel\EventSourcingBundle\DataCollector\EventListener' => [
+                    []
+                ]
+            ],
+            $container->findTaggedServiceIds('event_sourcing.processor')
+        );
+    }
+
     public function testSymfonyEventBus()
     {
         $container = new ContainerBuilder();
+        $container->setDefinition(Processor1::class, new Definition(Processor1::class))
+            ->addTag('event_sourcing.processor', ['priority' => -64]);
+        $container->setDefinition(Processor2::class, new Definition(Processor2::class))
+            ->addTag('event_sourcing.processor');
 
         $this->compileContainer(
             $container,
@@ -206,13 +253,30 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
                     'event_bus' => [
-                        'service' => 'event.bus'
+                        'service' => 'event.bus',
                     ],
                 ],
             ]
         );
 
         self::assertInstanceOf(SymfonyEventBus::class, $container->get(EventBus::class));
+        self::assertEquals(
+            [
+                'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1' => [
+                    ['bus' => 'event.bus', 'priority' => -64],
+                ],
+                'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor2' => [
+                    ['bus' => 'event.bus', 'priority' => 0],
+                ],
+                'Patchlevel\EventSourcing\Projection\ProjectionListener' => [
+                    ['bus' => 'event.bus', 'priority' => -32],
+                ],
+                'Patchlevel\EventSourcingBundle\DataCollector\EventListener' => [
+                    ['bus' => 'event.bus', 'priority' => 0],
+                ]
+            ],
+            $container->findTaggedServiceIds('messenger.message_handler')
+        );
     }
 
     public function testPsr6SnapshotStore()
@@ -228,9 +292,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     ],
                     'snapshot_stores' => [
                         'default' => [
-                            'service' => 'cache.default'
-                        ]
-                    ]
+                            'service' => 'cache.default',
+                        ],
+                    ],
                 ],
             ]
         );
@@ -255,9 +319,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     'snapshot_stores' => [
                         'default' => [
                             'type' => 'psr16',
-                            'service' => 'simple_cache'
-                        ]
-                    ]
+                            'service' => 'simple_cache',
+                        ],
+                    ],
                 ],
             ]
         );
@@ -282,9 +346,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     'snapshot_stores' => [
                         'default' => [
                             'type' => 'custom',
-                            'service' => 'my_snapshot_store'
-                        ]
-                    ]
+                            'service' => 'my_snapshot_store',
+                        ],
+                    ],
                 ],
             ]
         );
@@ -307,8 +371,8 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
                     'watch_server' => [
-                        'enabled' => true
-                    ]
+                        'enabled' => true,
+                    ],
                 ],
             ]
         );
@@ -333,11 +397,11 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
                     'event_bus' => [
-                        'service' => 'event.bus'
+                        'service' => 'event.bus',
                     ],
                     'watch_server' => [
-                        'enabled' => true
-                    ]
+                        'enabled' => true,
+                    ],
                 ],
             ]
         );
@@ -359,9 +423,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     ],
                     'aggregates' => [
                         'profile' => [
-                            'class' => Profile::class
-                        ]
-                    ]
+                            'class' => Profile::class,
+                        ],
+                    ],
                 ],
             ]
         );
@@ -383,14 +447,14 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     'aggregates' => [
                         'profile' => [
                             'class' => SnapshotableProfile::class,
-                            'snapshot_store' => 'default'
-                        ]
+                            'snapshot_store' => 'default',
+                        ],
                     ],
                     'snapshot_stores' => [
                         'default' => [
-                            'service' => 'cache.default'
-                        ]
-                    ]
+                            'service' => 'cache.default',
+                        ],
+                    ],
                 ],
             ]
         );
@@ -408,7 +472,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                 'patchlevel_event_sourcing' => [
                     'connection' => [
                         'service' => 'doctrine.dbal.eventstore_connection',
-                    ]
+                    ],
                 ],
             ]
         );
@@ -434,7 +498,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                 'patchlevel_event_sourcing' => [
                     'connection' => [
                         'service' => 'doctrine.dbal.eventstore_connection',
-                    ]
+                    ],
                 ],
             ]
         );
@@ -444,6 +508,117 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(CurrentCommand::class, $container->get('event_sourcing.command.migration_current'));
         self::assertInstanceOf(ExecuteCommand::class, $container->get('event_sourcing.command.migration_execute'));
         self::assertInstanceOf(StatusCommand::class, $container->get('event_sourcing.command.migration_status'));
+    }
+
+    public function testDefaultRepositoryWithAttributeAggregate()
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'aggregates_paths' => [__DIR__ . '/../Fixtures/AttributedAggregates'],
+                    'aggregates' => [
+                        'profile' => [
+                            'class' => Profile::class,
+                        ],
+                    ],
+                    'snapshot_stores' => [
+                        'default' => [
+                            'service' => 'cache.default',
+                        ],
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(DefaultRepository::class, $container->get('event_sourcing.repository.profileWithAttribute'));
+        self::assertInstanceOf(SnapshotRepository::class, $container->get('event_sourcing.repository.snapshotableProfileWithAttribute'));
+    }
+
+    public function testDefaultRepositoryWithAttributeAggregateAggregatePathSingleValue()
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'aggregates_paths' => __DIR__ . '/../Fixtures/AttributedAggregates',
+                    'aggregates' => [
+                        'profile' => [
+                            'class' => Profile::class,
+                        ],
+                    ],
+                    'snapshot_stores' => [
+                        'default' => [
+                            'service' => 'cache.default',
+                        ],
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(DefaultRepository::class, $container->get('event_sourcing.repository.profileWithAttribute'));
+        self::assertInstanceOf(SnapshotRepository::class, $container->get('event_sourcing.repository.snapshotableProfileWithAttribute'));
+    }
+
+    public function testDefaultRepositoryWithAttributeAggregateMergeError()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'aggregates_paths' => [__DIR__ . '/../Fixtures/AttributedAggregates'],
+                    'aggregates' => [
+                        'profileWithAttribute' => [
+                            'class' => Profile::class,
+                        ],
+                    ],
+                    'snapshot_stores' => [
+                        'default' => [
+                            'service' => 'cache.default',
+                        ],
+                    ],
+                ],
+            ]
+        );
+    }
+
+    public function testDefaultRepositoryWithAttributeAggregateSameNameError()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'aggregates_paths' => [__DIR__ . '/../Fixtures/AttributedAggregatesSameName'],
+                    'snapshot_stores' => [
+                        'default' => [
+                            'service' => 'cache.default',
+                        ],
+                    ],
+                ],
+            ]
+        );
     }
 
     public function testFullBuild()
@@ -464,8 +639,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     ],
                     'event_bus' => [
                         'type' => 'symfony',
-                        'service' => 'event.bus'
+                        'service' => 'event.bus',
                     ],
+                    'aggregates_paths' => [__DIR__ . '/../Fixtures/AttributedAggregates'],
                     'aggregates' => [
                         'profile' => [
                             'class' => SnapshotableProfile::class,

@@ -4,7 +4,21 @@
 
 # Event-Sourcing-Bundle
 
-a symfony integration of a small lightweight [event-sourcing](https://github.com/patchlevel/event-sourcing) library.
+A lightweight but also all-inclusive event sourcing bundle 
+with a focus on developer experience and based on doctrine dbal.
+This bundle is a [symfony](https://symfony.com/) integration 
+for [event-sourcing](https://github.com/patchlevel/event-sourcing) library.
+
+## Features
+
+* Everything is included in the package for event sourcing
+* Based on [doctrine dbal](https://github.com/doctrine/dbal) and their ecosystem
+* Developer experience oriented and fully typed
+* [Snapshots](docs/snapshots.md) system to quickly rebuild the aggregates
+* [Pipeline](docs/pipeline.md) to build new [projections](docs/projection.md) or to migrate events
+* [Scheme management](docs/store.md) and [doctrine migration](docs/store.md) support
+* Dev [tools](docs/tools.md) such as a realtime event watcher
+* Built in [cli commands](docs/cli.md) with [symfony](https://symfony.com/)
 
 ## Installation
 
@@ -28,6 +42,7 @@ as this documentation only deals with bundle integration.
 * [Store](docs/store.md)
 * [Pipeline](docs/pipeline.md)
 * [Tools](docs/tools.md)
+* [CLI](docs/cli.md)
 
 ## Integration
 
@@ -120,8 +135,9 @@ final class GuestIsCheckedOut extends AggregateChanged
 
 ### Define aggregates
 
-Next we need to define the aggregate. So the hotel and how the hotel should behave. We have also defined the `create`
-, `checkIn` and `checkOut` methods accordingly. These events are thrown here and the state of the hotel is also changed.
+Next we need to define the aggregate. So the hotel and how the hotel should behave. 
+We have also defined the `create`, `checkIn` and `checkOut` methods accordingly. 
+These events are thrown here and the state of the hotel is also changed.
 
 ```php
 namespace App\Domain\Hotel;
@@ -215,7 +231,8 @@ final class Hotel extends AggregateRoot
 }
 ```
 
-> :book: You can find out more about aggregates and events [here](./docs/aggregate.md).
+> :book: You can find out more about aggregates 
+> and events in the library [documentation](https://github.com/patchlevel/event-sourcing#documentation).
 
 Next we have to make our aggregate known:
 
@@ -226,10 +243,36 @@ patchlevel_event_sourcing:
       class: App\Domain\Hotel\Hotel
 ```
 
+or by adding the corresponding aggregate attribute.
+The snapshotStore is optional and `null` by default.
+
+```php
+namespace App\Domain\Hotel;
+
+use Patchlevel\EventSourcing\Aggregate\AggregateChanged;
+use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
+use Patchlevel\EventSourcingBundle\Attribute\Aggregate;
+
+#[Aggregate(name: 'hotel', snapshotStore: 'default')]
+final class Hotel extends AggregateRoot
+{
+    protected function apply(AggregateChanged $event): void
+    {
+    
+    }
+
+    public function aggregateRootId(): string
+    {
+        return '1';
+    }
+}
+```
+
 ### Define projections
 
-So that we can see all the hotels on our website and also see how many guests are currently visiting the hotels, we need
-a projection for it.
+So that we can see all the hotels on our website 
+and also see how many guests are currently visiting the hotels, 
+we need a projection for it.
 
 ```php
 namespace App\Projection;
@@ -296,7 +339,7 @@ final class HotelProjection implements Projection
 }
 ```
 
-> :warning: autoconfigure need to be enabled, otherwise you need add the tag.
+> :warning: autoconfigure need to be enabled, otherwise you need add the `event_sourcing.projection` tag.
 
 > :book: You can find out more about projections [here](./docs/projection.md).
 
@@ -339,7 +382,7 @@ final class SendCheckInEmailListener implements Listener
 }
 ```
 
-> :warning: autoconfigure need to be enabled, otherwise you need add the tag.
+> :warning: autoconfigure need to be enabled, otherwise you need add the `event_sourcing.processor` tag.
 
 > :book: You can find out more about processor [here](./docs/processor.md).
 
@@ -376,9 +419,7 @@ final class HotelController
         $this->hotelRepository = $hotelRepository;
     }
 
-    /**
-     * @Route("/create", methods={"POST"})
-     */
+    #[Route("/create", methods:["POST"])]
     public function createAction(Request $request): JsonResponse
     {
         $name = $request->request->get('name'); // need validation!
@@ -391,9 +432,7 @@ final class HotelController
         return new JsonResponse(['id' => $id->toString()]);
     }
     
-    /**
-     * @Route("/:id/check-in", methods={"POST"})
-     */
+    #[Route("/:id/check-in", methods:["POST"])]
     public function createAction(string $id, Request $request): JsonResponse
     {
         $id = Uuid::fromString($id);
@@ -405,10 +444,8 @@ final class HotelController
 
         return new JsonResponse(['id' => $id->toString()]);
     }
-    
-    /**
-     * @Route("/:id/check-out", methods={"POST"})
-     */
+
+     #[Route("/:id/check-out", methods:["POST"])]
     public function createAction(string $id, Request $request): JsonResponse
     {
         $id = Uuid::fromString($id);
