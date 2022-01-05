@@ -13,9 +13,10 @@ use InvalidArgumentException;
 
 class AggregateAttributeLoaderTest extends TestCase
 {
-    public function testInvalidArgumentException()
+    public function testDuplicateAggregateName()
     {
         $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('found duplicate aggregate name "profileWithAttribute", it was found in class "Patchlevel\EventSourcingBundle\Tests\Fixtures\AttributedAggregatesSameName\SnapshotableProfileWithAttribute" and "Patchlevel\EventSourcingBundle\Tests\Fixtures\AttributedAggregatesSameName\ProfileWithAttribute"');
 
         $loader = new AggregateAttributesLoader();
         $loader->load([
