@@ -45,3 +45,17 @@ patchlevel_event_sourcing:
             class: App\Domain\Profile\Profile
             snapshot_store: default
 ```
+
+## Batch (since v1.2)
+
+So that not every write process also writes to the cache at the same time, 
+you can also say from how many events should be written to the snapshot store first. 
+This minimizes the write operations to the cache, which improves performance.
+
+```yaml
+patchlevel_event_sourcing:
+    snapshot_stores:
+        default:
+            service: event_sourcing.cache
+            batch_size: 20
+```
