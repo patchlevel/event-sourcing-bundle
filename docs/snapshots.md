@@ -46,6 +46,23 @@ patchlevel_event_sourcing:
             snapshot_store: default
 ```
 
+If you are using attributes then you have to put the snapshot there.
+
+```php
+namespace App\Domain\Profile;
+
+use Patchlevel\EventSourcing\Aggregate\SnapshotableAggregateRoot;
+use Patchlevel\EventSourcingBundle\Attribute\Aggregate;
+
+#[Aggregate(name: 'profile', snapshotStore: 'default')]
+final class Profile extends SnapshotableAggregateRoot
+{
+    // ...
+}
+```
+
+> :book: You can find out more about the attributes [here](aggregate.md).
+
 ## Batch (since v1.2)
 
 So that not every write process also writes to the cache at the same time, 

@@ -34,6 +34,7 @@ this [installation documentation](docs/installation.md).
 We recommend reading the documentation for the [library](https://github.com/patchlevel/event-sourcing) first, 
 as this documentation only deals with bundle integration.
 
+* [Aggregate](docs/aggregate.md)
 * [Repository](docs/repository.md)
 * [Event Bus](docs/event_bus.md)
 * [Processor](docs/processor.md)
@@ -149,6 +150,7 @@ use Patchlevel\EventSourcing\Aggregate\AggregateChanged;
 use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
 use Symfony\Component\Uid\Uuid;
 
+#[Aggregate(name: 'hotel')]
 final class Hotel extends AggregateRoot
 {
     private Uuid $id;
@@ -231,42 +233,9 @@ final class Hotel extends AggregateRoot
 }
 ```
 
-> :book: You can find out more about aggregates 
-> and events in the library [documentation](https://github.com/patchlevel/event-sourcing#documentation).
+> :warning: The attribute variant is only available since v1.2. Switch to the v1.1 branch to read the older documentation.
 
-Next we have to make our aggregate known:
-
-```yaml
-patchlevel_event_sourcing:
-  aggregates:
-    hotel:
-      class: App\Domain\Hotel\Hotel
-```
-
-or by adding the corresponding aggregate attribute.
-The snapshotStore is optional and `null` by default.
-
-```php
-namespace App\Domain\Hotel;
-
-use Patchlevel\EventSourcing\Aggregate\AggregateChanged;
-use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
-use Patchlevel\EventSourcingBundle\Attribute\Aggregate;
-
-#[Aggregate(name: 'hotel', snapshotStore: 'default')]
-final class Hotel extends AggregateRoot
-{
-    protected function apply(AggregateChanged $event): void
-    {
-    
-    }
-
-    public function aggregateRootId(): string
-    {
-        return '1';
-    }
-}
-```
+> :book: You can find out more about aggregates [here](./docs/aggregate.md).
 
 ### Define projections
 
