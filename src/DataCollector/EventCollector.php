@@ -6,7 +6,6 @@ namespace Patchlevel\EventSourcingBundle\DataCollector;
 
 use Patchlevel\EventSourcing\Aggregate\AggregateChanged;
 use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
-use Symfony\Bundle\FrameworkBundle\DataCollector\TemplateAwareDataCollectorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\DataCollector\DataCollector;
@@ -24,7 +23,7 @@ use const DATE_ATOM;
  * }
  * @psalm-property DataType $data
  */
-final class EventCollector extends DataCollector implements TemplateAwareDataCollectorInterface
+final class EventCollector extends DataCollector
 {
     private EventListener $eventListener;
     /** @var array<class-string<AggregateRoot>, string> */
@@ -58,11 +57,6 @@ final class EventCollector extends DataCollector implements TemplateAwareDataCol
             'events' => $events,
             'aggregates' => $this->aggregates,
         ];
-    }
-
-    public static function getTemplate(): string
-    {
-        return '@PatchlevelEventSourcing/Collector/template.html.twig';
     }
 
     /**
