@@ -39,6 +39,7 @@ use Patchlevel\EventSourcing\WatchServer\DefaultWatchServerClient;
 use Patchlevel\EventSourcing\WatchServer\WatchServer;
 use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
+use Patchlevel\EventSourcingBundle\Loader\DuplicateAggregateDefinition;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor2;
@@ -630,7 +631,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
 
     public function testDefaultRepositoryWithAttributeAggregateSameNameError()
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(DuplicateAggregateDefinition::class);
         $container = new ContainerBuilder();
 
         $this->compileContainer(
