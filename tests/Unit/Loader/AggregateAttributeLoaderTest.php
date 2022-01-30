@@ -2,14 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Patchlevel\EventSourcingBundle\Tests\Unit;
+namespace Patchlevel\EventSourcingBundle\Tests\Unit\Loader;
 
-use Patchlevel\EventSourcing\Aggregate\AggregateChanged;
-use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
-use Patchlevel\EventSourcingBundle\Attribute\Aggregate;
+use InvalidArgumentException;
 use Patchlevel\EventSourcingBundle\Loader\AggregateAttributesLoader;
 use PHPUnit\Framework\TestCase;
-use InvalidArgumentException;
 
 class AggregateAttributeLoaderTest extends TestCase
 {
@@ -20,7 +17,7 @@ class AggregateAttributeLoaderTest extends TestCase
 
         $loader = new AggregateAttributesLoader();
         $loader->load([
-            __DIR__ . '/../Fixtures/AttributedAggregatesSameName'
+            __DIR__ . '/../../Fixtures/AttributedAggregatesSameName'
         ]);
     }
 
@@ -28,7 +25,7 @@ class AggregateAttributeLoaderTest extends TestCase
     {
         $loader = new AggregateAttributesLoader();
         $result = $loader->load([
-            __DIR__ . '/../Fixtures/AttributedAggregates'
+            __DIR__ . '/../../Fixtures/AttributedAggregates'
         ]);
 
         self::assertCount(2, $result);

@@ -6,9 +6,10 @@ namespace Patchlevel\EventSourcingBundle\DataCollector;
 
 use Patchlevel\EventSourcing\Aggregate\AggregateChanged;
 use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
-use Symfony\Bundle\FrameworkBundle\DataCollector\AbstractDataCollector;
+use Symfony\Bundle\FrameworkBundle\DataCollector\TemplateAwareDataCollectorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\DataCollector\DataCollector;
 use Symfony\Component\VarDumper\Cloner\Data;
 use Throwable;
 
@@ -23,7 +24,7 @@ use const DATE_ATOM;
  * }
  * @psalm-property DataType $data
  */
-final class EventCollector extends AbstractDataCollector
+final class EventCollector extends DataCollector implements TemplateAwareDataCollectorInterface
 {
     private EventListener $eventListener;
     /** @var array<class-string<AggregateRoot>, string> */
@@ -78,5 +79,15 @@ final class EventCollector extends AbstractDataCollector
     public function getAggregates(): array
     {
         return $this->data['aggregates'];
+    }
+
+    public function getName(): string
+    {
+        return static::class;
+    }
+
+    public function reset(): void
+    {
+        $this->data = [];
     }
 }
