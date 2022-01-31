@@ -6,7 +6,7 @@ updates:
       - dependency-type: "direct"
     schedule:
       interval: "daily"
-    versioning-strategy: "increase"
+    versioning-strategy: "widen"
 
   - package-ecosystem: "github-actions"
     directory: "/"
