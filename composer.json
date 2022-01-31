@@ -33,7 +33,7 @@
     "patchlevel/coding-standard": "^1.1.1",
     "phpspec/prophecy-phpunit": "^2.0.1",
     "phpstan/phpstan": "^1.4.2",
-    "phpunit/phpunit": "^9.5.12",
+    "phpunit/phpunit": "^9.5.13",
     "roave/security-advisories": "dev-master",
     "symfony/messenger": "^4.4.34|^5.4.0|^6.0.0",
     "symfony/web-profiler-bundle": "^4.4.34|^5.4.0|^6.0.0",
