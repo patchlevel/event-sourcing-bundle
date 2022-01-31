@@ -6,9 +6,9 @@ namespace Patchlevel\EventSourcingBundle\DataCollector;
 
 use Patchlevel\EventSourcing\Aggregate\AggregateChanged;
 use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
-use Symfony\Bundle\FrameworkBundle\DataCollector\AbstractDataCollector;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\DataCollector\DataCollector;
 use Symfony\Component\VarDumper\Cloner\Data;
 use Throwable;
 
@@ -23,7 +23,7 @@ use const DATE_ATOM;
  * }
  * @psalm-property DataType $data
  */
-final class EventCollector extends AbstractDataCollector
+final class EventCollector extends DataCollector
 {
     private EventListener $eventListener;
     /** @var array<class-string<AggregateRoot>, string> */
@@ -59,11 +59,6 @@ final class EventCollector extends AbstractDataCollector
         ];
     }
 
-    public static function getTemplate(): string
-    {
-        return '@PatchlevelEventSourcing/Collector/template.html.twig';
-    }
-
     /**
      * @return list<array{class: class-string<AggregateChanged>, aggregateId: string, payload: Data, playhead: int, recordedOn: string}>
      */
@@ -78,5 +73,15 @@ final class EventCollector extends AbstractDataCollector
     public function getAggregates(): array
     {
         return $this->data['aggregates'];
+    }
+
+    public function getName(): string
+    {
+        return static::class;
+    }
+
+    public function reset(): void
+    {
+        $this->data = [];
     }
 }
