@@ -8,7 +8,7 @@ use RuntimeException;
 
 use function sprintf;
 
-class DuplicateAggregateDefinition extends RuntimeException
+final class DuplicateAggregateDefinition extends RuntimeException
 {
     /**
      * @param class-string $oldClass
