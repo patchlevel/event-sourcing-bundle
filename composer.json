@@ -29,7 +29,7 @@
   "require-dev": {
     "ext-pdo_sqlite": "~8.0.0|~8.1.0",
     "doctrine/migrations": "^3.3.2",
-    "infection/infection": "^0.26.2",
+    "infection/infection": "^0.26.4",
     "patchlevel/coding-standard": "^1.1.1",
     "phpspec/prophecy-phpunit": "^2.0.1",
     "phpstan/phpstan": "^1.4.2",
