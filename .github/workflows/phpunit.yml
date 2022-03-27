@@ -3,50 +3,51 @@
 name: "PHPUnit tests"
 
 on:
-    pull_request:
-    push:
-        branches:
-            - "[0-9]+.[0-9]+.x"
+  pull_request:
+  push:
+    branches:
+      - "[0-9]+.[0-9]+.x"
+      - "renovate/*"
 
 jobs:
-    phpunit:
-        name: "PHPUnit tests"
+  phpunit:
+    name: "PHPUnit tests"
 
-        runs-on: ${{ matrix.operating-system }}
+    runs-on: ${{ matrix.operating-system }}
 
-        strategy:
-            matrix:
-                dependencies:
-                    - "lowest"
-                    - "highest"
-                php-version:
-                    - "8.0"
-                    - "8.1"
-                operating-system:
-                    - "ubuntu-latest"
-                    - "windows-latest"
-                include:
-                  - dependencies: "locked"
-                    php-version: "8.0"
-                    operating-system: "ubuntu-latest"
-                  - dependencies: "locked"
-                    php-version: "8.0"
-                    operating-system: "windows-latest"
-        steps:
-            - name: "Checkout"
-              uses: actions/checkout@v3
+    strategy:
+      matrix:
+        dependencies:
+          - "lowest"
+          - "highest"
+        php-version:
+          - "8.0"
+          - "8.1"
+        operating-system:
+          - "ubuntu-latest"
+          - "windows-latest"
+        include:
+          - dependencies: "locked"
+            php-version: "8.0"
+            operating-system: "ubuntu-latest"
+          - dependencies: "locked"
+            php-version: "8.0"
+            operating-system: "windows-latest"
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v3
 
-            - name: "Install PHP"
-              uses: "shivammathur/setup-php@v2"
-              with:
-                  coverage: "pcov"
-                  php-version: "${{ matrix.php-version }}"
-                  ini-values: memory_limit=-1
-                  extensions: pdo_sqlite
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          coverage: "pcov"
+          php-version: "${{ matrix.php-version }}"
+          ini-values: memory_limit=-1
+          extensions: pdo_sqlite
 
-            - uses: ramsey/composer-install@2.1.0
-              with:
-                dependency-versions: ${{ matrix.dependencies }}
+      - uses: ramsey/composer-install@2.1.0
+        with:
+          dependency-versions: ${{ matrix.dependencies }}
 
-            - name: "Tests"
-              run: "vendor/bin/phpunit --coverage-clover=clover.xml --coverage-text"
+      - name: "Tests"
+        run: "vendor/bin/phpunit --coverage-clover=clover.xml --coverage-text"
