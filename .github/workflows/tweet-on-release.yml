@@ -4,7 +4,7 @@ name: Tweet new release
 # https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#release
 on:
   release:
-    types: [published]
+    types: [ published ]
 
 jobs:
   tweet:
