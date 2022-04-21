@@ -17,19 +17,20 @@ You can do this in the Yaml definition by listing all aggregates with names and 
 
 ```yaml
 patchlevel_event_sourcing:
-  aggregates:
-    hotel:
-      class: App\Domain\Hotel\Hotel
+  aggregates: '%kernel.project_dir%/src'
 ```
 
-Or you use the attribute variant (since v1.2). 
+> :book: You can also define multiple paths by specifying an array.
+
+So that the bundle knows where to look, you also have to specify a path.
+
 Here you have to give all aggregates the `Aggregate` attribute and give the associated name.
 
 ```php
 namespace App\Domain\Hotel;
 
 use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
-use Patchlevel\EventSourcingBundle\Attribute\Aggregate;
+use Patchlevel\EventSourcing\Attribute\Aggregate;
 
 #[Aggregate(name: 'hotel')]
 final class Hotel extends AggregateRoot
@@ -37,15 +38,6 @@ final class Hotel extends AggregateRoot
     // ...
 }
 ```
-
-So that the bundle knows where to look, you also have to specify a path.
-
-```yaml
-patchlevel_event_sourcing:
-  aggregates_paths: '%kernel.project_dir%/src'
-```
-
-> :book: You can also define multiple paths by specifying an array.
 
 ## Use snapshots
 
@@ -71,9 +63,11 @@ If you are using attributes then you have to put the snapshot there.
 namespace App\Domain\Hotel;
 
 use Patchlevel\EventSourcing\Aggregate\SnapshotableAggregateRoot;
-use Patchlevel\EventSourcingBundle\Attribute\Aggregate;
+use Patchlevel\EventSourcing\Attribute\Aggregate;
+use Patchlevel\EventSourcing\Attribute\Snapshot;
 
-#[Aggregate(name: 'hotel', snapshotStore: 'default')]
+#[Aggregate(name: 'hotel')]
+#[Snapshot('default')]
 final class Hotel extends SnapshotableAggregateRoot
 {
    // ...

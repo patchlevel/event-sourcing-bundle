@@ -47,6 +47,7 @@
 
 {% block panel %}
     <h2>Aggregates</h2>
+    {% if collector.aggregates|length > 0 %}
     <table>
         <tr>
             <th>Class</th>
@@ -57,39 +58,64 @@
                 <td>{{ _.display_class(class) }}</td>
                 <td>{{ name }}</td>
             </tr>
-        {% else %}
-            <div class="empty">
-                No aggregates were defined.
-            </div>
         {% endfor %}
     </table>
+    {% else %}
+    <div class="empty">
+        No aggregates were defined.
+    </div>
+    {% endif %}
 
     <h2>Events</h2>
-    {% for event in collector.events %}
+    {% if collector.events|length > 0 %}
+        <table>
+            <tr>
+                <th>Class</th>
+                <th>Name</th>
+            </tr>
+            {% for class, name in collector.events %}
+                <tr>
+                    <td>{{ _.display_class(class) }}</td>
+                    <td>{{ name }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <div class="empty">
+            No events were defined.
+        </div>
+    {% endif %}
+
+    <h2>Messages</h2>
+    {% for message in collector.messages %}
         <table class="event-item">
             <thead>
             <tr>
                 <th colspan="2">
-                    {{ _.display_class(event.class) }}
+                    {{ _.display_class(message.event.class) }}
                 </th>
             </tr>
             </thead>
             <tbody>
             <tr>
+                <td class="text-bold">Aggregate Class</td>
+                <td>{{ _.display_class(message.aggregate) }}</td>
+            </tr>
+            <tr>
                 <td class="text-bold">Aggregate ID</td>
-                <td>{{ event.aggregateId }}</td>
+                <td>{{ message.aggregateId }}</td>
             </tr>
             <tr>
                 <td class="text-bold">Playhead</td>
-                <td>{{ event.playhead }}</td>
+                <td>{{ message.event }}</td>
             </tr>
             <tr>
                 <td class="text-bold">Payload</td>
-                <td>{{ profiler_dump(event.payload) }}</td>
+                <td>{{ profiler_dump(message.payload) }}</td>
             </tr>
             <tr>
                 <td class="text-bold">Recorded on</td>
-                <td>{{ event.recordedOn }}</td>
+                <td>{{ message.recordedOn }}</td>
             </tr>
             </tbody>
         </table>

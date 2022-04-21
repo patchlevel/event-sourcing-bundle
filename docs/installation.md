@@ -44,7 +44,8 @@ Now you have to add a minimal configuration file here `config/packages/patchleve
 
 ```yaml
 patchlevel_event_sourcing:
-    aggregates_paths: '%kernel.project_dir%/src'
+    aggregates: '%kernel.project_dir%/src'
+    events: '%kernel.project_dir%/src'
     connection:
         url: '%env(EVENTSTORE_URL)%'
 ```

@@ -1,14 +1,5 @@
 parameters:
 	ignoreErrors:
-		-
-			message: "#^Method Patchlevel\\\\EventSourcingBundle\\\\DataCollector\\\\EventCollector\\:\\:getEvents\\(\\) return type has no value type specified in iterable type Symfony\\\\Component\\\\VarDumper\\\\Cloner\\\\Data\\.$#"
-			count: 1
-			path: src/DataCollector/EventCollector.php
-
-		-
-			message: "#^Method Patchlevel\\\\EventSourcingBundle\\\\DataCollector\\\\EventCollector\\:\\:getEvents\\(\\) return type with generic class Patchlevel\\\\EventSourcing\\\\Aggregate\\\\AggregateChanged does not specify its types\\: T$#"
-			count: 1
-			path: src/DataCollector/EventCollector.php
 
 		-
 			message: "#^Call to an undefined method Symfony\\\\Component\\\\Config\\\\Definition\\\\Builder\\\\NodeDefinition\\:\\:children\\(\\)\\.$#"

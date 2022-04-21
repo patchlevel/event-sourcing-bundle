@@ -15,7 +15,6 @@ use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
 use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
 use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
-use InvalidArgumentException;
 use Patchlevel\EventSourcing\Console\Command\DatabaseCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\DatabaseDropCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionCreateCommand;
@@ -31,19 +30,25 @@ use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\Listener;
 use Patchlevel\EventSourcing\EventBus\SymfonyEventBus;
-use Patchlevel\EventSourcing\Projection\DefaultProjectionRepository;
+use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
+use Patchlevel\EventSourcing\Metadata\AggregateRoot\AttributeAggregateRootRegistryFactory;
+use Patchlevel\EventSourcing\Metadata\Event\AttributeEventMetadataFactory;
+use Patchlevel\EventSourcing\Metadata\Event\AttributeEventRegistryFactory;
+use Patchlevel\EventSourcing\Metadata\Event\EventMetadataFactory;
+use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
+use Patchlevel\EventSourcing\Projection\DefaultProjectionHandler;
 use Patchlevel\EventSourcing\Projection\Projection;
+use Patchlevel\EventSourcing\Projection\ProjectionHandler;
 use Patchlevel\EventSourcing\Projection\ProjectionListener;
-use Patchlevel\EventSourcing\Projection\ProjectionRepository;
-use Patchlevel\EventSourcing\Repository\DefaultRepository;
-use Patchlevel\EventSourcing\Repository\Repository;
-use Patchlevel\EventSourcing\Repository\SnapshotRepository;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaManager;
 use Patchlevel\EventSourcing\Schema\MigrationSchemaProvider;
 use Patchlevel\EventSourcing\Schema\SchemaManager;
-use Patchlevel\EventSourcing\Snapshot\BatchSnapshotStore;
-use Patchlevel\EventSourcing\Snapshot\Psr16SnapshotStore;
-use Patchlevel\EventSourcing\Snapshot\Psr6SnapshotStore;
+use Patchlevel\EventSourcing\Serializer\JsonSerializer;
+use Patchlevel\EventSourcing\Serializer\Serializer;
+use Patchlevel\EventSourcing\Snapshot\Adapter\Psr16SnapshotAdapter;
+use Patchlevel\EventSourcing\Snapshot\Adapter\Psr6SnapshotAdapter;
+use Patchlevel\EventSourcing\Snapshot\DefaultSnapshotStore;
+use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
 use Patchlevel\EventSourcing\Store\MultiTableStore;
 use Patchlevel\EventSourcing\Store\SingleTableStore;
 use Patchlevel\EventSourcing\Store\Store;
@@ -52,21 +57,15 @@ use Patchlevel\EventSourcing\WatchServer\DefaultWatchServerClient;
 use Patchlevel\EventSourcing\WatchServer\WatchListener;
 use Patchlevel\EventSourcing\WatchServer\WatchServer;
 use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
-use Patchlevel\EventSourcingBundle\DataCollector\EventCollector;
-use Patchlevel\EventSourcingBundle\DataCollector\EventListener;
-use Patchlevel\EventSourcingBundle\Loader\AggregateAttributesLoader;
+use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
+use Patchlevel\EventSourcingBundle\DataCollector\MessageListener;
+use Patchlevel\EventSourcingBundle\RepositoryManager;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
-use function array_intersect_key;
-use function array_keys;
-use function array_merge;
 use function class_exists;
-use function count;
-use function implode;
-use function is_string;
 use function sprintf;
 
 final class PatchlevelEventSourcingExtension extends Extension
@@ -79,7 +78,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $configuration = new Configuration();
 
         /**
-         * @var array{event_bus: ?array{type: string, service: string}, watch_server: array{enabled: bool, host: string}, connection: ?array{service: ?string, url: ?string}, store: array{schema_manager: string, type: string, options: array<string, mixed>}, aggregates_paths: list<string>, aggregates: array<string, array{class: string, snapshot_store: ?string}>, snapshot_stores: array<string, array{type: string, service: string, batch_size: ?int}>, migration: array{path: string, namespace: string}} $config
+         * @var array{event_bus: ?array{type: string, service: string}, watch_server: array{enabled: bool, host: string}, connection: ?array{service: ?string, url: ?string}, store: array{schema_manager: string, type: string, options: array<string, mixed>}, aggregates: list<string>, events: list<string>, snapshot_stores: array<string, array{type: string, service: string, batch_size: ?int}>, migration: array{path: string, namespace: string}} $config
          */
         $config = $this->processConfiguration($configuration, $configs);
 
@@ -87,6 +86,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             return;
         }
 
+        $this->configureSerializer($config, $container);
         $this->configureEventBus($config, $container);
         $this->configureProjection($container);
         $this->configureConnection($config, $container);
@@ -105,6 +105,29 @@ final class PatchlevelEventSourcingExtension extends Extension
         }
 
         $this->configureWatchServer($config, $container);
+    }
+
+    /**
+     * @param array{events: array<string>} $config
+     */
+    private function configureSerializer(array $config, ContainerBuilder $container): void
+    {
+        $container->register(AttributeEventRegistryFactory::class);
+
+        $container->register(EventRegistry::class)
+            ->setFactory([new Reference(AttributeEventRegistryFactory::class), 'create'])
+            ->setArguments([$config['events']]);
+
+        $container->register(AttributeEventMetadataFactory::class);
+        $container->setAlias(EventMetadataFactory::class, AttributeEventMetadataFactory::class);
+
+        $container->register(JsonSerializer::class)
+            ->setArguments([
+                new Reference(EventMetadataFactory::class),
+                new Reference(EventRegistry::class),
+            ]);
+
+        $container->setAlias(Serializer::class, JsonSerializer::class);
     }
 
     /**
@@ -139,16 +162,16 @@ final class PatchlevelEventSourcingExtension extends Extension
     private function configureProjection(ContainerBuilder $container): void
     {
         $container->register(ProjectionListener::class)
-            ->setArguments([new Reference(ProjectionRepository::class)])
+            ->setArguments([new Reference(ProjectionHandler::class)])
             ->addTag('event_sourcing.processor', ['priority' => -32]);
 
         $container->registerForAutoconfiguration(Projection::class)
             ->addTag('event_sourcing.projection');
 
-        $container->register(DefaultProjectionRepository::class)
+        $container->register(DefaultProjectionHandler::class)
             ->setArguments([new TaggedIteratorArgument('event_sourcing.projection')]);
 
-        $container->setAlias(ProjectionRepository::class, DefaultProjectionRepository::class);
+        $container->setAlias(ProjectionHandler::class, DefaultProjectionHandler::class);
     }
 
     /**
@@ -191,7 +214,8 @@ final class PatchlevelEventSourcingExtension extends Extension
             $container->register(SingleTableStore::class)
                 ->setArguments([
                     new Reference('event_sourcing.dbal_connection'),
-                    '%event_sourcing.aggregates%',
+                    new Reference(Serializer::class),
+                    new Reference(AggregateRootRegistry::class),
                     $config['store']['options']['table_name'] ?? 'eventstore',
                 ]);
 
@@ -207,7 +231,8 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(MultiTableStore::class)
             ->setArguments([
                 new Reference('event_sourcing.dbal_connection'),
-                '%event_sourcing.aggregates%',
+                new Reference(Serializer::class),
+                new Reference(AggregateRootRegistry::class),
                 $config['store']['options']['table_name'] ?? 'eventstore',
             ]);
 
@@ -219,82 +244,53 @@ final class PatchlevelEventSourcingExtension extends Extension
      */
     private function configureSnapshots(array $config, ContainerBuilder $container): void
     {
+        $adapters = [];
+
         foreach ($config['snapshot_stores'] as $name => $definition) {
-            $targetId = $definition['service'];
-            $realId = sprintf('event_sourcing.snapshot_store.%s', $name);
-            $snapshotId = $definition['batch_size'] === null ? $realId : $realId . '.inner';
+            $adapterId = sprintf('event_sourcing.snapshot_store.adapter.%s', $name);
+            $adapters[$name] = new Reference($adapterId);
 
             if ($definition['type'] === 'psr6') {
-                $container->register($snapshotId, Psr6SnapshotStore::class)
-                    ->setArguments([new Reference($targetId)]);
+                $container->register($adapterId, Psr6SnapshotAdapter::class)
+                    ->setArguments([new Reference($definition['service'])]);
             }
 
             if ($definition['type'] === 'psr16') {
-                $container->register($snapshotId, Psr16SnapshotStore::class)
-                    ->setArguments([new Reference($targetId)]);
+                $container->register($adapterId, Psr16SnapshotAdapter::class)
+                    ->setArguments([new Reference($definition['service'])]);
             }
 
-            if ($definition['type'] === 'custom') {
-                $container->setAlias($snapshotId, $targetId);
-            }
-
-            if ($definition['batch_size'] === null) {
+            if ($definition['type'] !== 'custom') {
                 continue;
             }
 
-            $container->register($realId, BatchSnapshotStore::class)
-                ->setArguments([new Reference($snapshotId), $definition['batch_size']]);
+            $container->setAlias($adapterId, $definition['service']);
         }
+
+        $container->register(DefaultSnapshotStore::class)
+            ->setArguments([$adapters]);
+
+        $container->setAlias(SnapshotStore::class, DefaultSnapshotStore::class);
     }
 
     /**
-     * @param array{aggregates_paths: list<string>, aggregates: array<string, array{class: string, snapshot_store: ?string}>} $config
+     * @param array{aggregates: list<string>} $config
      */
     private function configureAggregates(array $config, ContainerBuilder $container): void
     {
-        $aggregates = $config['aggregates'];
+        $container->register(AttributeAggregateRootRegistryFactory::class);
 
-        if (count($config['aggregates_paths']) > 0) {
-            $attributedAggregateClasses = (new AggregateAttributesLoader())->load($config['aggregates_paths']);
-            $duplicates = array_intersect_key($aggregates, $attributedAggregateClasses);
+        $container->register(AggregateRootRegistry::class)
+            ->setFactory([new Reference(AttributeAggregateRootRegistryFactory::class), 'create'])
+            ->setArguments([$config['aggregates']]);
 
-            if (count($duplicates) > 0) {
-                $duplicateNames =  implode(',', array_keys($duplicates));
-
-                throw new InvalidArgumentException('found following duplicate aggregate names: ' . $duplicateNames);
-            }
-
-            $aggregates = array_merge($aggregates, $attributedAggregateClasses);
-        }
-
-        $container->setParameter('event_sourcing.aggregates', $this->aggregateHashMap($aggregates));
-
-        foreach ($aggregates as $aggregateName => $definition) {
-            $id = sprintf('event_sourcing.repository.%s', $aggregateName);
-
-            if (is_string($definition['snapshot_store'])) {
-                $container->register($id, SnapshotRepository::class)
-                    ->setArguments([
-                        new Reference(Store::class),
-                        new Reference(EventBus::class),
-                        $definition['class'],
-                        new Reference(
-                            sprintf('event_sourcing.snapshot_store.%s', $definition['snapshot_store'])
-                        ),
-                    ])
-                    ->setPublic(true);
-            } else {
-                $container->register($id, DefaultRepository::class)
-                    ->setArguments([
-                        new Reference(Store::class),
-                        new Reference(EventBus::class),
-                        $definition['class'],
-                    ])
-                    ->setPublic(true);
-            }
-
-            $container->registerAliasForArgument($id, Repository::class, $aggregateName . 'Repository');
-        }
+        $container->register(RepositoryManager::class)
+            ->setArguments([
+                new Reference(AggregateRootRegistry::class),
+                new Reference(Store::class),
+                new Reference(EventBus::class),
+                new Reference(SnapshotStore::class),
+            ]);
     }
 
     private function configureCommands(ContainerBuilder $container): void
@@ -338,27 +334,28 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->register(ProjectionCreateCommand::class)
             ->setArguments([
-                new Reference(ProjectionRepository::class),
+                new Reference(ProjectionHandler::class),
             ])
             ->addTag('console.command');
 
         $container->register(ProjectionDropCommand::class)
             ->setArguments([
-                new Reference(ProjectionRepository::class),
+                new Reference(ProjectionHandler::class),
             ])
             ->addTag('console.command');
 
         $container->register(ProjectionRebuildCommand::class)
             ->setArguments([
                 new Reference(Store::class),
-                new Reference(ProjectionRepository::class),
+                new Reference(ProjectionHandler::class),
             ])
             ->addTag('console.command');
 
         $container->register(ShowCommand::class)
             ->setArguments([
                 new Reference(Store::class),
-                '%event_sourcing.aggregates%',
+                new Reference(Serializer::class),
+                new Reference(AggregateRootRegistry::class),
             ])
             ->addTag('console.command');
     }
@@ -369,7 +366,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     private function configureWatchServer(array $config, ContainerBuilder $container): void
     {
         $container->register(DefaultWatchServerClient::class)
-            ->setArguments([$config['watch_server']['host']]);
+            ->setArguments([$config['watch_server']['host'], new Reference(Serializer::class)]);
 
         $container->setAlias(WatchServerClient::class, DefaultWatchServerClient::class);
 
@@ -378,13 +375,14 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->addTag('event_sourcing.processor');
 
         $container->register(DefaultWatchServer::class)
-            ->setArguments([$config['watch_server']['host']]);
+            ->setArguments([$config['watch_server']['host'], new Reference(Serializer::class)]);
 
         $container->setAlias(WatchServer::class, DefaultWatchServer::class);
 
         $container->register(WatchCommand::class)
             ->setArguments([
                 new Reference(WatchServer::class),
+                new Reference(Serializer::class),
             ])
             ->addTag('console.command');
     }
@@ -441,31 +439,16 @@ final class PatchlevelEventSourcingExtension extends Extension
 
     private function configureProfiler(ContainerBuilder $container): void
     {
-        $container->register(EventListener::class)
+        $container->register(MessageListener::class)
             ->addTag('event_sourcing.processor')
             ->addTag('kernel.reset', ['method' => 'clear']);
 
-        $container->register(EventCollector::class)
+        $container->register(EventSourcingCollector::class)
             ->setArguments([
-                new Reference(EventListener::class),
-                '%event_sourcing.aggregates%',
+                new Reference(MessageListener::class),
+                new Reference(AggregateRootRegistry::class),
+                new Reference(EventRegistry::class),
             ])
             ->addTag('data_collector', ['template' => '@PatchlevelEventSourcing/Collector/template.html.twig']);
-    }
-
-    /**
-     * @param array<string, array{class: string, snapshot_store: ?string}> $aggregateDefinition
-     *
-     * @return array<string, string>
-     */
-    private function aggregateHashMap(array $aggregateDefinition): array
-    {
-        $result = [];
-
-        foreach ($aggregateDefinition as $name => $definition) {
-            $result[$definition['class']] = $name;
-        }
-
-        return $result;
     }
 }
