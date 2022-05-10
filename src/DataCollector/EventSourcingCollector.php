@@ -16,11 +16,9 @@ use Throwable;
 
 use function array_map;
 
-use const DATE_ATOM;
-
 /**
  * @psalm-type DataType = array{
- *    messages: list<array{aggregate: class-string<AggregateRoot>, aggregateId: string, event: Data, playhead: int, recordedOn: string}>,
+ *    messages: list<Data>,
  *    aggregates: array<string, class-string<AggregateRoot>>,
  *    events: array<string, class-string>
  * }
