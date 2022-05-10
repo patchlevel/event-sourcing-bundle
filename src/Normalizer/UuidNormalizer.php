@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\Normalizer;
 
-use Patchlevel\EventSourcing\Serializer\Normalizer;
+use Patchlevel\EventSourcing\Serializer\Normalizer\InvalidArgument;
+use Patchlevel\EventSourcing\Serializer\Normalizer\Normalizer;
 use Symfony\Component\Uid\Uuid;
 
 use function is_string;
@@ -18,7 +19,7 @@ class UuidNormalizer implements Normalizer
         }
 
         if (!$value instanceof Uuid) {
-            throw new InvalidArgumentException();
+            throw new InvalidArgument();
         }
 
         return (string)$value;
@@ -31,7 +32,7 @@ class UuidNormalizer implements Normalizer
         }
 
         if (!is_string($value)) {
-            throw new InvalidArgumentException();
+            throw new InvalidArgument();
         }
 
         return Uuid::fromString($value);

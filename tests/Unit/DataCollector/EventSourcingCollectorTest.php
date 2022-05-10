@@ -35,9 +35,6 @@ class EventSourcingCollectorTest extends TestCase
         );
 
         $message = new Message(
-            Profile::class,
-            '1',
-            1,
             new ProfileCreated('1')
         );
 

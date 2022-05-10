@@ -43,13 +43,7 @@ final class EventSourcingCollector extends DataCollector
     {
         $messages = array_map(
             function (Message $message) {
-                return [
-                    'aggregate' => $message->aggregateClass(),
-                    'aggregateId' => $message->aggregateId(),
-                    'event' => $this->cloneVar($message->event()),
-                    'playhead' => $message->playhead(),
-                    'recordedOn' => $message->recordedOn()->format(DATE_ATOM),
-                ];
+                return $this->cloneVar($message);
             },
             $this->messageListener->get()
         );
@@ -62,7 +56,7 @@ final class EventSourcingCollector extends DataCollector
     }
 
     /**
-     * @return list<array{aggregate: class-string<AggregateRoot>, aggregateId: string, event: Data, playhead: int, recordedOn: string}>
+     * @return list<Data>
      */
     public function getMessages(): array
     {

@@ -24,9 +24,12 @@ use Patchlevel\EventSourcing\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
 use Patchlevel\EventSourcing\Projection\DefaultProjectionHandler;
+use Patchlevel\EventSourcing\Projection\MetadataAwareProjectionHandler;
 use Patchlevel\EventSourcing\Projection\ProjectionHandler;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
+use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\Repository;
+use Patchlevel\EventSourcing\Repository\RepositoryManager;
 use Patchlevel\EventSourcing\Schema\SchemaManager;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr16SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr6SnapshotAdapter;
@@ -35,13 +38,12 @@ use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
 use Patchlevel\EventSourcing\Store\MultiTableStore;
 use Patchlevel\EventSourcing\Store\SingleTableStore;
 use Patchlevel\EventSourcing\Store\Store;
-use Patchlevel\EventSourcing\WatchServer\DefaultWatchServer;
-use Patchlevel\EventSourcing\WatchServer\DefaultWatchServerClient;
+use Patchlevel\EventSourcing\WatchServer\SocketWatchServer;
+use Patchlevel\EventSourcing\WatchServer\SocketWatchServerClient;
 use Patchlevel\EventSourcing\WatchServer\WatchServer;
 use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
-use Patchlevel\EventSourcingBundle\RepositoryManager;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor2;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Profile;
@@ -91,9 +93,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(Connection::class, $container->get('event_sourcing.dbal_connection'));
         self::assertInstanceOf(MultiTableStore::class, $container->get(Store::class));
         self::assertInstanceOf(DefaultEventBus::class, $container->get(EventBus::class));
-        self::assertInstanceOf(DefaultProjectionHandler::class, $container->get(ProjectionHandler::class));
+        self::assertInstanceOf(MetadataAwareProjectionHandler::class, $container->get(ProjectionHandler::class));
         self::assertInstanceOf(AggregateRootRegistry::class, $container->get(AggregateRootRegistry::class));
-        self::assertInstanceOf(RepositoryManager::class, $container->get(RepositoryManager::class));
+        self::assertInstanceOf(DefaultRepositoryManager::class, $container->get(RepositoryManager::class));
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
     }
 
@@ -412,8 +414,8 @@ class PatchlevelEventSourcingBundleTest extends TestCase
             ]
         );
 
-        self::assertInstanceOf(DefaultWatchServer::class, $container->get(WatchServer::class));
-        self::assertInstanceOf(DefaultWatchServerClient::class, $container->get(WatchServerClient::class));
+        self::assertInstanceOf(SocketWatchServer::class, $container->get(WatchServer::class));
+        self::assertInstanceOf(SocketWatchServerClient::class, $container->get(WatchServerClient::class));
         self::assertInstanceOf(WatchCommand::class, $container->get(WatchCommand::class));
     }
 
@@ -441,8 +443,8 @@ class PatchlevelEventSourcingBundleTest extends TestCase
             ]
         );
 
-        self::assertInstanceOf(DefaultWatchServer::class, $container->get(WatchServer::class));
-        self::assertInstanceOf(DefaultWatchServerClient::class, $container->get(WatchServerClient::class));
+        self::assertInstanceOf(SocketWatchServer::class, $container->get(WatchServer::class));
+        self::assertInstanceOf(SocketWatchServerClient::class, $container->get(WatchServerClient::class));
     }
 
     public function testEventRegistry()
@@ -604,7 +606,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(Connection::class, $container->get('event_sourcing.dbal_connection'));
         self::assertInstanceOf(MultiTableStore::class, $container->get(Store::class));
         self::assertInstanceOf(SymfonyEventBus::class, $container->get(EventBus::class));
-        self::assertInstanceOf(DefaultProjectionHandler::class, $container->get(ProjectionHandler::class));
+        self::assertInstanceOf(MetadataAwareProjectionHandler::class, $container->get(ProjectionHandler::class));
         self::assertInstanceOf(AggregateRootRegistry::class, $container->get(AggregateRootRegistry::class));
         self::assertInstanceOf(RepositoryManager::class, $container->get(RepositoryManager::class));
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));

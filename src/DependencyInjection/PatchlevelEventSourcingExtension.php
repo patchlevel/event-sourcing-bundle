@@ -36,15 +36,21 @@ use Patchlevel\EventSourcing\Metadata\Event\AttributeEventMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Event\AttributeEventRegistryFactory;
 use Patchlevel\EventSourcing\Metadata\Event\EventMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
-use Patchlevel\EventSourcing\Projection\DefaultProjectionHandler;
+use Patchlevel\EventSourcing\Projection\MetadataAwareProjectionHandler;
 use Patchlevel\EventSourcing\Projection\Projection;
 use Patchlevel\EventSourcing\Projection\ProjectionHandler;
 use Patchlevel\EventSourcing\Projection\ProjectionListener;
+use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
+use Patchlevel\EventSourcing\Repository\RepositoryManager;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaManager;
 use Patchlevel\EventSourcing\Schema\MigrationSchemaProvider;
 use Patchlevel\EventSourcing\Schema\SchemaManager;
-use Patchlevel\EventSourcing\Serializer\JsonSerializer;
-use Patchlevel\EventSourcing\Serializer\Serializer;
+use Patchlevel\EventSourcing\Serializer\DefaultEventSerializer;
+use Patchlevel\EventSourcing\Serializer\Encoder\Encoder;
+use Patchlevel\EventSourcing\Serializer\Encoder\JsonEncoder;
+use Patchlevel\EventSourcing\Serializer\EventSerializer;
+use Patchlevel\EventSourcing\Serializer\Hydrator\EventHydrator;
+use Patchlevel\EventSourcing\Serializer\Hydrator\MetadataEventHydrator;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr16SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr6SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\DefaultSnapshotStore;
@@ -52,14 +58,15 @@ use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
 use Patchlevel\EventSourcing\Store\MultiTableStore;
 use Patchlevel\EventSourcing\Store\SingleTableStore;
 use Patchlevel\EventSourcing\Store\Store;
-use Patchlevel\EventSourcing\WatchServer\DefaultWatchServer;
-use Patchlevel\EventSourcing\WatchServer\DefaultWatchServerClient;
+use Patchlevel\EventSourcing\WatchServer\MessageSerializer;
+use Patchlevel\EventSourcing\WatchServer\PhpNativeMessageSerializer;
+use Patchlevel\EventSourcing\WatchServer\SocketWatchServer;
+use Patchlevel\EventSourcing\WatchServer\SocketWatchServerClient;
 use Patchlevel\EventSourcing\WatchServer\WatchListener;
 use Patchlevel\EventSourcing\WatchServer\WatchServer;
 use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
 use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
 use Patchlevel\EventSourcingBundle\DataCollector\MessageListener;
-use Patchlevel\EventSourcingBundle\RepositoryManager;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
@@ -121,13 +128,21 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(AttributeEventMetadataFactory::class);
         $container->setAlias(EventMetadataFactory::class, AttributeEventMetadataFactory::class);
 
-        $container->register(JsonSerializer::class)
+        $container->register(MetadataEventHydrator::class)
+            ->setArguments([new Reference(EventMetadataFactory::class)]);
+        $container->setAlias(EventHydrator::class, MetadataEventHydrator::class);
+
+        $container->register(JsonEncoder::class);
+        $container->setAlias(Encoder::class, JsonEncoder::class);
+
+        $container->register(DefaultEventSerializer::class)
             ->setArguments([
-                new Reference(EventMetadataFactory::class),
                 new Reference(EventRegistry::class),
+                new Reference(EventHydrator::class),
+                new Reference(Encoder::class),
             ]);
 
-        $container->setAlias(Serializer::class, JsonSerializer::class);
+        $container->setAlias(EventSerializer::class, DefaultEventSerializer::class);
     }
 
     /**
@@ -168,10 +183,10 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->registerForAutoconfiguration(Projection::class)
             ->addTag('event_sourcing.projection');
 
-        $container->register(DefaultProjectionHandler::class)
+        $container->register(MetadataAwareProjectionHandler::class)
             ->setArguments([new TaggedIteratorArgument('event_sourcing.projection')]);
 
-        $container->setAlias(ProjectionHandler::class, DefaultProjectionHandler::class);
+        $container->setAlias(ProjectionHandler::class, MetadataAwareProjectionHandler::class);
     }
 
     /**
@@ -214,7 +229,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             $container->register(SingleTableStore::class)
                 ->setArguments([
                     new Reference('event_sourcing.dbal_connection'),
-                    new Reference(Serializer::class),
+                    new Reference(EventSerializer::class),
                     new Reference(AggregateRootRegistry::class),
                     $config['store']['options']['table_name'] ?? 'eventstore',
                 ]);
@@ -231,7 +246,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(MultiTableStore::class)
             ->setArguments([
                 new Reference('event_sourcing.dbal_connection'),
-                new Reference(Serializer::class),
+                new Reference(EventSerializer::class),
                 new Reference(AggregateRootRegistry::class),
                 $config['store']['options']['table_name'] ?? 'eventstore',
             ]);
@@ -284,13 +299,15 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->setFactory([new Reference(AttributeAggregateRootRegistryFactory::class), 'create'])
             ->setArguments([$config['aggregates']]);
 
-        $container->register(RepositoryManager::class)
+        $container->register(DefaultRepositoryManager::class)
             ->setArguments([
                 new Reference(AggregateRootRegistry::class),
                 new Reference(Store::class),
                 new Reference(EventBus::class),
                 new Reference(SnapshotStore::class),
             ]);
+
+        $container->setAlias(RepositoryManager::class, DefaultRepositoryManager::class);
     }
 
     private function configureCommands(ContainerBuilder $container): void
@@ -354,7 +371,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(ShowCommand::class)
             ->setArguments([
                 new Reference(Store::class),
-                new Reference(Serializer::class),
+                new Reference(EventSerializer::class),
                 new Reference(AggregateRootRegistry::class),
             ])
             ->addTag('console.command');
@@ -365,24 +382,29 @@ final class PatchlevelEventSourcingExtension extends Extension
      */
     private function configureWatchServer(array $config, ContainerBuilder $container): void
     {
-        $container->register(DefaultWatchServerClient::class)
-            ->setArguments([$config['watch_server']['host'], new Reference(Serializer::class)]);
+        $container->register(PhpNativeMessageSerializer::class)
+            ->setArguments([new Reference(EventSerializer::class)]);
 
-        $container->setAlias(WatchServerClient::class, DefaultWatchServerClient::class);
+        $container->setAlias(MessageSerializer::class, PhpNativeMessageSerializer::class);
+
+        $container->register(SocketWatchServerClient::class)
+            ->setArguments([$config['watch_server']['host'], new Reference(MessageSerializer::class)]);
+
+        $container->setAlias(WatchServerClient::class, SocketWatchServerClient::class);
 
         $container->register(WatchListener::class)
             ->setArguments([new Reference(WatchServerClient::class)])
             ->addTag('event_sourcing.processor');
 
-        $container->register(DefaultWatchServer::class)
-            ->setArguments([$config['watch_server']['host'], new Reference(Serializer::class)]);
+        $container->register(SocketWatchServer::class)
+            ->setArguments([$config['watch_server']['host'], new Reference(MessageSerializer::class)]);
 
-        $container->setAlias(WatchServer::class, DefaultWatchServer::class);
+        $container->setAlias(WatchServer::class, SocketWatchServer::class);
 
         $container->register(WatchCommand::class)
             ->setArguments([
                 new Reference(WatchServer::class),
-                new Reference(Serializer::class),
+                new Reference(EventSerializer::class),
             ])
             ->addTag('console.command');
     }
