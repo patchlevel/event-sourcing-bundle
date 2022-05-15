@@ -2,12 +2,14 @@
 
 namespace Patchlevel\EventSourcingBundle\Tests\Fixtures;
 
-use Patchlevel\EventSourcing\Aggregate\AggregateChanged;
+use Patchlevel\EventSourcing\Attribute\Event;
 
-class ProfileCreated extends AggregateChanged
+#[Event('profile.created')]
+class ProfileCreated
 {
-    public static function raise(string $id): static
-    {
-        return new static($id);
+    public function __construct(
+        public string $id
+    ) {
+
     }
 }

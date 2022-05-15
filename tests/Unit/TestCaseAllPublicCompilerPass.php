@@ -10,7 +10,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 class TestCaseAllPublicCompilerPass implements CompilerPassInterface
 {
     private const SERVICE_PREFIX = 'event_sourcing.';
-    private const NAMESPACE_PREFIX = 'Patchlevel\\EventSourcing\\';
+    private const NAMESPACE_PREFIX = 'Patchlevel\\EventSourcing';
 
     public function process(ContainerBuilder $container): void
     {

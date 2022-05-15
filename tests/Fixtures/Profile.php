@@ -2,9 +2,11 @@
 
 namespace Patchlevel\EventSourcingBundle\Tests\Fixtures;
 
-use Patchlevel\EventSourcing\Aggregate\AggregateChanged;
 use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
+use Patchlevel\EventSourcing\Attribute\Aggregate;
+use Patchlevel\EventSourcing\Attribute\Apply;
 
+#[Aggregate('profile')]
 class Profile extends AggregateRoot
 {
     public function aggregateRootId(): string
@@ -12,7 +14,8 @@ class Profile extends AggregateRoot
         return '1';
     }
 
-    protected function apply(AggregateChanged $event): void
+    #[Apply]
+    protected function applyProfileCreated(ProfileCreated $event): void
     {
         // do nothing
     }

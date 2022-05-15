@@ -11,13 +11,14 @@ In this example the event `PrivacyAdded` is removed and the event `OldVisited` i
 namespace App\Command;
 
 use Doctrine\DBAL\Connection;
+use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Pipeline\Middleware\ExcludeEventMiddleware;
 use Patchlevel\EventSourcing\Pipeline\Middleware\RecalculatePlayheadMiddleware;
 use Patchlevel\EventSourcing\Pipeline\Middleware\ReplaceEventMiddleware;
 use Patchlevel\EventSourcing\Pipeline\Pipeline;
 use Patchlevel\EventSourcing\Pipeline\Source\StoreSource;
 use Patchlevel\EventSourcing\Pipeline\Target\StoreTarget;
-use Patchlevel\EventSourcing\Store\MultiTableStore;
+use Patchlevel\EventSourcing\Serializer\Serializer;use Patchlevel\EventSourcing\Store\MultiTableStore;
 use Patchlevel\EventSourcing\Store\Store;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -30,13 +31,19 @@ class CreateUserCommand extends Command
     
     private Store $oldStore;
     private Connection $newConnection;
-    private array $aggregates;
+    private Serializer $serializer;
+    private AggregateRootRegistry $aggregateRegistry;
 
-    public function __construct(Store $oldStore, Connection $newConnection, array $aggregates) 
-    {
+    public function __construct(
+        Store $oldStore, 
+        Connection $newConnection,
+        Serializer $serializer,
+        AggregateRootRegistry $aggregateRegistry
+    ) {
         $this->oldStore = $oldStore;
         $this->newConnection = $newConnection;
-        $this->aggregates = $aggregates;
+        $this->serializer = $serializer;
+        $this->aggregateRegistry = $aggregateRegistry;
     
         parent::__construct();
     }
@@ -48,7 +55,12 @@ class CreateUserCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $console = new SymfonyStyle($input, $output);
-        $newStore = new MultiTableStore($this->newConnection, $this->aggregates);
+        
+        $newStore = new MultiTableStore(
+            $this->newConnection, 
+            $this->serializer,
+            $this->aggregateRegistry
+        );
     
         $pipeline = new Pipeline(
             new StoreSource($oldStore),
@@ -82,11 +94,10 @@ The whole thing just has to be plugged together.
 services:
   App\Command\CreateUserCommand:
     arguments:
-      aggregates: '%event_sourcing.aggregates%'
       newConnection: '@doctrine.dbal.new_connection'
 ```
 
 > :book: If you have the doctrine bundle for the dbal connections, 
-> then you can [autowiren](https://symfony.com/bundles/DoctrineBundle/current/configuration.html#autowiring-multiple-connections) it.
+> then you can [autowire](https://symfony.com/bundles/DoctrineBundle/current/configuration.html#autowiring-multiple-connections) it.
 
 

@@ -68,24 +68,19 @@ A hotel can be created with a `name`:
 ```php
 namespace App\Domain\Hotel\Event;
 
-use Patchlevel\EventSourcing\Aggregate\AggregateChanged;
+use Patchlevel\EventSourcing\Attribute\Event;
+use Patchlevel\EventSourcing\Attribute\Normalize;
+use Patchlevel\EventSourcingBundle\Normalizer\UuidNormalizer;
 use Symfony\Component\Uid\Uuid;
 
-final class HotelCreated extends AggregateChanged
+#[Event('hotel.created')]
+final class HotelCreated
 {
-    public static function raise(Uuid $id, string $hotelName): self 
-    {
-        return new self($id->toString(), ['hotelId' => $id->toString(), 'hotelName' => $hotelName]);
-    }
-
-    public function hotelId(): Uuid
-    {
-        return Uuid::fromString($this->aggregateId);
-    }
-
-    public function hotelName(): string
-    {
-        return $this->payload['hotelName'];
+    public function __construct(
+        #[Normalize(UuidNormalizer::class)]
+        public readonly Uuid $id, 
+        public readonly string $hotelName
+    ) {
     }
 }
 ```
@@ -95,19 +90,14 @@ A guest can check in by name:
 ```php
 namespace App\Domain\Hotel\Event;
 
-use Patchlevel\EventSourcing\Aggregate\AggregateChanged;
-use Symfony\Component\Uid\Uuid;
+use Patchlevel\EventSourcing\Attribute\Event;
 
-final class GuestIsCheckedIn extends AggregateChanged
+#[Event('hotel.guest_is_checked_in')]
+final class GuestIsCheckedIn
 {
-    public static function raise(Uuid $id, string $guestName): self 
-    {
-        return new self($id->toString(), ['guestName' => $guestName]);
-    }
-
-    public function guestName(): string
-    {
-        return $this->payload['guestName'];
+    public function __construct(
+        public readonly string $guestName
+    ) {
     }
 }
 ```
@@ -117,19 +107,14 @@ And also check out again:
 ```php
 namespace App\Domain\Hotel\Event;
 
-use Patchlevel\EventSourcing\Aggregate\AggregateChanged;
-use Symfony\Component\Uid\Uuid;
+use Patchlevel\EventSourcing\Attribute\Event;
 
+#[Event('hotel.guest_is_checked_out')]
 final class GuestIsCheckedOut extends AggregateChanged
 {
-    public static function raise(Uuid $id, string $guestName): self 
-    {
-        return new self($id->toString(), ['guestName' => $guestName]);
-    }
-
-    public function guestName(): string
-    {
-        return $this->payload['guestName'];
+    public function __construct(
+        public readonly string $guestName
+    ) {
     }
 }
 ```
@@ -174,7 +159,7 @@ final class Hotel extends AggregateRoot
     public static function create(Uuid $id, string $hotelName): self
     {
         $self = new self();
-        $self->record(HotelCreated::raise($id, $hotelName));
+        $self->recordThat(new HotelCreated($id, $hotelName));
 
         return $self;
     }
@@ -185,7 +170,7 @@ final class Hotel extends AggregateRoot
             throw new GuestHasAlreadyCheckedIn($guestName);
         }
     
-        $this->record(GuestIsCheckedIn::raise($this->id, $guestName));
+        $this->recordThat(new GuestIsCheckedIn(guestName));
     }
     
     public function checkOut(string $guestName): void
@@ -194,36 +179,32 @@ final class Hotel extends AggregateRoot
             throw new IsNotAGuest($guestName);
         }
     
-        $this->record(GuestIsCheckedOut::raise($this->id, $guestName));
+        $this->recordThat(new GuestIsCheckedOut($guestName));
     }
     
-    
-    protected function apply(AggregateChanged $event): void
+    #[Apply]
+    protected function applyHotelCreated(HotelCreated $event): void
     {
-        if ($event instanceof HotelCreated) {
-            $this->id = $event->hotelId();
-            $this->name = $event->hotelName();
-            $this->guests = [];
-            
-            return;
-        } 
-        
-        if ($event instanceof GuestIsCheckedIn) {
-            $this->guests[] = $event->guestName();
-            
-            return;
-        }
-        
-        if ($event instanceof GuestIsCheckedOut) {
-            $this->guests = array_values(
-                array_filter(
-                    $this->guests,
-                    fn ($name) => $name !== $event->guestName();
-                )
-            );
-            
-            return;
-        }
+        $this->id = $event->hotelId();
+        $this->name = $event->hotelName();
+        $this->guests = [];      
+    }
+
+    #[Apply]
+    protected function applyGuestIsCheckedIn(GuestIsCheckedIn $event): void
+    {
+        $this->guests[] = $event->guestName();
+    }
+    
+    #[Apply]
+    protected function applyGuestIsCheckedOut(GuestIsCheckedOut $event): void
+    {
+        $this->guests = array_values(
+            array_filter(
+                $this->guests,
+                fn ($name) => $name !== $event->guestName();
+            )
+        );
     }
 
     public function aggregateRootId(): string
@@ -252,7 +233,7 @@ use App\Domain\Hotel\Event\GuestIsCheckedOut;
 use Doctrine\DBAL\Connection;
 use Patchlevel\EventSourcing\Projection\Projection;
 
-final class HotelProjection implements Projection
+final class HotelProjection
 {
     private Connection $db;
 
@@ -261,14 +242,7 @@ final class HotelProjection implements Projection
         $this->db = $db;
     }
 
-    public static function getHandledMessages(): iterable
-    {
-        yield HotelCreated::class => 'applyHotelCreated';
-        yield GuestIsCheckedIn::class => 'applyGuestIsCheckedIn';
-        yield GuestIsCheckedOut::class => 'applyGuestIsCheckedOut';
-    }
-
-    public function applyHotelCreated(HotelCreated $event): void
+    public function handleHotelCreated(HotelCreated $event): void
     {
         $this->db->insert(
             'hotel', 
@@ -374,7 +348,7 @@ namespace App\Controller;
 
 use App\Domain\Hotel\Hotel;
 use Patchlevel\EventSourcing\Repository\Repository;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Patchlevel\EventSourcingBundle\RepositoryManager;use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Uid\Uuid;
@@ -383,9 +357,9 @@ final class HotelController
 {
     private Repository $hotelRepository;
 
-    public function __construct(Repository $hotelRepository) 
+    public function __construct(RepositoryManager $repositoryManager) 
     {
-        $this->hotelRepository = $hotelRepository;
+        $this->hotelRepository = $repositoryManager->get(Hotel::class);
     }
 
     #[Route("/create", methods:["POST"])]
