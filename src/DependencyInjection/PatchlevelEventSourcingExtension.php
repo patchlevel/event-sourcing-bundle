@@ -17,6 +17,7 @@ use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
 use Patchlevel\EventSourcing\Console\Command\DatabaseCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\DatabaseDropCommand;
+use Patchlevel\EventSourcing\Console\Command\DebugCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionDropCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionRebuildCommand;
@@ -373,6 +374,13 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(Store::class),
                 new Reference(EventSerializer::class),
                 new Reference(AggregateRootRegistry::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(DebugCommand::class)
+            ->setArguments([
+                new Reference(AggregateRootRegistry::class),
+                new Reference(EventRegistry::class),
             ])
             ->addTag('console.command');
     }
