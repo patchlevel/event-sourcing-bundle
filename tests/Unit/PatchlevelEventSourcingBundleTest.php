@@ -10,6 +10,7 @@ use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
 use Patchlevel\EventSourcing\Console\Command\DatabaseCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\DatabaseDropCommand;
+use Patchlevel\EventSourcing\Console\Command\DebugCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionDropCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionRebuildCommand;
@@ -540,6 +541,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(ProjectionDropCommand::class, $container->get(ProjectionDropCommand::class));
         self::assertInstanceOf(ProjectionRebuildCommand::class, $container->get(ProjectionRebuildCommand::class));
         self::assertInstanceOf(ShowCommand::class, $container->get(ShowCommand::class));
+        self::assertInstanceOf(DebugCommand::class, $container->get(DebugCommand::class));
     }
 
     public function testMigrations()
