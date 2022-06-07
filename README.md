@@ -146,6 +146,7 @@ namespace App\Domain\Hotel;
 use App\Domain\Hotel\Event\HotelCreated;
 use App\Domain\Hotel\Event\GuestIsCheckedIn;
 use App\Domain\Hotel\Event\GuestIsCheckedOut;
+use Patchlevel\EventSourcingBundle\Attribute\Aggregate;
 use Patchlevel\EventSourcing\Aggregate\AggregateChanged;
 use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
 use Symfony\Component\Uid\Uuid;
