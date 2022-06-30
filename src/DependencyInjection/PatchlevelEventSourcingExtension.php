@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\DependencyInjection;
 
+use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\Migrations\Configuration\Connection\ExistingConnection;
@@ -15,6 +16,9 @@ use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
 use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
 use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
+use Patchlevel\EventSourcing\Clock\Clock;
+use Patchlevel\EventSourcing\Clock\FrozenClock;
+use Patchlevel\EventSourcing\Clock\SystemClock;
 use Patchlevel\EventSourcing\Console\Command\DatabaseCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\DatabaseDropCommand;
 use Patchlevel\EventSourcing\Console\Command\DebugCommand;
@@ -27,6 +31,9 @@ use Patchlevel\EventSourcing\Console\Command\SchemaUpdateCommand;
 use Patchlevel\EventSourcing\Console\Command\ShowCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
 use Patchlevel\EventSourcing\Console\DoctrineHelper;
+use Patchlevel\EventSourcing\EventBus\Decorator\ChainMessageDecorator;
+use Patchlevel\EventSourcing\EventBus\Decorator\MessageDecorator;
+use Patchlevel\EventSourcing\EventBus\Decorator\RecordedOnDecorator;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\Listener;
@@ -52,6 +59,8 @@ use Patchlevel\EventSourcing\Serializer\Encoder\JsonEncoder;
 use Patchlevel\EventSourcing\Serializer\EventSerializer;
 use Patchlevel\EventSourcing\Serializer\Hydrator\EventHydrator;
 use Patchlevel\EventSourcing\Serializer\Hydrator\MetadataEventHydrator;
+use Patchlevel\EventSourcing\Serializer\Upcast\Upcaster;
+use Patchlevel\EventSourcing\Serializer\Upcast\UpcasterChain;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr16SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr6SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\DefaultSnapshotStore;
@@ -86,7 +95,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $configuration = new Configuration();
 
         /**
-         * @var array{event_bus: ?array{type: string, service: string}, watch_server: array{enabled: bool, host: string}, connection: ?array{service: ?string, url: ?string}, store: array{schema_manager: string, type: string, options: array<string, mixed>}, aggregates: list<string>, events: list<string>, snapshot_stores: array<string, array{type: string, service: string, batch_size: ?int}>, migration: array{path: string, namespace: string}} $config
+         * @var array{event_bus: ?array{type: string, service: string}, watch_server: array{enabled: bool, host: string}, connection: ?array{service: ?string, url: ?string}, store: array{schema_manager: string, type: string, options: array<string, mixed>}, aggregates: list<string>, events: list<string>, snapshot_stores: array<string, array{type: string, service: string}>, migration: array{path: string, namespace: string}, clock: array{freeze: ?string}} $config
          */
         $config = $this->processConfiguration($configuration, $configs);
 
@@ -94,7 +103,9 @@ final class PatchlevelEventSourcingExtension extends Extension
             return;
         }
 
+        $this->configureUpcaster($container);
         $this->configureSerializer($config, $container);
+        $this->configureMessageDecorator($container);
         $this->configureEventBus($config, $container);
         $this->configureProjection($container);
         $this->configureConnection($config, $container);
@@ -103,6 +114,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureAggregates($config, $container);
         $this->configureCommands($container);
         $this->configureProfiler($container);
+        $this->configureClock($config, $container);
 
         if (class_exists(DependencyFactory::class)) {
             $this->configureMigration($config, $container);
@@ -141,6 +153,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(EventRegistry::class),
                 new Reference(EventHydrator::class),
                 new Reference(Encoder::class),
+                new Reference(Upcaster::class),
             ]);
 
         $container->setAlias(EventSerializer::class, DefaultEventSerializer::class);
@@ -188,6 +201,32 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->setArguments([new TaggedIteratorArgument('event_sourcing.projection')]);
 
         $container->setAlias(ProjectionHandler::class, MetadataAwareProjectionHandler::class);
+    }
+
+    private function configureUpcaster(ContainerBuilder $container): void
+    {
+        $container->registerForAutoconfiguration(Upcaster::class)
+            ->addTag('event_sourcing.upcaster');
+
+        $container->register(UpcasterChain::class)
+            ->setArguments([new TaggedIteratorArgument('event_sourcing.upcaster')]);
+
+        $container->setAlias(Upcaster::class, UpcasterChain::class);
+    }
+
+    private function configureMessageDecorator(ContainerBuilder $container): void
+    {
+        $container->register(RecordedOnDecorator::class)
+            ->setArguments([new Reference(Clock::class)])
+            ->addTag('event_sourcing.message_decorator');
+
+        $container->registerForAutoconfiguration(MessageDecorator::class)
+            ->addTag('event_sourcing.message_decorator');
+
+        $container->register(ChainMessageDecorator::class)
+            ->setArguments([new TaggedIteratorArgument('event_sourcing.message_decorator')]);
+
+        $container->setAlias(MessageDecorator::class, ChainMessageDecorator::class);
     }
 
     /**
@@ -256,7 +295,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{snapshot_stores: array<string, array{type: string, service: string, batch_size: ?int}>} $config
+     * @param array{snapshot_stores: array<string, array{type: string, service: string}>} $config
      */
     private function configureSnapshots(array $config, ContainerBuilder $container): void
     {
@@ -306,6 +345,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(Store::class),
                 new Reference(EventBus::class),
                 new Reference(SnapshotStore::class),
+                new Reference(MessageDecorator::class),
             ]);
 
         $container->setAlias(RepositoryManager::class, DefaultRepositoryManager::class);
@@ -480,5 +520,23 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(EventRegistry::class),
             ])
             ->addTag('data_collector', ['template' => '@PatchlevelEventSourcing/Collector/template.html.twig']);
+    }
+
+    /**
+     * @param array{clock: array{freeze: ?string}} $config
+     */
+    private function configureClock(array $config, ContainerBuilder $container): void
+    {
+        if ($config['clock']['freeze'] === null) {
+            $container->register(SystemClock::class);
+            $container->setAlias(Clock::class, SystemClock::class);
+
+            return;
+        }
+
+        $container->register(FrozenClock::class)
+            ->setArguments([new DateTimeImmutable($config['clock']['freeze'])]);
+
+        $container->setAlias(Clock::class, FrozenClock::class);
     }
 }

@@ -8,6 +8,9 @@ use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
 use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
 use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
+use Patchlevel\EventSourcing\Clock\Clock;
+use Patchlevel\EventSourcing\Clock\FrozenClock;
+use Patchlevel\EventSourcing\Clock\SystemClock;
 use Patchlevel\EventSourcing\Console\Command\DatabaseCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\DatabaseDropCommand;
 use Patchlevel\EventSourcing\Console\Command\DebugCommand;
@@ -24,12 +27,10 @@ use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
-use Patchlevel\EventSourcing\Projection\DefaultProjectionHandler;
 use Patchlevel\EventSourcing\Projection\MetadataAwareProjectionHandler;
 use Patchlevel\EventSourcing\Projection\ProjectionHandler;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
-use Patchlevel\EventSourcing\Repository\Repository;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 use Patchlevel\EventSourcing\Schema\SchemaManager;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr16SnapshotAdapter;
@@ -98,6 +99,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(AggregateRootRegistry::class, $container->get(AggregateRootRegistry::class));
         self::assertInstanceOf(DefaultRepositoryManager::class, $container->get(RepositoryManager::class));
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
+        self::assertInstanceOf(SystemClock::class, $container->get(Clock::class));
     }
 
     public function testConnectionService()
@@ -564,6 +566,30 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(CurrentCommand::class, $container->get('event_sourcing.command.migration_current'));
         self::assertInstanceOf(ExecuteCommand::class, $container->get('event_sourcing.command.migration_execute'));
         self::assertInstanceOf(StatusCommand::class, $container->get('event_sourcing.command.migration_status'));
+    }
+
+    public function testFrozenClock()
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'clock' => [
+                        'freeze' => '2020-01-01 22:00:00',
+                    ],
+                ],
+            ]
+        );
+
+        $clock = $container->get(Clock::class);
+
+        self::assertInstanceOf(FrozenClock::class, $clock);
+        self::assertSame('2020-01-01 22:00:00', $clock->now()->format('Y-m-d H:i:s'));
     }
 
     public function testFullBuild()

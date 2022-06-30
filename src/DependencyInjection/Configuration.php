@@ -60,6 +60,13 @@ final class Configuration implements ConfigurationInterface
                 ->scalarPrototype()->end()
             ->end()
 
+            ->arrayNode('clock')
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->scalarNode('freeze')->defaultNull()->end()
+                ->end()
+            ->end()
+
             ->arrayNode('watch_server')
                 ->addDefaultsIfNotSet()
                 ->children()
@@ -82,7 +89,6 @@ final class Configuration implements ConfigurationInterface
                     ->children()
                         ->enumNode('type')->values(['psr6', 'psr16', 'custom'])->defaultValue('psr6')->end()
                         ->scalarNode('service')->end()
-                        ->scalarNode('batch_size')->defaultNull()->end()
                     ->end()
                 ->end()
             ->end()
