@@ -1,5 +1,11 @@
 # Event Bus
 
+!!! info
+
+    You can find out more about the event bus in the library 
+    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/event_bus/). 
+    This documentation is limited to bundle integration.
+
 This library uses the core principle called [event bus](https://martinfowler.com/articles/201701-event-driven.html).
 
 For all events that are persisted (when the `save` method has been executed on the [repository](./repository.md)),
@@ -44,5 +50,7 @@ framework:
                 default_middleware: allow_no_handlers
 ```
 
-> :warning: You should deactivate the autoconfigure feature for the handlers, 
-> otherwise they will be registered in both handlers.
+!!! warning
+
+    You should deactivate the autoconfigure feature for the handlers, 
+    otherwise they will be registered in both handlers.

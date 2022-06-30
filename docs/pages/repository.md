@@ -1,5 +1,11 @@
 # Repository
 
+!!! info
+
+    You can find out more about repository in the library 
+    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/repository/). 
+    This documentation is limited to bundle integration.
+
 A `repository` takes care of storing and loading the `aggregates`.
 The [design pattern](https://martinfowler.com/eaaCatalog/repository.html) of the same name is also used.
 
@@ -30,4 +36,6 @@ final class HotelController
 }
 ```
 
-> :book: You can find out more about autowire [here](https://symfony.com/doc/current/service_container.html#binding-arguments-by-name-or-type)
+!!! note
+
+    You can find out more about autowire [here](https://symfony.com/doc/current/service_container.html#binding-arguments-by-name-or-type)

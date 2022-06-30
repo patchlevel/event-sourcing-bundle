@@ -1,5 +1,11 @@
 # Projection
 
+!!! info
+
+    You can find out more about projection in the library 
+    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/projection/). 
+    This documentation is limited to bundle integration.
+
 With `projections` you can create your data optimized for reading.
 projections can be adjusted, deleted or rebuilt at any time.
 This is possible because the source of truth remains untouched

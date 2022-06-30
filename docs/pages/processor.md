@@ -1,5 +1,11 @@
 # Processor
 
+!!! info
+
+    You can find out more about processor in the library 
+    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/processor/). 
+    This documentation is limited to bundle integration.
+
 The `processor` is a kind of [event bus](./event_bus.md) listener that can execute actions on certain events.
 A process can be for example used to send an email when a guest is checked in:
 
@@ -64,8 +70,12 @@ services:
           priority: 16
 ```
 
-> :warning: You have to deactivate the `autoconfigure` for this service, 
-> otherwise the service will be added twice.
+!!! warning
 
-> :book: The `projection` listener has a priority of `-32`, 
-> to do things after the projection, you have to be lower.
+    You have to deactivate the `autoconfigure` for this service, 
+    otherwise the service will be added twice.
+
+!!! note
+
+    The `projection` listener has a priority of `-32`, 
+    to do things after the projection, you have to be lower.

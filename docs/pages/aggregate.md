@@ -1,12 +1,10 @@
 # Aggregate
 
-> Aggregate is a pattern in Domain-Driven Design. A DDD aggregate is a cluster of domain objects
-> that can be treated as a single unit. [...]
->
-> :book: [DDD Aggregate - Martin Flower](https://martinfowler.com/bliki/DDD_Aggregate.html)
+!!! info
 
-You can find out more about the aggregates in the library [documentation](https://github.com/patchlevel/event-sourcing#documentation). 
-This documentation is limited to bundle integration.
+    You can find out more about aggregates in the library 
+    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/aggregates/). 
+    This documentation is limited to bundle integration.
 
 ## Register aggregates
 
@@ -20,7 +18,9 @@ patchlevel_event_sourcing:
   aggregates: '%kernel.project_dir%/src'
 ```
 
-> :book: You can also define multiple paths by specifying an array.
+!!! note
+
+    You can also define multiple paths by specifying an array.
 
 So that the bundle knows where to look, you also have to specify a path.
 

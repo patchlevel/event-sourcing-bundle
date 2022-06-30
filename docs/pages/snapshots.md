@@ -1,5 +1,11 @@
 # Snapshots
 
+!!! info
+
+    You can find out more about snapshots in the library 
+    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/snapshots/). 
+    This documentation is limited to bundle integration.
+
 Some aggregates can have a large number of events.
 This is not a problem if there are a few hundred.
 But if the number gets bigger at some point, then loading and rebuilding can become slow.
@@ -20,9 +26,10 @@ You can use symfony cache to define the target of the snapshot store.
 ```yaml
 framework:
     cache:
+        default_redis_provider: 'redis://localhost'
         pools:
             event_sourcing.cache:
-                adapter: cache.adapter.filesystem
+                adapter: cache.adapter.redis
 ```
 
 After this, you need define the snapshot store. 
@@ -38,41 +45,42 @@ patchlevel_event_sourcing:
 
 Finally, you have to tell the aggregate that it should use this snapshot store.
 
-```yaml
-patchlevel_event_sourcing:
-    aggregates:
-        profile:
-            class: App\Domain\Profile\Profile
-            snapshot_store: default
-```
-
-If you are using attributes then you have to put the snapshot there.
-
 ```php
 namespace App\Domain\Profile;
 
-use Patchlevel\EventSourcing\Aggregate\SnapshotableAggregateRoot;
-use Patchlevel\EventSourcingBundle\Attribute\Aggregate;
+use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
+use Patchlevel\EventSourcing\Attribute\Aggregate;
+use Patchlevel\EventSourcing\Attribute\Snapshot;
 
-#[Aggregate(name: 'profile', snapshotStore: 'default')]
-final class Profile extends SnapshotableAggregateRoot
+#[Aggregate(name: 'profile')]
+#[Snapshot('default')]
+final class Profile extends AggregateRoot
 {
     // ...
 }
 ```
 
-> :book: You can find out more about the attributes [here](aggregate.md).
+!!! book
 
-## Batch (since v1.2)
+    You can find out more about the attributes [here](aggregate.md).
+
+## Batch
 
 So that not every write process also writes to the cache at the same time, 
 you can also say from how many events should be written to the snapshot store first. 
 This minimizes the write operations to the cache, which improves performance.
 
-```yaml
-patchlevel_event_sourcing:
-    snapshot_stores:
-        default:
-            service: event_sourcing.cache
-            batch_size: 20
+```php
+namespace App\Domain\Profile;
+
+use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
+use Patchlevel\EventSourcing\Attribute\Aggregate;
+use Patchlevel\EventSourcing\Attribute\Snapshot;
+
+#[Aggregate(name: 'profile')]
+#[Snapshot('default', batch: 1000)]
+final class Profile extends AggregateRoot
+{
+    // ...
+}
 ```
