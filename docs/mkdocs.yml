@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
 
-site_name: Event Sourcing
+site_name: Event Sourcing Bundle
 site_url: https://patchlevel.de/
 repo_url: https://github.com/patchlevel/event-sourcing-bundle
 repo_name: patchlevel/event-sourcing-bundle
@@ -10,13 +10,15 @@ docs_dir: pages
 extra:
   meta:
     title: Event Sourcing Bundle
-    description: A lightweight but also all-inclusive event sourcing library with a focus on developer experience.
+    description: A lightweight but also all-inclusive event sourcing bundle with a focus on developer experience and based on doctrine dbal.
     image: img/patchlevel-banner.png
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/patchlevel
     - icon: fontawesome/solid/globe
       link: https://patchlevel.de
+    - icon: fontawesome/solid/twitter
+      link: https://twitter.com/patchlevelhq
   version:
     provider: mike
 
