@@ -53,11 +53,11 @@ jobs:
 
       - name: Setup deploy key
         env:
-          REPOSITORY_ACCESS_KEY: ${{ secrets.REPOSITORY_ACCESS_KEY }}
+          DEPLOY_DOCS_KEY: ${{ secrets.DEPLOY_DOCS_KEY }}
         run: |
           # Setup SSH deploy key
           mkdir -p ~/.ssh
-          echo "${REPOSITORY_ACCESS_KEY}" > ~/.ssh/id_rsa
+          echo "${DEPLOY_DOCS_KEY}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H github.com > ~/.ssh/known_hosts
 
