@@ -17,7 +17,7 @@ extra:
       link: https://github.com/patchlevel
     - icon: fontawesome/solid/globe
       link: https://patchlevel.de
-    - icon: fontawesome/solid/twitter
+    - icon: fontawesome/brands/twitter
       link: https://twitter.com/patchlevelhq
   version:
     provider: mike
