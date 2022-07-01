@@ -12,7 +12,9 @@ The first thing to do is to install packet if it has not already been done.
 composer require patchlevel/event-sourcing-bundle
 ```
 
-> :book: how to install [composer](https://getcomposer.org/doc/00-intro.md)
+!!! note
+
+    how to install [composer](https://getcomposer.org/doc/00-intro.md)
 
 ## Enable bundle
 
@@ -58,6 +60,8 @@ Finally we have to fill the ENV variable with a connection url.
 EVENTSTORE_URL=mysql://user:secret@localhost/app
 ```
 
-> :book: You can find out more about what a connection url looks like [here](https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html#connecting-using-a-url).
+!!! note
 
-Now you can go back to [getting started](https://github.com/patchlevel/event-sourcing-bundle#getting-started).
+    You can find out more about what a connection url looks like [here](https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html#connecting-using-a-url).
+
+Now you can go back to [getting started](getting_started.md).

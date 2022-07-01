@@ -1,5 +1,11 @@
 # Store
 
+!!! info
+
+    You can find out more about stores in the library 
+    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/store/). 
+    This documentation is limited to bundle integration.
+
 In the end, the events have to be saved somewhere.
 The library is based on [doctrine dbal](https://www.doctrine-project.org/projects/dbal.html)
 and offers two different store strategies.
@@ -18,7 +24,9 @@ patchlevel_event_sourcing:
         type: single_table
 ```
 
-> :book: You can switch between strategies using the [pipeline](./pipeline.md).
+!!! note
+
+    You can switch between strategies using the [pipeline](./pipeline.md).
 
 ### Multi Table Store
 
@@ -31,7 +39,9 @@ patchlevel_event_sourcing:
         type: multi_table
 ```
 
-> :book: You can switch between strategies using the [pipeline](./pipeline.md).
+!!! note
+
+    You can switch between strategies using the [pipeline](./pipeline.md).
 
 ## Manage database and schema
 
@@ -70,11 +80,15 @@ patchlevel_event_sourcing:
         service: doctrine.dbal.eventstore_connection
 ```
 
-> :warning: You should avoid that this connection or database is used by other tools or libraries. 
-> Create for e.g. doctrine orm its own database and connection.
+!!! warning
 
-> :book: You can find out more about the dbal configuration 
-> [here](https://symfony.com/bundles/DoctrineBundle/current/configuration.html).
+    You should avoid that this connection or database is used by other tools or libraries.
+    Create for e.g. doctrine orm its own database and connection.
+
+!!! note
+
+    You can find out more about the dbal configuration 
+    [here](https://symfony.com/bundles/DoctrineBundle/current/configuration.html).
 
 ## Migration
 
