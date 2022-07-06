@@ -25,6 +25,10 @@ use App\Domain\Hotel\Event\HotelCreated;
 use App\Domain\Hotel\Event\GuestIsCheckedIn;
 use App\Domain\Hotel\Event\GuestIsCheckedOut;
 use Doctrine\DBAL\Connection;
+use Patchlevel\EventSourcing\Attribute\Create;
+use Patchlevel\EventSourcing\Attribute\Drop;
+use Patchlevel\EventSourcing\Attribute\Handle;
+use Patchlevel\EventSourcing\EventBus\Message;
 use Patchlevel\EventSourcing\Projection\Projection;
 
 final class HotelProjection implements Projection
@@ -36,15 +40,11 @@ final class HotelProjection implements Projection
         $this->db = $db;
     }
 
-    public static function getHandledMessages(): iterable
+    #[Handle(HotelCreated::class)]
+    public function handleHotelCreated(Message $message): void
     {
-        yield HotelCreated::class => 'applyHotelCreated';
-        yield GuestIsCheckedIn::class => 'applyGuestIsCheckedIn';
-        yield GuestIsCheckedOut::class => 'applyGuestIsCheckedOut';
-    }
-
-    public function applyHotelCreated(HotelCreated $event): void
-    {
+        $event = $message->event();
+    
         $this->db->insert(
             'hotel', 
             [
@@ -55,7 +55,8 @@ final class HotelProjection implements Projection
         );
     }
     
-    public function applyGuestIsCheckedIn(GuestIsCheckedIn $event): void
+    #[Handle(GuestIsCheckedIn::class)]
+    public function handleGuestIsCheckedIn(Message $message): void
     {
         $this->db->executeStatement(
             'UPDATE hotel SET guests = guests + 1 WHERE id = ?;',
@@ -63,7 +64,8 @@ final class HotelProjection implements Projection
         );
     }
     
-    public function applyGuestIsCheckedOut(GuestIsCheckedOut $event): void
+    #[Handle(GuestIsCheckedOut::class)]
+    public function handleGuestIsCheckedOut(Message $message): void
     {
         $this->db->executeStatement(
             'UPDATE hotel SET guests = guests - 1 WHERE id = ?;',
@@ -71,11 +73,13 @@ final class HotelProjection implements Projection
         );
     }
     
+    #[Create]
     public function create(): void
     {
         $this->db->executeStatement('CREATE TABLE IF NOT EXISTS hotel (id VARCHAR PRIMARY KEY, name VARCHAR, guests INTEGER);');
     }
 
+    #[Drop]
     public function drop(): void
     {
         $this->db->executeStatement('DROP TABLE IF EXISTS hotel;');

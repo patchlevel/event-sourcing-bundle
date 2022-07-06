@@ -8,23 +8,21 @@
 
 ## Register aggregates
 
-So that the necessary service such as the repositories are available, 
-you have to register all aggregates.
-
-You can do this in the Yaml definition by listing all aggregates with names and the associated class.
+A path must be specified for Event Sourcing to know where to look for your aggregates.
 
 ```yaml
 patchlevel_event_sourcing:
   aggregates: '%kernel.project_dir%/src'
 ```
 
-!!! note
+!!! tip
 
     You can also define multiple paths by specifying an array.
 
-So that the bundle knows where to look, you also have to specify a path.
+## Define aggregates
 
-Here you have to give all aggregates the `Aggregate` attribute and give the associated name.
+Next, you need to create a class to serve as an aggregate. 
+In our example it is a hotel. This class must inherit from `AggregateRoot` and get the `Aggregate` attribute.
 
 ```php
 namespace App\Domain\Hotel;
@@ -39,37 +37,6 @@ final class Hotel extends AggregateRoot
 }
 ```
 
-## Use snapshots
+!!! note
 
-You can also tell each aggregate that it should use snapshots 
-so that the rebuilding of the state is faster.
-
-To do this, a snapshot store must first be defined. 
-You can read that [here](snapshots.md).
-
-And then you can define the snapshot on the aggregates.
-
-```yaml
-patchlevel_event_sourcing:
-  aggregates:
-    hotel:
-      class: App\Domain\Hotel\Hotel
-      snapshot: default
-```
-
-If you are using attributes then you have to put the snapshot there.
-
-```php
-namespace App\Domain\Hotel;
-
-use Patchlevel\EventSourcing\Aggregate\SnapshotableAggregateRoot;
-use Patchlevel\EventSourcing\Attribute\Aggregate;
-use Patchlevel\EventSourcing\Attribute\Snapshot;
-
-#[Aggregate(name: 'hotel')]
-#[Snapshot('default')]
-final class Hotel extends SnapshotableAggregateRoot
-{
-   // ...
-}
-```
+    You should read [here](https://patchlevel.github.io/event-sourcing-docs/latest/aggregates/) how the aggregates then work internally.

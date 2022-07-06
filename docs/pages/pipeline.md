@@ -107,5 +107,3 @@ services:
 
     If you have the doctrine bundle for the dbal connections, 
     then you can [autowire](https://symfony.com/bundles/DoctrineBundle/current/configuration.html#autowiring-multiple-connections) it.
-
-
