@@ -30,7 +30,6 @@ use function array_map;
  *     recorded_on: string,
  *     custom_headers: Data
  * }
- *
  * @psalm-type DataType = array{
  *    messages: list<MessageType>,
  *    aggregates: array<string, class-string<AggregateRoot>>,
@@ -54,9 +53,7 @@ final class EventSourcingCollector extends DataCollector
             function (Message $message) {
                 $event = $message->event();
 
-                $serializedEvent = $this->eventSerializer->serialize($event, [
-                    Encoder::OPTION_PRETTY_PRINT => true
-                ]);
+                $serializedEvent = $this->eventSerializer->serialize($event, [Encoder::OPTION_PRETTY_PRINT => true]);
 
                 return [
                     'event_class' => $event::class,
