@@ -50,13 +50,13 @@
     {% if collector.aggregates|length > 0 %}
         <table>
             <tr>
-                <th>Class</th>
                 <th>Name</th>
+                <th>Class</th>
             </tr>
-            {% for class, name in collector.aggregates %}
+            {% for name, class in collector.aggregates %}
                 <tr>
-                    <td>{{ _.display_class(class) }}</td>
                     <td>{{ name }}</td>
+                    <td>{{ _.display_class(class) }}</td>
                 </tr>
             {% endfor %}
         </table>
@@ -70,13 +70,13 @@
     {% if collector.events|length > 0 %}
         <table>
             <tr>
-                <th>Class</th>
                 <th>Name</th>
+                <th>Class</th>
             </tr>
-            {% for class, name in collector.events %}
+            {% for name, class in collector.events %}
                 <tr>
-                    <td>{{ _.display_class(class) }}</td>
                     <td>{{ name }}</td>
+                    <td>{{ _.display_class(class) }}</td>
                 </tr>
             {% endfor %}
         </table>
