@@ -518,6 +518,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(MessageListener::class),
                 new Reference(AggregateRootRegistry::class),
                 new Reference(EventRegistry::class),
+                new Reference(EventSerializer::class),
             ])
             ->addTag('data_collector', ['template' => '@PatchlevelEventSourcing/Collector/template.html.twig']);
     }
