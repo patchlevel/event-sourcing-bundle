@@ -5,11 +5,15 @@
 {% block toolbar %}
     {% set icon %}
         {{ include('@PatchlevelEventSourcing/Collector/icon.svg') }}
-        <span class="sf-toolbar-value">{{ collector.events|length }}</span>
+        <span class="sf-toolbar-value">{{ collector.messages|length }}</span>
     {% endset %}
 
     {% set text %}
         <div class="sf-toolbar-info-piece">
+            <b>Messages</b>
+            <span class="sf-toolbar-status">{{ collector.messages|length }}</span>
+            <b>Aggregates</b>
+            <span class="sf-toolbar-status">{{ collector.aggregates|length }}</span>
             <b>Events</b>
             <span class="sf-toolbar-status">{{ collector.events|length }}</span>
         </div>
@@ -24,7 +28,7 @@
             {{ include('@PatchlevelEventSourcing/Collector/icon.svg') }}
         </span>
         <strong>Event Sourcing</strong>
-        <span class="count">{{ collector.events|length }}</span>
+        <span class="count">{{ collector.messages|length }}</span>
     </span>
 {% endblock %}
 
@@ -130,7 +134,7 @@
         </table>
     {% else %}
         <div class="empty">
-            No events happened.
+            No messages published.
         </div>
     {% endfor %}
 {% endblock %}
