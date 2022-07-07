@@ -1,12 +1,15 @@
 # Processor
 
+The `processor` is a kind of [event bus](./event_bus.md) listener that can execute actions on certain events.
+
 !!! info
 
     You can find out more about processor in the library 
     [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/processor/). 
     This documentation is limited to bundle integration.
 
-The `processor` is a kind of [event bus](./event_bus.md) listener that can execute actions on certain events.
+## Usage
+
 A process can be for example used to send an email when a guest is checked in:
 
 ```php
@@ -55,7 +58,7 @@ services:
         - event_sourcing.processor
 ```
 
-## Priority (since v1.2)
+## Priority
 
 You can also determine the `priority` in which the processors are executed. 
 The higher the priority, the earlier the processor is executed. 

@@ -8,6 +8,11 @@ For this example we use following packages:
 * [symfony/uid](https://symfony.com/doc/current/components/uid.html)
 * [symfony/mailer](https://symfony.com/doc/current/mailer.html)
 
+## Installation
+
+First of all, the bundle has to be installed and configured. 
+If you haven't already done so, see the [installation introduction](installation.md).
+
 ## Define some events
 
 First we define the events that happen in our system.
@@ -67,6 +72,10 @@ final class GuestIsCheckedOut
     }
 }
 ```
+
+!!! note
+
+    You can find out more about events [here](events.md).
 
 ## Define aggregates
 

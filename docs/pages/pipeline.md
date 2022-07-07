@@ -1,15 +1,17 @@
 # Pipeline
 
+A store is immutable, i.e. it cannot be changed afterwards. This includes both manipulating events and deleting them.
+
+Instead, you can duplicate the store and manipulate the events in the process. Thus the old store remains untouched and
+you can test the new store beforehand, whether the migration worked.
+
 !!! info
 
     You can find out more about pipeline in the library 
     [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/pipeline/). 
     This documentation is limited to bundle integration.
 
-A store is immutable, i.e. it cannot be changed afterwards. This includes both manipulating events and deleting them.
-
-Instead, you can duplicate the store and manipulate the events in the process. Thus the old store remains untouched and
-you can test the new store beforehand, whether the migration worked.
+## Example
 
 In this example the event `PrivacyAdded` is removed and the event `OldVisited` is replaced by `NewVisited`:
 
@@ -107,5 +109,3 @@ services:
 
     If you have the doctrine bundle for the dbal connections, 
     then you can [autowire](https://symfony.com/bundles/DoctrineBundle/current/configuration.html#autowiring-multiple-connections) it.
-
-

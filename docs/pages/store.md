@@ -1,14 +1,14 @@
 # Store
 
+In the end, the events have to be saved somewhere.
+The library is based on [doctrine dbal](https://www.doctrine-project.org/projects/dbal.html)
+and offers two different store strategies.
+
 !!! info
 
     You can find out more about stores in the library 
     [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/store/). 
     This documentation is limited to bundle integration.
-
-In the end, the events have to be saved somewhere.
-The library is based on [doctrine dbal](https://www.doctrine-project.org/projects/dbal.html)
-and offers two different store strategies.
 
 ## Store types
 

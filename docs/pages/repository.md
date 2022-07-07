@@ -1,16 +1,16 @@
 # Repository
 
-!!! info
-
-    You can find out more about repository in the library 
-    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/repository/). 
-    This documentation is limited to bundle integration.
-
 A `repository` takes care of storing and loading the `aggregates`.
 The [design pattern](https://martinfowler.com/eaaCatalog/repository.html) of the same name is also used.
 
 Every aggregate needs a repository to be stored.
 And each repository is only responsible for one aggregate.
+
+!!! info
+
+    You can find out more about repository in the library 
+    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/repository/). 
+    This documentation is limited to bundle integration.
 
 ## Use repositories
 
