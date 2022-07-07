@@ -1,15 +1,15 @@
 # Event Bus
 
+This library uses the core principle called [event bus](https://martinfowler.com/articles/201701-event-driven.html).
+
+For all events that are persisted (when the `save` method has been executed on the [repository](./repository.md)),
+the event will be dispatched to the `event bus`. All listeners are then called for each event.
+
 !!! info
 
     You can find out more about the event bus in the library 
     [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/event_bus/). 
     This documentation is limited to bundle integration.
-
-This library uses the core principle called [event bus](https://martinfowler.com/articles/201701-event-driven.html).
-
-For all events that are persisted (when the `save` method has been executed on the [repository](./repository.md)),
-the event will be dispatched to the `event bus`. All listeners are then called for each event.
 
 ## Symfony Event Bus
 

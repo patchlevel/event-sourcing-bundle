@@ -1,11 +1,5 @@
 # Snapshots
 
-!!! info
-
-    You can find out more about snapshots in the library 
-    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/snapshots/). 
-    This documentation is limited to bundle integration.
-
 Some aggregates can have a large number of events.
 This is not a problem if there are a few hundred.
 But if the number gets bigger at some point, then loading and rebuilding can become slow.
@@ -18,6 +12,12 @@ If a hit exists, the aggregate is built up with the help of the snapshot.
 A check is then made to see whether further events have existed since the snapshot
 and these are then also executed on the aggregate.
 Here, however, only the last events are loaded from the database and not all.
+
+!!! info
+
+    You can find out more about snapshots in the library 
+    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/snapshots/). 
+    This documentation is limited to bundle integration.
 
 ## Using Symfony Cache
 

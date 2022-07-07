@@ -31,7 +31,8 @@ this [installation documentation](docs/installation.md).
 
 ## Documentation
 
-// TODO
+* [Getting Started](https://patchlevel.github.io/event-sourcing-bundle-docs/latest/getting_started/)
+* [Documentation](https://patchlevel.github.io/event-sourcing-bundle-docs/latest/)
 
 ## Integration
 

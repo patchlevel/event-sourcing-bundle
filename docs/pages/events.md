@@ -1,5 +1,10 @@
 # Events
 
+Events are used to describe things that happened in the application. 
+Since the events already happened, they are also immnutable. 
+In event sourcing, these are used to save and rebuild the current state. 
+You can also listen on events to react and perform different actions.
+
 !!! info
 
     You can find out more about events in the library 
