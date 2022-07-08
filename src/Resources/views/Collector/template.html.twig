@@ -5,11 +5,15 @@
 {% block toolbar %}
     {% set icon %}
         {{ include('@PatchlevelEventSourcing/Collector/icon.svg') }}
-        <span class="sf-toolbar-value">{{ collector.events|length }}</span>
+        <span class="sf-toolbar-value">{{ collector.messages|length }}</span>
     {% endset %}
 
     {% set text %}
         <div class="sf-toolbar-info-piece">
+            <b>Messages</b>
+            <span class="sf-toolbar-status">{{ collector.messages|length }}</span>
+            <b>Aggregates</b>
+            <span class="sf-toolbar-status">{{ collector.aggregates|length }}</span>
             <b>Events</b>
             <span class="sf-toolbar-status">{{ collector.events|length }}</span>
         </div>
@@ -24,7 +28,7 @@
             {{ include('@PatchlevelEventSourcing/Collector/icon.svg') }}
         </span>
         <strong>Event Sourcing</strong>
-        <span class="count">{{ collector.events|length }}</span>
+        <span class="count">{{ collector.messages|length }}</span>
     </span>
 {% endblock %}
 
@@ -48,35 +52,35 @@
 {% block panel %}
     <h2>Aggregates</h2>
     {% if collector.aggregates|length > 0 %}
-    <table>
-        <tr>
-            <th>Class</th>
-            <th>Name</th>
-        </tr>
-        {% for class, name in collector.aggregates %}
+        <table>
             <tr>
-                <td>{{ _.display_class(class) }}</td>
-                <td>{{ name }}</td>
+                <th>Name</th>
+                <th>Class</th>
             </tr>
-        {% endfor %}
-    </table>
+            {% for name, class in collector.aggregates %}
+                <tr>
+                    <td>{{ name }}</td>
+                    <td>{{ _.display_class(class) }}</td>
+                </tr>
+            {% endfor %}
+        </table>
     {% else %}
-    <div class="empty">
-        No aggregates were defined.
-    </div>
+        <div class="empty">
+            No aggregates were defined.
+        </div>
     {% endif %}
 
     <h2>Events</h2>
     {% if collector.events|length > 0 %}
         <table>
             <tr>
-                <th>Class</th>
                 <th>Name</th>
+                <th>Class</th>
             </tr>
-            {% for class, name in collector.events %}
+            {% for name, class in collector.events %}
                 <tr>
-                    <td>{{ _.display_class(class) }}</td>
                     <td>{{ name }}</td>
+                    <td>{{ _.display_class(class) }}</td>
                 </tr>
             {% endfor %}
         </table>
@@ -91,37 +95,46 @@
         <table class="event-item">
             <thead>
             <tr>
-                <th colspan="2">
-                    {{ _.display_class(message.event.class) }}
+                <th>
+                    {{ message.event_name }}
+                </th>
+                <th style="text-align: right">
+                    {{ _.display_class(message.event_class) }}
                 </th>
             </tr>
             </thead>
             <tbody>
             <tr>
+                <td class="text-bold">Payload</td>
+                <td>
+                    <pre>{{ message.payload }}</pre>
+                </td>
+            </tr>
+            <tr>
                 <td class="text-bold">Aggregate Class</td>
-                <td>{{ _.display_class(message.aggregate) }}</td>
+                <td>{{ _.display_class(message.aggregate_class) }}</td>
             </tr>
             <tr>
                 <td class="text-bold">Aggregate ID</td>
-                <td>{{ message.aggregateId }}</td>
+                <td>{{ message.aggregate_id }}</td>
             </tr>
             <tr>
                 <td class="text-bold">Playhead</td>
-                <td>{{ message.event }}</td>
-            </tr>
-            <tr>
-                <td class="text-bold">Payload</td>
-                <td>{{ profiler_dump(message.payload) }}</td>
+                <td>{{ message.playhead }}</td>
             </tr>
             <tr>
                 <td class="text-bold">Recorded on</td>
-                <td>{{ message.recordedOn }}</td>
+                <td>{{ message.recorded_on }}</td>
+            </tr>
+            <tr>
+                <td class="text-bold">Custom Headers</td>
+                <td>{{ profiler_dump(message.custom_headers) }}</td>
             </tr>
             </tbody>
         </table>
     {% else %}
         <div class="empty">
-            No events happened.
+            No messages published.
         </div>
     {% endfor %}
 {% endblock %}
