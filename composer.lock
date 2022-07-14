@@ -4781,12 +4781,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "142c350dd23588666546a92de0d4cd4cafdad2c5"
+                "reference": "54cbc1373173b5b97d7f6b1d6b397736ec16e438"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/142c350dd23588666546a92de0d4cd4cafdad2c5",
-                "reference": "142c350dd23588666546a92de0d4cd4cafdad2c5",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/54cbc1373173b5b97d7f6b1d6b397736ec16e438",
+                "reference": "54cbc1373173b5b97d7f6b1d6b397736ec16e438",
                 "shasum": ""
             },
             "conflict": {
@@ -5018,7 +5018,7 @@
                 "october/cms": "= 1.1.1|= 1.0.471|= 1.0.469|>=1.0.319,<1.0.469",
                 "october/october": ">=1.0.319,<1.0.466|>=2.1,<2.1.12",
                 "october/rain": "<1.0.472|>=1.1,<1.1.2",
-                "october/system": "<1.0.475|>=1.1,<1.1.11|>=2,<2.1.27",
+                "october/system": "<1.0.476|>=1.1,<1.1.12|>=2,<2.2.15",
                 "onelogin/php-saml": "<2.10.4",
                 "oneup/uploader-bundle": "<1.9.3|>=2,<2.1.5",
                 "open-web-analytics/open-web-analytics": "<1.7.4",
@@ -5279,7 +5279,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-07-12T23:04:17+00:00"
+            "time": "2022-07-13T22:04:19+00:00"
         },
         {
             "name": "sanmai/later",
