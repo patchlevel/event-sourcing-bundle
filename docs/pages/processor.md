@@ -16,8 +16,8 @@ A process can be for example used to send an email when a guest is checked in:
 namespace App\Domain\Hotel\Listener;
 
 use App\Domain\Hotel\Event\GuestIsCheckedIn;
-use Patchlevel\EventSourcing\Aggregate\AggregateChanged;
 use Patchlevel\EventSourcing\EventBus\Listener;
+use Patchlevel\EventSourcing\EventBus\Message;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 
@@ -30,8 +30,10 @@ final class SendCheckInEmailListener implements Listener
         $this->mailer = $mailer;
     }
 
-    public function __invoke(AggregateChanged $event): void
+    public function __invoke(Message $message): void
     {
+        $event = $message->event();
+    
         if (!$event instanceof GuestIsCheckedIn) {
             return;
         }

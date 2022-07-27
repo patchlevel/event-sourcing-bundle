@@ -3,7 +3,7 @@
 !!! info
 
     You can find out more about aggregates in the library 
-    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/aggregates/). 
+    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/aggregate/). 
     This documentation is limited to bundle integration.
 
 ## Register aggregates
