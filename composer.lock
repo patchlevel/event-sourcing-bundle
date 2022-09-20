@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f015bc87f98f628d76a7ca7fa005316b",
+    "content-hash": "44b9310b5fb9e81792c8bb824cfcf570",
     "packages": [
         {
             "name": "doctrine/cache",
@@ -346,16 +346,16 @@
         },
         {
             "name": "patchlevel/event-sourcing",
-            "version": "2.1.x-dev",
+            "version": "dev-projector",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "f27729a52b3f39eeeb193a3c43fefd92af9bf10d"
+                "reference": "0febbd00f4573d1b5deddb2b355f4ba264fee4de"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/f27729a52b3f39eeeb193a3c43fefd92af9bf10d",
-                "reference": "f27729a52b3f39eeeb193a3c43fefd92af9bf10d",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/0febbd00f4573d1b5deddb2b355f4ba264fee4de",
+                "reference": "0febbd00f4573d1b5deddb2b355f4ba264fee4de",
                 "shasum": ""
             },
             "require": {
@@ -394,7 +394,6 @@
                 "doctrine/migrations": "for schema migration support",
                 "symfony/messenger": "for an advanced event bus"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -423,9 +422,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
-                "source": "https://github.com/patchlevel/event-sourcing/tree/2.1.x"
+                "source": "https://github.com/patchlevel/event-sourcing/tree/projector"
             },
-            "time": "2022-10-07T00:11:31+00:00"
+            "time": "2022-10-10T13:57:21+00:00"
         },
         {
             "name": "psr/cache",
@@ -8395,5 +8394,5 @@
     "platform-dev": {
         "ext-pdo_sqlite": "~8.0.0|~8.1.0"
     },
-    "plugin-api-version": "2.3.0"
+    "plugin-api-version": "2.2.0"
 }
