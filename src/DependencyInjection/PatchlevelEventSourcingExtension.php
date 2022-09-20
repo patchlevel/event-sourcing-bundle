@@ -255,7 +255,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->setArguments([
                 new Reference(Store::class),
                 new Reference(Store::class),
-                new TaggedIteratorArgument('event_sourcing.projection'),
+                new TaggedIteratorArgument('event_sourcing.projector'),
                 new Reference(ProjectorResolver::class),
             ]);
 
