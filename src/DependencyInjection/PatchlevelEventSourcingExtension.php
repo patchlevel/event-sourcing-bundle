@@ -25,7 +25,7 @@ use Patchlevel\EventSourcing\Console\Command\DebugCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionDropCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionistBootCommand;
-use Patchlevel\EventSourcing\Console\Command\ProjectionistDestroyCommand;
+use Patchlevel\EventSourcing\Console\Command\ProjectionistRemoveCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionistRunCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionistStatusCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionistTeardownCommand;
@@ -50,6 +50,7 @@ use Patchlevel\EventSourcing\Metadata\Event\AttributeEventRegistryFactory;
 use Patchlevel\EventSourcing\Metadata\Event\EventMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
 use Patchlevel\EventSourcing\Projection\DefaultProjectionist;
+use Patchlevel\EventSourcing\Projection\DefaultProjectorRepository;
 use Patchlevel\EventSourcing\Projection\MetadataAwareProjectionHandler;
 use Patchlevel\EventSourcing\Projection\MetadataProjectorResolver;
 use Patchlevel\EventSourcing\Projection\Projection;
@@ -57,6 +58,7 @@ use Patchlevel\EventSourcing\Projection\ProjectionHandler;
 use Patchlevel\EventSourcing\Projection\Projectionist;
 use Patchlevel\EventSourcing\Projection\ProjectionListener;
 use Patchlevel\EventSourcing\Projection\Projector;
+use Patchlevel\EventSourcing\Projection\ProjectorRepository;
 use Patchlevel\EventSourcing\Projection\ProjectorResolver;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
@@ -248,6 +250,13 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->registerForAutoconfiguration(Projector::class)
             ->addTag('event_sourcing.projector');
 
+        $container->register(DefaultProjectorRepository::class)
+            ->setArguments([
+                new TaggedIteratorArgument('event_sourcing.projector'),
+            ]);
+
+        $container->setAlias(ProjectorRepository::class, DefaultProjectorRepository::class);
+
         $container->register(MetadataProjectorResolver::class);
         $container->setAlias(ProjectorResolver::class, MetadataProjectorResolver::class);
 
@@ -255,7 +264,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->setArguments([
                 new Reference(Store::class),
                 new Reference(Store::class),
-                new TaggedIteratorArgument('event_sourcing.projector'),
+                new Reference(ProjectorRepository::class),
                 new Reference(ProjectorResolver::class),
             ]);
 
@@ -279,7 +288,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             ])
             ->addTag('console.command');
 
-        $container->register(ProjectionistDestroyCommand::class)
+        $container->register(ProjectionistRemoveCommand::class)
             ->setArguments([
                 new Reference(Projectionist::class),
             ])
