@@ -50,8 +50,13 @@ use Patchlevel\EventSourcing\Projection\ProjectionHandler;
 use Patchlevel\EventSourcing\Projection\ProjectionListener;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
+use Patchlevel\EventSourcing\Schema\ChainSchemaConfigurator;
+use Patchlevel\EventSourcing\Schema\DoctrineMigrationSchemaProvider;
+use Patchlevel\EventSourcing\Schema\DoctrineSchemaDirector;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaManager;
-use Patchlevel\EventSourcing\Schema\MigrationSchemaProvider;
+use Patchlevel\EventSourcing\Schema\DoctrineSchemaProvider;
+use Patchlevel\EventSourcing\Schema\SchemaConfigurator;
+use Patchlevel\EventSourcing\Schema\SchemaDirector;
 use Patchlevel\EventSourcing\Schema\SchemaManager;
 use Patchlevel\EventSourcing\Serializer\DefaultEventSerializer;
 use Patchlevel\EventSourcing\Serializer\Encoder\Encoder;
@@ -115,6 +120,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureCommands($container);
         $this->configureProfiler($container);
         $this->configureClock($config, $container);
+        $this->configureSchema($config, $container);
 
         if (class_exists(DependencyFactory::class)) {
             $this->configureMigration($config, $container);
@@ -258,13 +264,6 @@ final class PatchlevelEventSourcingExtension extends Extension
      */
     private function configureStorage(array $config, ContainerBuilder $container): void
     {
-        if ($config['store']['schema_manager']) {
-            $container->setAlias(SchemaManager::class, $config['store']['schema_manager']);
-        } else {
-            $container->register(DoctrineSchemaManager::class);
-            $container->setAlias(SchemaManager::class, DoctrineSchemaManager::class);
-        }
-
         if ($config['store']['type'] === 'single_table') {
             $container->register(SingleTableStore::class)
                 ->setArguments([
@@ -272,7 +271,8 @@ final class PatchlevelEventSourcingExtension extends Extension
                     new Reference(EventSerializer::class),
                     new Reference(AggregateRootRegistry::class),
                     $config['store']['options']['table_name'] ?? 'eventstore',
-                ]);
+                ])
+                ->addTag('event_sourcing.schema_configurator');
 
             $container->setAlias(Store::class, SingleTableStore::class);
 
@@ -289,7 +289,8 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(EventSerializer::class),
                 new Reference(AggregateRootRegistry::class),
                 $config['store']['options']['table_name'] ?? 'eventstore',
-            ]);
+            ])
+            ->addTag('event_sourcing.schema_configurator');
 
         $container->setAlias(Store::class, MultiTableStore::class);
     }
@@ -372,21 +373,21 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(SchemaCreateCommand::class)
             ->setArguments([
                 new Reference(Store::class),
-                new Reference(SchemaManager::class),
+                new Reference(SchemaDirector::class),
             ])
             ->addTag('console.command');
 
         $container->register(SchemaUpdateCommand::class)
             ->setArguments([
                 new Reference(Store::class),
-                new Reference(SchemaManager::class),
+                new Reference(SchemaDirector::class),
             ])
             ->addTag('console.command');
 
         $container->register(SchemaDropCommand::class)
             ->setArguments([
                 new Reference(Store::class),
-                new Reference(SchemaManager::class),
+                new Reference(SchemaDirector::class),
             ])
             ->addTag('console.command');
 
@@ -472,8 +473,8 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register('event_sourcing.migration.connection', ExistingConnection::class)
             ->setArguments([new Reference('event_sourcing.dbal_connection')]);
 
-        $container->register(MigrationSchemaProvider::class)
-            ->setArguments([new Reference(Store::class)]);
+        $container->register(DoctrineMigrationSchemaProvider::class)
+            ->setArguments([new Reference(DoctrineSchemaProvider::class)]);
 
         $container->register('event_sourcing.migration.dependency_factory', DependencyFactory::class)
             ->setFactory([DependencyFactory::class, 'fromConnection'])
@@ -483,7 +484,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             ])
             ->addMethodCall('setService', [
                 SchemaProvider::class,
-                new Reference(MigrationSchemaProvider::class),
+                new Reference(DoctrineMigrationSchemaProvider::class),
             ]);
 
         $container->register('event_sourcing.command.migration_diff', DiffCommand::class)
@@ -539,5 +540,33 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->setArguments([new DateTimeImmutable($config['clock']['freeze'])]);
 
         $container->setAlias(Clock::class, FrozenClock::class);
+    }
+
+    /**
+     * @param array{store: array{schema_manager: string}} $config
+     */
+    private function configureSchema(array $config, ContainerBuilder $container): void
+    {
+        $container->register(ChainSchemaConfigurator::class)
+            ->setArguments([new TaggedIteratorArgument('event_sourcing.schema_configurator')]);
+
+        $container->setAlias(SchemaConfigurator::class, ChainSchemaConfigurator::class);
+
+        $container->register(DoctrineSchemaDirector::class)
+            ->setArguments([
+                new Reference('event_sourcing.dbal_connection'),
+                new Reference(SchemaConfigurator::class),
+            ]);
+
+        $container->setAlias(DoctrineSchemaProvider::class, DoctrineSchemaDirector::class);
+        $container->setAlias(SchemaDirector::class, DoctrineSchemaDirector::class);
+
+        // deprecated
+        if ($config['store']['schema_manager']) {
+            $container->setAlias(SchemaManager::class, $config['store']['schema_manager']);
+        } else {
+            $container->register(DoctrineSchemaManager::class);
+            $container->setAlias(SchemaManager::class, DoctrineSchemaManager::class);
+        }
     }
 }
