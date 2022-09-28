@@ -34,7 +34,10 @@ final class Configuration implements ConfigurationInterface
                         ->values(['single_table', 'multi_table'])
                         ->defaultValue('multi_table')
                     ->end()
-                    ->scalarNode('schema_manager')->defaultNull()->end()
+                    ->scalarNode('schema_manager')
+                        ->defaultNull()
+                        ->setDeprecated('patchlevel/event-sourcing-bundle', '2.1')
+                    ->end()
                 ->end()
             ->end()
 
