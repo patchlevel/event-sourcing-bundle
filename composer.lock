@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "44b9310b5fb9e81792c8bb824cfcf570",
+    "content-hash": "4664df51bdf5bfbb394e56a3fc632dc0",
     "packages": [
         {
             "name": "doctrine/cache",
@@ -346,16 +346,16 @@
         },
         {
             "name": "patchlevel/event-sourcing",
-            "version": "dev-projector",
+            "version": "2.1.0-beta1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "0febbd00f4573d1b5deddb2b355f4ba264fee4de"
+                "reference": "a0401ddd2fe051f06a8982297c44e3350852658e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/0febbd00f4573d1b5deddb2b355f4ba264fee4de",
-                "reference": "0febbd00f4573d1b5deddb2b355f4ba264fee4de",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/a0401ddd2fe051f06a8982297c44e3350852658e",
+                "reference": "a0401ddd2fe051f06a8982297c44e3350852658e",
                 "shasum": ""
             },
             "require": {
@@ -422,9 +422,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
-                "source": "https://github.com/patchlevel/event-sourcing/tree/projector"
+                "source": "https://github.com/patchlevel/event-sourcing/tree/2.1.0-beta1"
             },
-            "time": "2022-10-10T13:57:21+00:00"
+            "time": "2022-10-10T16:13:14+00:00"
         },
         {
             "name": "psr/cache",
@@ -8383,7 +8383,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "patchlevel/event-sourcing": 20,
+        "patchlevel/event-sourcing": 10,
         "roave/security-advisories": 20
     },
     "prefer-stable": false,

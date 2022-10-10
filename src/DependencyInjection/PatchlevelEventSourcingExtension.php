@@ -60,7 +60,7 @@ use Patchlevel\EventSourcing\Projection\ProjectionListener;
 use Patchlevel\EventSourcing\Projection\Projector;
 use Patchlevel\EventSourcing\Projection\ProjectorRepository;
 use Patchlevel\EventSourcing\Projection\ProjectorResolver;
-use Patchlevel\EventSourcing\Projection\ProjectorStore\DatabaseStore;
+use Patchlevel\EventSourcing\Projection\ProjectorStore\DoctrineStore;
 use Patchlevel\EventSourcing\Projection\ProjectorStore\ProjectorStore;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
@@ -262,13 +262,13 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(MetadataProjectorResolver::class);
         $container->setAlias(ProjectorResolver::class, MetadataProjectorResolver::class);
 
-        $container->register(DatabaseStore::class)
+        $container->register(DoctrineStore::class)
             ->setArguments([
                 new Reference('event_sourcing.dbal_connection'),
             ])
             ->addTag('event_sourcing.schema_configurator');
 
-        $container->setAlias(ProjectorStore::class, DatabaseStore::class);
+        $container->setAlias(ProjectorStore::class, DoctrineStore::class);
 
         $container->register(DefaultProjectionist::class)
             ->setArguments([
