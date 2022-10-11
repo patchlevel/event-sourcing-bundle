@@ -16,6 +16,7 @@ use Patchlevel\EventSourcing\Console\Command\DatabaseDropCommand;
 use Patchlevel\EventSourcing\Console\Command\DebugCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionDropCommand;
+use Patchlevel\EventSourcing\Console\Command\ProjectionistBootCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionRebuildCommand;
 use Patchlevel\EventSourcing\Console\Command\SchemaCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\SchemaDropCommand;
@@ -590,6 +591,27 @@ class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertInstanceOf(FrozenClock::class, $clock);
         self::assertSame('2020-01-01 22:00:00', $clock->now()->format('Y-m-d H:i:s'));
+    }
+
+    public function testProjectionist()
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'projectionist' => [
+                        'enabled' => true,
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(ProjectionistBootCommand::class, $container->get(ProjectionistBootCommand::class));
     }
 
     public function testFullBuild()

@@ -96,6 +96,13 @@ final class Configuration implements ConfigurationInterface
                 ->end()
             ->end()
 
+            ->arrayNode('projectionist')
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->booleanNode('enabled')->defaultValue(false)->end()
+                ->end()
+            ->end()
+
         ->end();
         // @codingStandardsIgnoreEnd
 

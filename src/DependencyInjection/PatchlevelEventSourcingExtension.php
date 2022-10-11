@@ -24,6 +24,11 @@ use Patchlevel\EventSourcing\Console\Command\DatabaseDropCommand;
 use Patchlevel\EventSourcing\Console\Command\DebugCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionDropCommand;
+use Patchlevel\EventSourcing\Console\Command\ProjectionistBootCommand;
+use Patchlevel\EventSourcing\Console\Command\ProjectionistRemoveCommand;
+use Patchlevel\EventSourcing\Console\Command\ProjectionistRunCommand;
+use Patchlevel\EventSourcing\Console\Command\ProjectionistStatusCommand;
+use Patchlevel\EventSourcing\Console\Command\ProjectionistTeardownCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionRebuildCommand;
 use Patchlevel\EventSourcing\Console\Command\SchemaCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\SchemaDropCommand;
@@ -44,10 +49,19 @@ use Patchlevel\EventSourcing\Metadata\Event\AttributeEventMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Event\AttributeEventRegistryFactory;
 use Patchlevel\EventSourcing\Metadata\Event\EventMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
+use Patchlevel\EventSourcing\Projection\DefaultProjectionist;
+use Patchlevel\EventSourcing\Projection\DefaultProjectorRepository;
 use Patchlevel\EventSourcing\Projection\MetadataAwareProjectionHandler;
+use Patchlevel\EventSourcing\Projection\MetadataProjectorResolver;
 use Patchlevel\EventSourcing\Projection\Projection;
 use Patchlevel\EventSourcing\Projection\ProjectionHandler;
+use Patchlevel\EventSourcing\Projection\Projectionist;
 use Patchlevel\EventSourcing\Projection\ProjectionListener;
+use Patchlevel\EventSourcing\Projection\Projector;
+use Patchlevel\EventSourcing\Projection\ProjectorRepository;
+use Patchlevel\EventSourcing\Projection\ProjectorResolver;
+use Patchlevel\EventSourcing\Projection\ProjectorStore\DoctrineStore;
+use Patchlevel\EventSourcing\Projection\ProjectorStore\ProjectorStore;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 use Patchlevel\EventSourcing\Schema\ChainSchemaConfigurator;
@@ -100,7 +114,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $configuration = new Configuration();
 
         /**
-         * @var array{event_bus: ?array{type: string, service: string}, watch_server: array{enabled: bool, host: string}, connection: ?array{service: ?string, url: ?string}, store: array{schema_manager: string, type: string, options: array<string, mixed>}, aggregates: list<string>, events: list<string>, snapshot_stores: array<string, array{type: string, service: string}>, migration: array{path: string, namespace: string}, clock: array{freeze: ?string}} $config
+         * @var array{event_bus: ?array{type: string, service: string}, projectionist: array{enabled: bool}, watch_server: array{enabled: bool, host: string}, connection: ?array{service: ?string, url: ?string}, store: array{schema_manager: string, type: string, options: array<string, mixed>}, aggregates: list<string>, events: list<string>, snapshot_stores: array<string, array{type: string, service: string}>, migration: array{path: string, namespace: string}, clock: array{freeze: ?string}} $config
          */
         $config = $this->processConfiguration($configuration, $configs);
 
@@ -112,7 +126,6 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureSerializer($config, $container);
         $this->configureMessageDecorator($container);
         $this->configureEventBus($config, $container);
-        $this->configureProjection($container);
         $this->configureConnection($config, $container);
         $this->configureStorage($config, $container);
         $this->configureSnapshots($config, $container);
@@ -121,6 +134,12 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureProfiler($container);
         $this->configureClock($config, $container);
         $this->configureSchema($config, $container);
+
+        if ($config['projectionist']['enabled']) {
+            $this->configureProjectionist($container);
+        } else {
+            $this->configureProjection($container);
+        }
 
         if (class_exists(DependencyFactory::class)) {
             $this->configureMigration($config, $container);
@@ -207,6 +226,89 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->setArguments([new TaggedIteratorArgument('event_sourcing.projection')]);
 
         $container->setAlias(ProjectionHandler::class, MetadataAwareProjectionHandler::class);
+
+        $container->register(ProjectionCreateCommand::class)
+            ->setArguments([
+                new Reference(ProjectionHandler::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(ProjectionDropCommand::class)
+            ->setArguments([
+                new Reference(ProjectionHandler::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(ProjectionRebuildCommand::class)
+            ->setArguments([
+                new Reference(Store::class),
+                new Reference(ProjectionHandler::class),
+            ])
+            ->addTag('console.command');
+    }
+
+    private function configureProjectionist(ContainerBuilder $container): void
+    {
+        $container->registerForAutoconfiguration(Projector::class)
+            ->addTag('event_sourcing.projector');
+
+        $container->register(DefaultProjectorRepository::class)
+            ->setArguments([
+                new TaggedIteratorArgument('event_sourcing.projector'),
+            ]);
+
+        $container->setAlias(ProjectorRepository::class, DefaultProjectorRepository::class);
+
+        $container->register(MetadataProjectorResolver::class);
+        $container->setAlias(ProjectorResolver::class, MetadataProjectorResolver::class);
+
+        $container->register(DoctrineStore::class)
+            ->setArguments([
+                new Reference('event_sourcing.dbal_connection'),
+            ])
+            ->addTag('event_sourcing.schema_configurator');
+
+        $container->setAlias(ProjectorStore::class, DoctrineStore::class);
+
+        $container->register(DefaultProjectionist::class)
+            ->setArguments([
+                new Reference(Store::class),
+                new Reference(ProjectorStore::class),
+                new Reference(ProjectorRepository::class),
+                new Reference(ProjectorResolver::class),
+            ]);
+
+        $container->setAlias(Projectionist::class, DefaultProjectionist::class);
+
+        $container->register(ProjectionistBootCommand::class)
+            ->setArguments([
+                new Reference(Projectionist::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(ProjectionistRunCommand::class)
+            ->setArguments([
+                new Reference(Projectionist::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(ProjectionistTeardownCommand::class)
+            ->setArguments([
+                new Reference(Projectionist::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(ProjectionistRemoveCommand::class)
+            ->setArguments([
+                new Reference(Projectionist::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(ProjectionistStatusCommand::class)
+            ->setArguments([
+                new Reference(Projectionist::class),
+            ])
+            ->addTag('console.command');
     }
 
     private function configureUpcaster(ContainerBuilder $container): void
@@ -388,25 +490,6 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->setArguments([
                 new Reference(Store::class),
                 new Reference(SchemaDirector::class),
-            ])
-            ->addTag('console.command');
-
-        $container->register(ProjectionCreateCommand::class)
-            ->setArguments([
-                new Reference(ProjectionHandler::class),
-            ])
-            ->addTag('console.command');
-
-        $container->register(ProjectionDropCommand::class)
-            ->setArguments([
-                new Reference(ProjectionHandler::class),
-            ])
-            ->addTag('console.command');
-
-        $container->register(ProjectionRebuildCommand::class)
-            ->setArguments([
-                new Reference(Store::class),
-                new Reference(ProjectionHandler::class),
             ])
             ->addTag('console.command');
 
