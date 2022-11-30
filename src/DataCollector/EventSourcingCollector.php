@@ -35,7 +35,7 @@ use function array_map;
  *    aggregates: array<string, class-string<AggregateRoot>>,
  *    events: array<string, class-string>
  * }
- * @psalm-property DataType $data
+ * @psalm-property DataType|array{} $data
  */
 final class EventSourcingCollector extends DataCollector
 {
@@ -81,7 +81,7 @@ final class EventSourcingCollector extends DataCollector
      */
     public function getMessages(): array
     {
-        return $this->data['messages'];
+        return $this->data['messages'] ?? [];
     }
 
     /**
@@ -89,7 +89,7 @@ final class EventSourcingCollector extends DataCollector
      */
     public function getEvents(): array
     {
-        return $this->data['events'];
+        return $this->data['events'] ?? [];
     }
 
     /**
@@ -97,7 +97,7 @@ final class EventSourcingCollector extends DataCollector
      */
     public function getAggregates(): array
     {
-        return $this->data['aggregates'];
+        return $this->data['aggregates'] ?? [];
     }
 
     public function getName(): string
