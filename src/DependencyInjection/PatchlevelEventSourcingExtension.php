@@ -104,6 +104,20 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use function class_exists;
 use function sprintf;
 
+/**
+ * @psalm-type Config = array{
+ *     event_bus: ?array{type: string, service: string},
+ *     projectionist: array{enabled: bool},
+ *     watch_server: array{enabled: bool, host: string},
+ *     connection: ?array{service: ?string, url: ?string},
+ *     store: array{schema_manager: string, type: string, options: array<string, mixed>},
+ *     aggregates: list<string>,
+ *     events: list<string>,
+ *     snapshot_stores: array<string, array{type: string, service: string}>,
+ *     migration: array{path: string, namespace: string},
+ *     clock: array{freeze: ?string}
+ * }
+ */
 final class PatchlevelEventSourcingExtension extends Extension
 {
     /**
@@ -114,7 +128,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $configuration = new Configuration();
 
         /**
-         * @var array{event_bus: ?array{type: string, service: string}, projectionist: array{enabled: bool}, watch_server: array{enabled: bool, host: string}, connection: ?array{service: ?string, url: ?string}, store: array{schema_manager: string, type: string, options: array<string, mixed>}, aggregates: list<string>, events: list<string>, snapshot_stores: array<string, array{type: string, service: string}>, migration: array{path: string, namespace: string}, clock: array{freeze: ?string}} $config
+         * @var Config $config
          */
         $config = $this->processConfiguration($configuration, $configs);
 
@@ -153,7 +167,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{events: array<string>} $config
+     * @param Config $config
      */
     private function configureSerializer(array $config, ContainerBuilder $container): void
     {
@@ -185,7 +199,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{event_bus: ?array{type: string, service: string}} $config
+     * @param Config $config
      */
     private function configureEventBus(array $config, ContainerBuilder $container): void
     {
@@ -338,10 +352,14 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{connection: array{url: ?string, service: ?string}} $config
+     * @param Config $config
      */
     private function configureConnection(array $config, ContainerBuilder $container): void
     {
+        if (!$config['connection']) {
+            return;
+        }
+
         if ($config['connection']['url']) {
             $container->register('event_sourcing.dbal_connection', Connection::class)
                 ->setFactory([DriverManager::class, 'getConnection'])
@@ -362,7 +380,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{store: array{schema_manager: string, type: string, options: array<string, mixed>}} $config
+     * @param Config $config
      */
     private function configureStorage(array $config, ContainerBuilder $container): void
     {
@@ -398,7 +416,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{snapshot_stores: array<string, array{type: string, service: string}>} $config
+     * @param Config $config
      */
     private function configureSnapshots(array $config, ContainerBuilder $container): void
     {
@@ -432,7 +450,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{aggregates: list<string>} $config
+     * @param Config $config
      */
     private function configureAggregates(array $config, ContainerBuilder $container): void
     {
@@ -510,7 +528,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{watch_server: array{host: string}} $config
+     * @param Config $config
      */
     private function configureWatchServer(array $config, ContainerBuilder $container): void
     {
@@ -542,7 +560,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{migration: array{path: string, namespace: string}} $config
+     * @param Config $config
      */
     private function configureMigration(array $config, ContainerBuilder $container): void
     {
@@ -608,7 +626,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{clock: array{freeze: ?string}} $config
+     * @param Config $config
      */
     private function configureClock(array $config, ContainerBuilder $container): void
     {
@@ -626,7 +644,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /**
-     * @param array{store: array{schema_manager: string}} $config
+     * @param Config $config
      */
     private function configureSchema(array $config, ContainerBuilder $container): void
     {
