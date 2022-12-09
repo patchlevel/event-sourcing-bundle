@@ -194,15 +194,23 @@ use Patchlevel\EventSourcing\Attribute\Create;
 use Patchlevel\EventSourcing\Attribute\Drop;
 use Patchlevel\EventSourcing\Attribute\Handle;
 use Patchlevel\EventSourcing\EventBus\Message;
-use Patchlevel\EventSourcing\Projection\Projection;
+use Patchlevel\EventSourcing\Projection\Projector\Projector;
 
-final class HotelProjection implements Projection
+final class HotelProjection implements Projector
 {
     private Connection $db;
 
     public function __construct(Connection $db)
     {
         $this->db = $db;
+    }
+    
+    /**
+     * @return list<array{id: string, name: string, guests: int}>
+     */
+    public function getHotels(): array 
+    {
+        return $this->db->fetchAllAssociative('SELECT id, name, guests FROM hotel;')
     }
 
     #[Handle(HotelCreated::class)]
@@ -252,7 +260,7 @@ final class HotelProjection implements Projection
 
 !!! warning
 
-    autoconfigure need to be enabled, otherwise you need add the `event_sourcing.projection` tag.
+    autoconfigure need to be enabled, otherwise you need add the `event_sourcing.projector` tag.
 
 !!! note
 
@@ -336,27 +344,38 @@ final class HotelController
 {
     /** @var Repository<Hotel> */
     private Repository $hotelRepository;
+    private HotelProjection $hotelProjection;
 
-    public function __construct(RepositoryManager $repositoryManager) 
-    {
+    public function __construct(
+        RepositoryManager $repositoryManager,
+        HotelProjection $hotelProjection
+    ) {
         $this->hotelRepository = $repositoryManager->get(Hotel::class);
+        $this->hotelProjection = $hotelProjection;
+    }
+    
+    #[Route("/", methods:["GET"])]
+    public function listAction(): JsonResponse
+    {
+        return new JsonResponse(
+            $this->hotelProjection->getHotels()
+        );
     }
 
     #[Route("/create", methods:["POST"])]
     public function createAction(Request $request): JsonResponse
     {
-        $name = $request->request->get('name'); // need validation!
+        $hotelName = $request->request->get('name'); // need validation!
         $id = Uuid::v4();
         
-        $hotel = Hotel::create($id, $name);
-        
+        $hotel = Hotel::create($id, $hotelName);
         $this->hotelRepository->save($hotel);
 
         return new JsonResponse(['id' => $id->toString()]);
     }
     
     #[Route("/:id/check-in", methods:["POST"])]
-    public function createAction(string $id, Request $request): JsonResponse
+    public function checkInAction(string $id, Request $request): JsonResponse
     {
         $id = Uuid::fromString($id);
         $guestName = $request->request->get('name'); // need validation!
@@ -365,11 +384,11 @@ final class HotelController
         $hotel->checkIn($guestName);
         $this->hotelRepository->save($hotel);
 
-        return new JsonResponse(['id' => $id->toString()]);
+        return new JsonResponse();
     }
 
      #[Route("/:id/check-out", methods:["POST"])]
-    public function createAction(string $id, Request $request): JsonResponse
+    public function checkOutAction(string $id, Request $request): JsonResponse
     {
         $id = Uuid::fromString($id);
         $guestName = $request->request->get('name'); // need validation!
@@ -378,7 +397,7 @@ final class HotelController
         $hotel->checkOut($guestName);
         $this->hotelRepository->save($hotel);
 
-        return new JsonResponse(['id' => $id->toString()]);
+        return new JsonResponse();
     }
 }
 ```
