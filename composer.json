@@ -18,7 +18,7 @@
     }
   ],
   "require": {
-    "php": "~8.1.0 || ~8.2.0",
+    "php": "~8.1.0",
     "patchlevel/event-sourcing": "2.1.0-beta1",
     "symfony/config": "^4.4.34|^5.4.0|^6.0.0",
     "symfony/console": "^4.4.34|^5.4.0|^6.0.0",
@@ -39,7 +39,7 @@
     "symfony/uid": "^5.4.0|^6.0.0",
     "symfony/var-dumper": "^5.4.0|^6.0.0",
     "symfony/web-profiler-bundle": "^4.4.34|^5.4.0|^6.0.0",
-    "vimeo/psalm": "^5.0"
+    "vimeo/psalm": "^5.1.0"
   },
   "suggest": {
     "doctrine/migrations": "for migration management",
