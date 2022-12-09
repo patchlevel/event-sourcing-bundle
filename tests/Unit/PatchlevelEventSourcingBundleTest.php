@@ -30,6 +30,9 @@ use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
 use Patchlevel\EventSourcing\Projection\MetadataAwareProjectionHandler;
 use Patchlevel\EventSourcing\Projection\ProjectionHandler;
+use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
+use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
+use Patchlevel\EventSourcing\Projection\ProjectionListener;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
@@ -97,6 +100,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(MultiTableStore::class, $container->get(Store::class));
         self::assertInstanceOf(DefaultEventBus::class, $container->get(EventBus::class));
         self::assertInstanceOf(MetadataAwareProjectionHandler::class, $container->get(ProjectionHandler::class));
+        self::assertInstanceOf(ProjectionListener::class, $container->get(ProjectionListener::class));
         self::assertInstanceOf(AggregateRootRegistry::class, $container->get(AggregateRootRegistry::class));
         self::assertInstanceOf(DefaultRepositoryManager::class, $container->get(RepositoryManager::class));
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
@@ -604,14 +608,16 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     'connection' => [
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
-                    'projectionist' => [
-                        'enabled' => true,
+                    'projection' => [
+                        'projectionist' => true,
                     ],
                 ],
             ]
         );
 
+        self::assertInstanceOf(Projectionist::class, $container->get(DefaultProjectionist::class));
         self::assertInstanceOf(ProjectionistBootCommand::class, $container->get(ProjectionistBootCommand::class));
+        self::assertFalse($container->has(ProjectionListener::class));
     }
 
     public function testFullBuild()

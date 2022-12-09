@@ -49,19 +49,19 @@ use Patchlevel\EventSourcing\Metadata\Event\AttributeEventMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Event\AttributeEventRegistryFactory;
 use Patchlevel\EventSourcing\Metadata\Event\EventMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
-use Patchlevel\EventSourcing\Projection\DefaultProjectionist;
-use Patchlevel\EventSourcing\Projection\DefaultProjectorRepository;
 use Patchlevel\EventSourcing\Projection\MetadataAwareProjectionHandler;
-use Patchlevel\EventSourcing\Projection\MetadataProjectorResolver;
 use Patchlevel\EventSourcing\Projection\Projection;
+use Patchlevel\EventSourcing\Projection\Projection\Store\DoctrineStore;
+use Patchlevel\EventSourcing\Projection\Projection\Store\ProjectionStore;
 use Patchlevel\EventSourcing\Projection\ProjectionHandler;
-use Patchlevel\EventSourcing\Projection\Projectionist;
+use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
+use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
 use Patchlevel\EventSourcing\Projection\ProjectionListener;
-use Patchlevel\EventSourcing\Projection\Projector;
-use Patchlevel\EventSourcing\Projection\ProjectorRepository;
-use Patchlevel\EventSourcing\Projection\ProjectorResolver;
-use Patchlevel\EventSourcing\Projection\ProjectorStore\DoctrineStore;
-use Patchlevel\EventSourcing\Projection\ProjectorStore\ProjectorStore;
+use Patchlevel\EventSourcing\Projection\Projector\InMemoryProjectorRepository;
+use Patchlevel\EventSourcing\Projection\Projector\MetadataProjectorResolver;
+use Patchlevel\EventSourcing\Projection\Projector\Projector;
+use Patchlevel\EventSourcing\Projection\Projector\ProjectorRepository;
+use Patchlevel\EventSourcing\Projection\Projector\ProjectorResolver;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 use Patchlevel\EventSourcing\Schema\ChainSchemaConfigurator;
@@ -107,7 +107,7 @@ use function sprintf;
 /**
  * @psalm-type Config = array{
  *     event_bus: ?array{type: string, service: string},
- *     projectionist: array{enabled: bool},
+ *     projection: array{projectionist: bool},
  *     watch_server: array{enabled: bool, host: string},
  *     connection: ?array{service: ?string, url: ?string},
  *     store: array{schema_manager: string, type: string, options: array<string, mixed>},
@@ -149,10 +149,13 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureClock($config, $container);
         $this->configureSchema($config, $container);
 
-        if ($config['projectionist']['enabled']) {
+        $this->configureLegacyProjection($container);
+        $this->configureProjection($container);
+
+        if ($config['projection']['projectionist']) {
             $this->configureProjectionist($container);
         } else {
-            $this->configureProjection($container);
+            $this->configureProjectionListener($container);
         }
 
         if (class_exists(DependencyFactory::class)) {
@@ -227,12 +230,8 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->setAlias(EventBus::class, $config['event_bus']['service']);
     }
 
-    private function configureProjection(ContainerBuilder $container): void
+    private function configureLegacyProjection(ContainerBuilder $container): void
     {
-        $container->register(ProjectionListener::class)
-            ->setArguments([new Reference(ProjectionHandler::class)])
-            ->addTag('event_sourcing.processor', ['priority' => -32]);
-
         $container->registerForAutoconfiguration(Projection::class)
             ->addTag('event_sourcing.projection');
 
@@ -261,33 +260,43 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->addTag('console.command');
     }
 
-    private function configureProjectionist(ContainerBuilder $container): void
+    private function configureProjection(ContainerBuilder $container): void
     {
         $container->registerForAutoconfiguration(Projector::class)
             ->addTag('event_sourcing.projector');
 
-        $container->register(DefaultProjectorRepository::class)
+        $container->register(InMemoryProjectorRepository::class)
             ->setArguments([
                 new TaggedIteratorArgument('event_sourcing.projector'),
             ]);
 
-        $container->setAlias(ProjectorRepository::class, DefaultProjectorRepository::class);
+        $container->setAlias(ProjectorRepository::class, InMemoryProjectorRepository::class);
 
         $container->register(MetadataProjectorResolver::class);
         $container->setAlias(ProjectorResolver::class, MetadataProjectorResolver::class);
+    }
 
+    private function configureProjectionListener(ContainerBuilder $container): void
+    {
+        $container->register(ProjectionListener::class)
+            ->setArguments([new Reference(ProjectionHandler::class)])
+            ->addTag('event_sourcing.processor', ['priority' => -32]);
+    }
+
+    private function configureProjectionist(ContainerBuilder $container): void
+    {
         $container->register(DoctrineStore::class)
             ->setArguments([
                 new Reference('event_sourcing.dbal_connection'),
             ])
             ->addTag('event_sourcing.schema_configurator');
 
-        $container->setAlias(ProjectorStore::class, DoctrineStore::class);
+        $container->setAlias(ProjectionStore::class, DoctrineStore::class);
 
         $container->register(DefaultProjectionist::class)
             ->setArguments([
                 new Reference(Store::class),
-                new Reference(ProjectorStore::class),
+                new Reference(ProjectionStore::class),
                 new Reference(ProjectorRepository::class),
                 new Reference(ProjectorResolver::class),
             ]);
