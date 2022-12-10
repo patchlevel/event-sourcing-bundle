@@ -29,15 +29,23 @@ use Patchlevel\EventSourcing\Attribute\Create;
 use Patchlevel\EventSourcing\Attribute\Drop;
 use Patchlevel\EventSourcing\Attribute\Handle;
 use Patchlevel\EventSourcing\EventBus\Message;
-use Patchlevel\EventSourcing\Projection\Projection;
+use Patchlevel\EventSourcing\Projection\Projector\Projector;
 
-final class HotelProjection implements Projection
+final class HotelProjection implements Projector
 {
     private Connection $db;
 
     public function __construct(Connection $db)
     {
         $this->db = $db;
+    }
+    
+    /**
+     * @return list<array{id: string, name: string, guests: int}>
+     */
+    public function getHotels(): array 
+    {
+        return $this->db->fetchAllAssociative('SELECT id, name, guests FROM hotel;')
     }
 
     #[Handle(HotelCreated::class)]
@@ -88,14 +96,14 @@ final class HotelProjection implements Projection
 ```
 
 If you have the symfony default service setting with `autowire`and `autoconfigure` enabled,
-the projection is automatically recognized and registered at the `Projection` interface.
+the projection is automatically recognized and registered at the `Projector` interface.
 Otherwise you have to define the projection in the symfony service file:
 
 ```yaml
 services:
     App\Projection\HotelProjection:
       tags:
-        - event_sourcing.projection
+        - event_sourcing.projector
 ```
 
 ## Projection commands

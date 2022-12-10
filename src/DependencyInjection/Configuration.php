@@ -96,10 +96,10 @@ final class Configuration implements ConfigurationInterface
                 ->end()
             ->end()
 
-            ->arrayNode('projectionist')
+            ->arrayNode('projection')
                 ->addDefaultsIfNotSet()
                 ->children()
-                    ->booleanNode('enabled')->defaultValue(false)->end()
+                    ->booleanNode('projectionist')->defaultValue(false)->end()
                 ->end()
             ->end()
 
