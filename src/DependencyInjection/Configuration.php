@@ -67,6 +67,7 @@ final class Configuration implements ConfigurationInterface
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->scalarNode('freeze')->defaultNull()->end()
+                    ->scalarNode('service')->defaultNull()->end()
                 ->end()
             ->end()
 
