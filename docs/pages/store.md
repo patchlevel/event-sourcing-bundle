@@ -82,8 +82,8 @@ patchlevel_event_sourcing:
 
 !!! warning
 
-    You should avoid that this connection or database is used by other tools or libraries.
-    Create for e.g. doctrine orm its own database and connection.
+    If you want to use the same connection as doctrine orm, then you have to set the flag `inject_orm_schema`. 
+    Otherwise you should avoid using the same connection as other tools.
 
 !!! note
 
@@ -117,3 +117,23 @@ patchlevel_event_sourcing:
         namespace: EventSourcingMigrations
         path: "%kernel.project_dir%/migrations"
 ```
+
+
+## Merge ORM Schema
+
+You can also merge the schema with doctrine orm. You have to set the following flag for this:
+
+```yaml
+patchlevel_event_sourcing:
+    store:
+        inject_orm_schema: true
+```
+
+!!! note
+
+    All schema relevant commands are removed and you can only use the doctrine commands.
+
+!!! warning
+
+    If you want to merge the schema, then the same doctrine connection must be used as with the doctrine orm. 
+    Otherwise errors may occur!

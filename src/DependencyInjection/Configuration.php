@@ -38,6 +38,7 @@ final class Configuration implements ConfigurationInterface
                         ->defaultNull()
                         ->setDeprecated('patchlevel/event-sourcing-bundle', '2.1')
                     ->end()
+                    ->booleanNode('inject_orm_schema')->defaultFalse()->end()
                 ->end()
             ->end()
 
