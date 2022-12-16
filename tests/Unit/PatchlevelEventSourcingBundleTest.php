@@ -23,6 +23,10 @@ use Patchlevel\EventSourcing\Console\Command\SchemaDropCommand;
 use Patchlevel\EventSourcing\Console\Command\SchemaUpdateCommand;
 use Patchlevel\EventSourcing\Console\Command\ShowCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
+use Patchlevel\EventSourcing\EventBus\Decorator\ChainMessageDecorator;
+use Patchlevel\EventSourcing\EventBus\Decorator\MessageDecorator;
+use Patchlevel\EventSourcing\EventBus\Decorator\RecordedOnDecorator;
+use Patchlevel\EventSourcing\EventBus\Decorator\SplitStreamDecorator;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\SymfonyEventBus;
@@ -595,6 +599,26 @@ class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertInstanceOf(FrozenClock::class, $clock);
         self::assertSame('2020-01-01 22:00:00', $clock->now()->format('Y-m-d H:i:s'));
+    }
+
+    public function testDecorator()
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(ChainMessageDecorator::class, $container->get(MessageDecorator::class));
+        self::assertInstanceOf(RecordedOnDecorator::class, $container->get(RecordedOnDecorator::class));
+        self::assertInstanceOf(SplitStreamDecorator::class, $container->get(SplitStreamDecorator::class));
     }
 
     public function testProjectionist()
