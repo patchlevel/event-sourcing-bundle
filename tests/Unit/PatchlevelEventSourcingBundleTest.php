@@ -692,7 +692,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertFalse($container->has(ProjectionListener::class));
     }
 
-    public function tesSchemaInjection()
+    public function testSchemaMerge()
     {
         $container = new ContainerBuilder();
 
