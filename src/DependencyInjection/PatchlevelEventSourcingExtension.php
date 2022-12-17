@@ -114,7 +114,7 @@ use function sprintf;
  *     projection: array{projectionist: bool},
  *     watch_server: array{enabled: bool, host: string},
  *     connection: ?array{service: ?string, url: ?string},
- *     store: array{schema_manager: string, type: string, inject_orm_schema: bool, options: array<string, mixed>},
+ *     store: array{schema_manager: string, type: string, merge_orm_schema: bool, options: array<string, mixed>},
  *     aggregates: list<string>,
  *     events: list<string>,
  *     snapshot_stores: array<string, array{type: string, service: string}>,
@@ -162,7 +162,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             $this->configureProjectionListener($container);
         }
 
-        if (class_exists(DependencyFactory::class) && $config['store']['inject_orm_schema'] === false) {
+        if (class_exists(DependencyFactory::class) && $config['store']['merge_orm_schema'] === false) {
             $this->configureMigration($config, $container);
         }
 
@@ -643,7 +643,7 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->setAlias(SchemaConfigurator::class, ChainSchemaConfigurator::class);
 
-        if ($config['store']['inject_orm_schema']) {
+        if ($config['store']['merge_orm_schema']) {
             $container->register(DoctrineSchemaSubscriber::class)
                 ->setArguments([new Reference(SchemaConfigurator::class)])
                 ->addTag('doctrine.event_subscriber');

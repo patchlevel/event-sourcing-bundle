@@ -704,7 +704,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
                     'store' => [
-                        'inject_orm_schema' => true,
+                        'merge_orm_schema' => true,
                     ],
                 ],
             ]

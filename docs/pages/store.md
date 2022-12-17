@@ -82,7 +82,7 @@ patchlevel_event_sourcing:
 
 !!! warning
 
-    If you want to use the same connection as doctrine orm, then you have to set the flag `inject_orm_schema`. 
+    If you want to use the same connection as doctrine orm, then you have to set the flag `merge_orm_schema`. 
     Otherwise you should avoid using the same connection as other tools.
 
 !!! note
@@ -126,12 +126,12 @@ You can also merge the schema with doctrine orm. You have to set the following f
 ```yaml
 patchlevel_event_sourcing:
     store:
-        inject_orm_schema: true
+        merge_orm_schema: true
 ```
 
 !!! note
 
-    All schema relevant commands are removed and you can only use the doctrine commands.
+    All schema relevant commands are removed if you activate this option. You should use the doctrine commands then.
 
 !!! warning
 
