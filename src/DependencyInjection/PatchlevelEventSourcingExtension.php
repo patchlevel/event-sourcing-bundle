@@ -39,6 +39,7 @@ use Patchlevel\EventSourcing\Console\DoctrineHelper;
 use Patchlevel\EventSourcing\EventBus\Decorator\ChainMessageDecorator;
 use Patchlevel\EventSourcing\EventBus\Decorator\MessageDecorator;
 use Patchlevel\EventSourcing\EventBus\Decorator\RecordedOnDecorator;
+use Patchlevel\EventSourcing\EventBus\Decorator\SplitStreamDecorator;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\Listener;
@@ -353,6 +354,10 @@ final class PatchlevelEventSourcingExtension extends Extension
     {
         $container->register(RecordedOnDecorator::class)
             ->setArguments([new Reference(Clock::class)])
+            ->addTag('event_sourcing.message_decorator');
+
+        $container->register(SplitStreamDecorator::class)
+            ->setArguments([new Reference(EventMetadataFactory::class)])
             ->addTag('event_sourcing.message_decorator');
 
         $container->registerForAutoconfiguration(MessageDecorator::class)
