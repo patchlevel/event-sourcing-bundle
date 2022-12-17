@@ -40,6 +40,9 @@ use Patchlevel\EventSourcing\Projection\ProjectionListener;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
+use Patchlevel\EventSourcing\Schema\DoctrineSchemaProvider;
+use Patchlevel\EventSourcing\Schema\DoctrineSchemaSubscriber;
+use Patchlevel\EventSourcing\Schema\SchemaDirector;
 use Patchlevel\EventSourcing\Schema\SchemaManager;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr16SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr6SnapshotAdapter;
@@ -687,6 +690,31 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(Projectionist::class, $container->get(DefaultProjectionist::class));
         self::assertInstanceOf(ProjectionistBootCommand::class, $container->get(ProjectionistBootCommand::class));
         self::assertFalse($container->has(ProjectionListener::class));
+    }
+
+    public function testSchemaMerge()
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'store' => [
+                        'merge_orm_schema' => true,
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(DoctrineSchemaSubscriber::class, $container->get(DoctrineSchemaSubscriber::class));
+        self::assertFalse($container->has(SchemaDirector::class));
+        self::assertFalse($container->has(DoctrineSchemaProvider::class));
+        self::assertFalse($container->has(DatabaseCreateCommand::class));
+        self::assertFalse($container->has('event_sourcing.command.migration_diff'));
     }
 
     public function testFullBuild()

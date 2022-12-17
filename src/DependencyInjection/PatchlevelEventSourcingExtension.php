@@ -70,6 +70,7 @@ use Patchlevel\EventSourcing\Schema\DoctrineMigrationSchemaProvider;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaDirector;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaManager;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaProvider;
+use Patchlevel\EventSourcing\Schema\DoctrineSchemaSubscriber;
 use Patchlevel\EventSourcing\Schema\SchemaConfigurator;
 use Patchlevel\EventSourcing\Schema\SchemaDirector;
 use Patchlevel\EventSourcing\Schema\SchemaManager;
@@ -113,7 +114,7 @@ use function sprintf;
  *     projection: array{projectionist: bool},
  *     watch_server: array{enabled: bool, host: string},
  *     connection: ?array{service: ?string, url: ?string},
- *     store: array{schema_manager: string, type: string, options: array<string, mixed>},
+ *     store: array{schema_manager: string, type: string, merge_orm_schema: bool, options: array<string, mixed>},
  *     aggregates: list<string>,
  *     events: list<string>,
  *     snapshot_stores: array<string, array{type: string, service: string}>,
@@ -161,7 +162,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             $this->configureProjectionListener($container);
         }
 
-        if (class_exists(DependencyFactory::class)) {
+        if (class_exists(DependencyFactory::class) && $config['store']['merge_orm_schema'] === false) {
             $this->configureMigration($config, $container);
         }
 
@@ -492,43 +493,6 @@ final class PatchlevelEventSourcingExtension extends Extension
 
     private function configureCommands(ContainerBuilder $container): void
     {
-        $container->register(DoctrineHelper::class);
-
-        $container->register(DatabaseCreateCommand::class)
-            ->setArguments([
-                new Reference(Store::class),
-                new Reference(DoctrineHelper::class),
-            ])
-            ->addTag('console.command');
-
-        $container->register(DatabaseDropCommand::class)
-            ->setArguments([
-                new Reference(Store::class),
-                new Reference(DoctrineHelper::class),
-            ])
-            ->addTag('console.command');
-
-        $container->register(SchemaCreateCommand::class)
-            ->setArguments([
-                new Reference(Store::class),
-                new Reference(SchemaDirector::class),
-            ])
-            ->addTag('console.command');
-
-        $container->register(SchemaUpdateCommand::class)
-            ->setArguments([
-                new Reference(Store::class),
-                new Reference(SchemaDirector::class),
-            ])
-            ->addTag('console.command');
-
-        $container->register(SchemaDropCommand::class)
-            ->setArguments([
-                new Reference(Store::class),
-                new Reference(SchemaDirector::class),
-            ])
-            ->addTag('console.command');
-
         $container->register(ShowCommand::class)
             ->setArguments([
                 new Reference(Store::class),
@@ -679,6 +643,14 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->setAlias(SchemaConfigurator::class, ChainSchemaConfigurator::class);
 
+        if ($config['store']['merge_orm_schema']) {
+            $container->register(DoctrineSchemaSubscriber::class)
+                ->setArguments([new Reference(SchemaConfigurator::class)])
+                ->addTag('doctrine.event_subscriber');
+
+            return;
+        }
+
         $container->register(DoctrineSchemaDirector::class)
             ->setArguments([
                 new Reference('event_sourcing.dbal_connection'),
@@ -695,5 +667,42 @@ final class PatchlevelEventSourcingExtension extends Extension
             $container->register(DoctrineSchemaManager::class);
             $container->setAlias(SchemaManager::class, DoctrineSchemaManager::class);
         }
+
+        $container->register(DoctrineHelper::class);
+
+        $container->register(DatabaseCreateCommand::class)
+            ->setArguments([
+                new Reference(Store::class),
+                new Reference(DoctrineHelper::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(DatabaseDropCommand::class)
+            ->setArguments([
+                new Reference(Store::class),
+                new Reference(DoctrineHelper::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(SchemaCreateCommand::class)
+            ->setArguments([
+                new Reference(Store::class),
+                new Reference(SchemaDirector::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(SchemaUpdateCommand::class)
+            ->setArguments([
+                new Reference(Store::class),
+                new Reference(SchemaDirector::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(SchemaDropCommand::class)
+            ->setArguments([
+                new Reference(Store::class),
+                new Reference(SchemaDirector::class),
+            ])
+            ->addTag('console.command');
     }
 }
