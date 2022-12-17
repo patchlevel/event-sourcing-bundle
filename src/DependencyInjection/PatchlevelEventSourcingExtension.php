@@ -118,7 +118,7 @@ use function sprintf;
  *     events: list<string>,
  *     snapshot_stores: array<string, array{type: string, service: string}>,
  *     migration: array{path: string, namespace: string},
- *     clock: array{freeze: ?string}
+ *     clock: array{freeze: ?string, service: ?string}
  * }
  */
 final class PatchlevelEventSourcingExtension extends Extension
@@ -353,7 +353,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     private function configureMessageDecorator(ContainerBuilder $container): void
     {
         $container->register(RecordedOnDecorator::class)
-            ->setArguments([new Reference(Clock::class)])
+            ->setArguments([new Reference('event_sourcing.clock')])
             ->addTag('event_sourcing.message_decorator');
 
         $container->register(SplitStreamDecorator::class)
@@ -648,17 +648,25 @@ final class PatchlevelEventSourcingExtension extends Extension
      */
     private function configureClock(array $config, ContainerBuilder $container): void
     {
-        if ($config['clock']['freeze'] === null) {
-            $container->register(SystemClock::class);
-            $container->setAlias(Clock::class, SystemClock::class);
+        if ($config['clock']['freeze'] !== null) {
+            $container->register(FrozenClock::class)
+                ->setArguments([new DateTimeImmutable($config['clock']['freeze'])]);
+
+            $container->setAlias(Clock::class, FrozenClock::class);
+            $container->setAlias('event_sourcing.clock', Clock::class);
 
             return;
         }
 
-        $container->register(FrozenClock::class)
-            ->setArguments([new DateTimeImmutable($config['clock']['freeze'])]);
+        if ($config['clock']['service']) {
+            $container->setAlias('event_sourcing.clock', $config['clock']['service']);
 
-        $container->setAlias(Clock::class, FrozenClock::class);
+            return;
+        }
+
+        $container->register(SystemClock::class);
+        $container->setAlias(Clock::class, SystemClock::class);
+        $container->setAlias('event_sourcing.clock', Clock::class);
     }
 
     /**

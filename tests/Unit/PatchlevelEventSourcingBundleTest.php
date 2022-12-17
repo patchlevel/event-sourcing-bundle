@@ -62,6 +62,7 @@ use Patchlevel\EventSourcingBundle\Tests\Fixtures\SnapshotableProfile;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Clock\ClockInterface;
 use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -577,6 +578,25 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(StatusCommand::class, $container->get('event_sourcing.command.migration_status'));
     }
 
+    public function testDefaultClock()
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(SystemClock::class, $container->get(Clock::class));
+        self::assertInstanceOf(SystemClock::class, $container->get('event_sourcing.clock'));
+    }
+
     public function testFrozenClock()
     {
         $container = new ContainerBuilder();
@@ -598,7 +618,32 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         $clock = $container->get(Clock::class);
 
         self::assertInstanceOf(FrozenClock::class, $clock);
+        self::assertInstanceOf(FrozenClock::class, $container->get('event_sourcing.clock'));
         self::assertSame('2020-01-01 22:00:00', $clock->now()->format('Y-m-d H:i:s'));
+    }
+
+    public function testPsrClock()
+    {
+        $psrClock = $this->prophesize(ClockInterface::class)->reveal();
+
+        $container = new ContainerBuilder();
+        $container->set('clock', $psrClock);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'clock' => [
+                        'service' => 'clock',
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(ClockInterface::class, $container->get('event_sourcing.clock'));
     }
 
     public function testDecorator()
