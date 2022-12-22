@@ -5013,12 +5013,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "ae56b0972de9f8ab3a86e47aac977ce048ecdaeb"
+                "reference": "58046a3fc3555eda6567a2bdae7195be6aa9babe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/ae56b0972de9f8ab3a86e47aac977ce048ecdaeb",
-                "reference": "ae56b0972de9f8ab3a86e47aac977ce048ecdaeb",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/58046a3fc3555eda6567a2bdae7195be6aa9babe",
+                "reference": "58046a3fc3555eda6567a2bdae7195be6aa9babe",
                 "shasum": ""
             },
             "conflict": {
@@ -5485,7 +5485,7 @@
                 "yiisoft/yii2-bootstrap": "<2.0.4",
                 "yiisoft/yii2-dev": "<2.0.43",
                 "yiisoft/yii2-elasticsearch": "<2.0.5",
-                "yiisoft/yii2-gii": "<2.0.4",
+                "yiisoft/yii2-gii": "<=2.2.4",
                 "yiisoft/yii2-jui": "<2.0.4",
                 "yiisoft/yii2-redis": "<2.0.8",
                 "yikesinc/yikes-inc-easy-mailchimp-extender": "<6.8.6",
@@ -5551,7 +5551,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-12-19T22:05:01+00:00"
+            "time": "2022-12-21T06:05:00+00:00"
         },
         {
             "name": "sanmai/later",
