@@ -57,6 +57,7 @@ use Patchlevel\EventSourcing\WatchServer\WatchServer;
 use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
+use Patchlevel\EventSourcingBundle\Tests\Fixtures\CreatedSubscriber;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor2;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Profile;
@@ -75,7 +76,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
 {
     use ProphecyTrait;
 
-    public function testEmptyConfig()
+    public function testEmptyConfig(): void
     {
         $container = new ContainerBuilder();
         $bundle = new PatchlevelEventSourcingBundle();
@@ -90,7 +91,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertFalse($container->has(Store::class));
     }
 
-    public function testMinimalConfig()
+    public function testMinimalConfig(): void
     {
         $container = new ContainerBuilder();
         $this->compileContainer(
@@ -115,7 +116,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(SystemClock::class, $container->get(Clock::class));
     }
 
-    public function testConnectionService()
+    public function testConnectionService(): void
     {
         $container = new ContainerBuilder();
         $this->compileContainer(
@@ -133,7 +134,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(MultiTableStore::class, $container->get(Store::class));
     }
 
-    public function testSingleTable()
+    public function testSingleTable(): void
     {
         $container = new ContainerBuilder();
         $this->compileContainer(
@@ -153,7 +154,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(SingleTableStore::class, $container->get(Store::class));
     }
 
-    public function testMultiTable()
+    public function testMultiTable(): void
     {
         $container = new ContainerBuilder();
         $this->compileContainer(
@@ -173,7 +174,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(MultiTableStore::class, $container->get(Store::class));
     }
 
-    public function testOverrideSchemaManager()
+    public function testOverrideSchemaManager(): void
     {
         $schemaManager = $this->prophesize(SchemaManager::class)->reveal();
 
@@ -197,7 +198,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertEquals($schemaManager, $container->get(SchemaManager::class));
     }
 
-    public function testOverrideEventBus()
+    public function testOverrideEventBus(): void
     {
         $eventBus = $this->prophesize(EventBus::class)->reveal();
 
@@ -222,7 +223,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertEquals($eventBus, $container->get(EventBus::class));
     }
 
-    public function testProcessorListener()
+    public function testProcessorListener(): void
     {
         $container = new ContainerBuilder();
         $container->setDefinition(Processor1::class, new Definition(Processor1::class))
@@ -261,7 +262,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         );
     }
 
-    public function testSymfonyEventBus()
+    public function testSymfonyEventBus(): void
     {
         $container = new ContainerBuilder();
         $container->setDefinition(Processor1::class, new Definition(Processor1::class))
@@ -303,7 +304,41 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         );
     }
 
-    public function testSnapshotStore()
+    public function testSubscriber(): void
+    {
+        $container = new ContainerBuilder();
+        $container->setDefinition(CreatedSubscriber::class, new Definition(CreatedSubscriber::class))
+            ->addTag('event_sourcing.processor', ['priority' => -64]);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(DefaultEventBus::class, $container->get(EventBus::class));
+        self::assertEquals(
+            [
+                'Patchlevel\EventSourcingBundle\Tests\Fixtures\CreatedSubscriber' => [
+                    ['priority' => -64],
+                ],
+                'Patchlevel\EventSourcing\Projection\ProjectionListener' => [
+                    ['priority' => -32],
+                ],
+                'Patchlevel\EventSourcingBundle\DataCollector\MessageListener' => [
+                    []
+                ]
+            ],
+            $container->findTaggedServiceIds('event_sourcing.processor')
+        );
+    }
+
+    public function testSnapshotStore(): void
     {
         $container = new ContainerBuilder();
 
@@ -332,7 +367,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(Psr6SnapshotAdapter::class, $adapter);
     }
 
-    public function testPsr6SnapshotAdapter()
+    public function testPsr6SnapshotAdapter(): void
     {
         $container = new ContainerBuilder();
 
@@ -355,7 +390,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(Psr6SnapshotAdapter::class, $container->get('event_sourcing.snapshot_store.adapter.default'));
     }
 
-    public function testPsr16SnapshotAdapter()
+    public function testPsr16SnapshotAdapter(): void
     {
         $simpleCache = $this->prophesize(CacheInterface::class)->reveal();
 
@@ -382,7 +417,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(Psr16SnapshotAdapter::class, $container->get('event_sourcing.snapshot_store.adapter.default'));
     }
 
-    public function testCustomSnapshotAdapter()
+    public function testCustomSnapshotAdapter(): void
     {
         $customSnapshotStore = $this->prophesize(SnapshotStore::class)->reveal();
 
@@ -409,7 +444,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertEquals($customSnapshotStore, $container->get('event_sourcing.snapshot_store.adapter.default'));
     }
 
-    public function testWatchServer()
+    public function testWatchServer(): void
     {
         $customSnapshotStore = $this->prophesize(SnapshotStore::class)->reveal();
 
@@ -435,7 +470,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(WatchCommand::class, $container->get(WatchCommand::class));
     }
 
-    public function testWatchServerWithSymfonyEventBus()
+    public function testWatchServerWithSymfonyEventBus(): void
     {
         $customSnapshotStore = $this->prophesize(SnapshotStore::class)->reveal();
 
@@ -463,7 +498,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(SocketWatchServerClient::class, $container->get(WatchServerClient::class));
     }
 
-    public function testEventRegistry()
+    public function testEventRegistry(): void
     {
         $container = new ContainerBuilder();
 
@@ -485,7 +520,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertTrue($eventRegistry->hasEventClass(ProfileCreated::class));
     }
 
-    public function testAggregateRegistry()
+    public function testAggregateRegistry(): void
     {
         $container = new ContainerBuilder();
 
@@ -507,7 +542,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertTrue($aggregateRegistry->hasAggregateClass(Profile::class));
     }
 
-    public function testRepositoryManager()
+    public function testRepositoryManager(): void
     {
         $container = new ContainerBuilder();
 
@@ -532,7 +567,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(DefaultRepository::class, $repository);
     }
 
-    public function testCommands()
+    public function testCommands(): void
     {
         $container = new ContainerBuilder();
 
@@ -559,7 +594,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(DebugCommand::class, $container->get(DebugCommand::class));
     }
 
-    public function testMigrations()
+    public function testMigrations(): void
     {
         $container = new ContainerBuilder();
 
@@ -581,7 +616,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(StatusCommand::class, $container->get('event_sourcing.command.migration_status'));
     }
 
-    public function testDefaultClock()
+    public function testDefaultClock(): void
     {
         $container = new ContainerBuilder();
 
@@ -600,7 +635,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(SystemClock::class, $container->get('event_sourcing.clock'));
     }
 
-    public function testFrozenClock()
+    public function testFrozenClock(): void
     {
         $container = new ContainerBuilder();
 
@@ -625,7 +660,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertSame('2020-01-01 22:00:00', $clock->now()->format('Y-m-d H:i:s'));
     }
 
-    public function testPsrClock()
+    public function testPsrClock(): void
     {
         $psrClock = $this->prophesize(ClockInterface::class)->reveal();
 
@@ -649,7 +684,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(ClockInterface::class, $container->get('event_sourcing.clock'));
     }
 
-    public function testDecorator()
+    public function testDecorator(): void
     {
         $container = new ContainerBuilder();
 
@@ -669,7 +704,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(SplitStreamDecorator::class, $container->get(SplitStreamDecorator::class));
     }
 
-    public function testProjectionist()
+    public function testProjectionist(): void
     {
         $container = new ContainerBuilder();
 
@@ -692,7 +727,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertFalse($container->has(ProjectionListener::class));
     }
 
-    public function testSchemaMerge()
+    public function testSchemaMerge(): void
     {
         $container = new ContainerBuilder();
 
@@ -717,7 +752,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertFalse($container->has('event_sourcing.command.migration_diff'));
     }
 
-    public function testFullBuild()
+    public function testFullBuild(): void
     {
         $container = new ContainerBuilder();
         $container->set('my_schema_manager', $this->prophesize(SchemaManager::class)->reveal());
