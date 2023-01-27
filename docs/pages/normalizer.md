@@ -30,7 +30,7 @@ use Symfony\Component\Uid\Uuid;
 
 final class DTO 
 {
-    #[Normalize(new UuidNormalizer())]
+    #[UuidNormalizer]
     public Uuid $id;
 }
 ```

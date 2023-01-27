@@ -23,7 +23,6 @@ A hotel can be created with a `name`:
 namespace App\Domain\Hotel\Event;
 
 use Patchlevel\EventSourcing\Attribute\Event;
-use Patchlevel\EventSourcing\Attribute\Normalize;
 use Patchlevel\EventSourcingBundle\Normalizer\UuidNormalizer;
 use Symfony\Component\Uid\Uuid;
 
@@ -31,7 +30,7 @@ use Symfony\Component\Uid\Uuid;
 final class HotelCreated
 {
     public function __construct(
-        #[Normalize(new UuidNormalizer())]
+        #[UuidNormalizer]
         public readonly Uuid $id, 
         public readonly string $hotelName
     ) {

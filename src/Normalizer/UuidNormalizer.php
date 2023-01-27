@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\Normalizer;
 
+use Attribute;
 use Patchlevel\EventSourcing\Serializer\Normalizer\InvalidArgument;
 use Patchlevel\EventSourcing\Serializer\Normalizer\Normalizer;
 use Symfony\Component\Uid\Uuid;
 
 use function is_string;
 
+#[Attribute(Attribute::TARGET_PROPERTY)]
 class UuidNormalizer implements Normalizer
 {
     public function normalize(mixed $value): ?string
