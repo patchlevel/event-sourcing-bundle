@@ -66,6 +66,8 @@ final class HotelProjection implements Projector
     #[Handle(GuestIsCheckedIn::class)]
     public function handleGuestIsCheckedIn(Message $message): void
     {
+        $event = $message->event();
+        
         $this->db->executeStatement(
             'UPDATE hotel SET guests = guests + 1 WHERE id = ?;',
             [$event->aggregateId()]
@@ -75,6 +77,8 @@ final class HotelProjection implements Projector
     #[Handle(GuestIsCheckedOut::class)]
     public function handleGuestIsCheckedOut(Message $message): void
     {
+        $event = $message->event();
+        
         $this->db->executeStatement(
             'UPDATE hotel SET guests = guests - 1 WHERE id = ?;',
             [$event->aggregateId()]
