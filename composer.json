@@ -30,7 +30,7 @@
     "ext-pdo_sqlite": "*",
     "doctrine/migrations": "^3.3.2",
     "infection/infection": "^0.27.0",
-    "patchlevel/coding-standard": "^1.1.1",
+    "patchlevel/coding-standard": "^1.2.0",
     "phpspec/prophecy-phpunit": "^2.0.1",
     "phpstan/phpstan": "^1.4.2",
     "phpunit/phpunit": "^9.5.13",
