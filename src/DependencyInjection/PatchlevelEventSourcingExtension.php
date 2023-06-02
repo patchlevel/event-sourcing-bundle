@@ -124,16 +124,12 @@ use function sprintf;
  */
 final class PatchlevelEventSourcingExtension extends Extension
 {
-    /**
-     * @param array<array-key, mixed> $configs
-     */
+    /** @param array<array-key, mixed> $configs */
     public function load(array $configs, ContainerBuilder $container): void
     {
         $configuration = new Configuration();
 
-        /**
-         * @var Config $config
-         */
+        /** @var Config $config */
         $config = $this->processConfiguration($configuration, $configs);
 
         if (!isset($config['connection'])) {
@@ -173,9 +169,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureWatchServer($config, $container);
     }
 
-    /**
-     * @param Config $config
-     */
+    /** @param Config $config */
     private function configureSerializer(array $config, ContainerBuilder $container): void
     {
         $container->register(AttributeEventRegistryFactory::class);
@@ -205,9 +199,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->setAlias(EventSerializer::class, DefaultEventSerializer::class);
     }
 
-    /**
-     * @param Config $config
-     */
+    /** @param Config $config */
     private function configureEventBus(array $config, ContainerBuilder $container): void
     {
         $container->registerForAutoconfiguration(Listener::class)
@@ -370,9 +362,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->setAlias(MessageDecorator::class, ChainMessageDecorator::class);
     }
 
-    /**
-     * @param Config $config
-     */
+    /** @param Config $config */
     private function configureConnection(array $config, ContainerBuilder $container): void
     {
         if (!$config['connection']) {
@@ -398,9 +388,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->setAlias('event_sourcing.dbal_connection', $config['connection']['service']);
     }
 
-    /**
-     * @param Config $config
-     */
+    /** @param Config $config */
     private function configureStorage(array $config, ContainerBuilder $container): void
     {
         if ($config['store']['type'] === 'single_table') {
@@ -434,9 +422,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->setAlias(Store::class, MultiTableStore::class);
     }
 
-    /**
-     * @param Config $config
-     */
+    /** @param Config $config */
     private function configureSnapshots(array $config, ContainerBuilder $container): void
     {
         $adapters = [];
@@ -468,9 +454,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->setAlias(SnapshotStore::class, DefaultSnapshotStore::class);
     }
 
-    /**
-     * @param Config $config
-     */
+    /** @param Config $config */
     private function configureAggregates(array $config, ContainerBuilder $container): void
     {
         $container->register(AttributeAggregateRootRegistryFactory::class);
@@ -509,9 +493,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->addTag('console.command');
     }
 
-    /**
-     * @param Config $config
-     */
+    /** @param Config $config */
     private function configureWatchServer(array $config, ContainerBuilder $container): void
     {
         $container->register(PhpNativeMessageSerializer::class)
@@ -541,9 +523,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->addTag('console.command');
     }
 
-    /**
-     * @param Config $config
-     */
+    /** @param Config $config */
     private function configureMigration(array $config, ContainerBuilder $container): void
     {
         $container->register('event_sourcing.migration.configuration', ConfigurationArray::class)
@@ -607,9 +587,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->addTag('data_collector', ['template' => '@PatchlevelEventSourcing/Collector/template.html.twig']);
     }
 
-    /**
-     * @param Config $config
-     */
+    /** @param Config $config */
     private function configureClock(array $config, ContainerBuilder $container): void
     {
         if ($config['clock']['freeze'] !== null) {
@@ -633,9 +611,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->setAlias('event_sourcing.clock', Clock::class);
     }
 
-    /**
-     * @param Config $config
-     */
+    /** @param Config $config */
     private function configureSchema(array $config, ContainerBuilder $container): void
     {
         $container->register(ChainSchemaConfigurator::class)

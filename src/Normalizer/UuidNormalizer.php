@@ -14,7 +14,7 @@ use function is_string;
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class UuidNormalizer implements Normalizer
 {
-    public function normalize(mixed $value): ?string
+    public function normalize(mixed $value): string|null
     {
         if ($value === null) {
             return null;
@@ -27,7 +27,7 @@ class UuidNormalizer implements Normalizer
         return (string)$value;
     }
 
-    public function denormalize(mixed $value): ?Uuid
+    public function denormalize(mixed $value): Uuid|null
     {
         if ($value === null) {
             return null;
