@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="4.28.0@52e96bea381e6cb07a672aefec791a5817694a26">
+<files psalm-version="5.12.0@f90118cdeacd0088e7215e64c0c99ceca819e176">
+  <file src="src/DependencyInjection/Configuration.php">
+    <PossiblyNullReference>
+      <code>scalarNode</code>
+    </PossiblyNullReference>
+    <UndefinedInterfaceMethod>
+      <code>scalarNode</code>
+    </UndefinedInterfaceMethod>
+  </file>
   <file src="src/DependencyInjection/PatchlevelEventSourcingExtension.php">
-    <DeprecatedClass occurrences="5">
+    <DeprecatedClass>
       <code>DoctrineSchemaManager::class</code>
       <code>DoctrineSchemaManager::class</code>
       <code>MetadataAwareProjectionHandler::class</code>
