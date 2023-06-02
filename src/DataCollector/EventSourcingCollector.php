@@ -43,11 +43,11 @@ final class EventSourcingCollector extends DataCollector
         private readonly MessageListener $messageListener,
         private readonly AggregateRootRegistry $aggregateRootRegistry,
         private readonly EventRegistry $eventRegistry,
-        private readonly EventSerializer $eventSerializer
+        private readonly EventSerializer $eventSerializer,
     ) {
     }
 
-    public function collect(Request $request, Response $response, ?Throwable $exception = null): void
+    public function collect(Request $request, Response $response, Throwable|null $exception = null): void
     {
         $messages = array_map(
             function (Message $message) {
@@ -66,7 +66,7 @@ final class EventSourcingCollector extends DataCollector
                     'custom_headers' => $this->cloneVar($message->customHeaders()),
                 ];
             },
-            $this->messageListener->get()
+            $this->messageListener->get(),
         );
 
         $this->data = [
@@ -76,25 +76,19 @@ final class EventSourcingCollector extends DataCollector
         ];
     }
 
-    /**
-     * @return list<MessageType>
-     */
+    /** @return list<MessageType> */
     public function getMessages(): array
     {
         return $this->data['messages'] ?? [];
     }
 
-    /**
-     * @return array<string, class-string>
-     */
+    /** @return array<string, class-string> */
     public function getEvents(): array
     {
         return $this->data['events'] ?? [];
     }
 
-    /**
-     * @return array<string, class-string<AggregateRoot>> $aggregates
-     */
+    /** @return array<string, class-string<AggregateRoot>> $aggregates */
     public function getAggregates(): array
     {
         return $this->data['aggregates'] ?? [];
