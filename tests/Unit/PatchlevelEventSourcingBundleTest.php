@@ -14,10 +14,9 @@ use Patchlevel\EventSourcing\Clock\SystemClock;
 use Patchlevel\EventSourcing\Console\Command\DatabaseCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\DatabaseDropCommand;
 use Patchlevel\EventSourcing\Console\Command\DebugCommand;
-use Patchlevel\EventSourcing\Console\Command\ProjectionCreateCommand;
-use Patchlevel\EventSourcing\Console\Command\ProjectionDropCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionistBootCommand;
-use Patchlevel\EventSourcing\Console\Command\ProjectionRebuildCommand;
+use Patchlevel\EventSourcing\Console\Command\ProjectionistRemoveCommand;
+use Patchlevel\EventSourcing\Console\Command\ProjectionistRunCommand;
 use Patchlevel\EventSourcing\Console\Command\SchemaCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\SchemaDropCommand;
 use Patchlevel\EventSourcing\Console\Command\SchemaUpdateCommand;
@@ -25,31 +24,23 @@ use Patchlevel\EventSourcing\Console\Command\ShowCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
 use Patchlevel\EventSourcing\EventBus\Decorator\ChainMessageDecorator;
 use Patchlevel\EventSourcing\EventBus\Decorator\MessageDecorator;
-use Patchlevel\EventSourcing\EventBus\Decorator\RecordedOnDecorator;
 use Patchlevel\EventSourcing\EventBus\Decorator\SplitStreamDecorator;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
-use Patchlevel\EventSourcing\Projection\MetadataAwareProjectionHandler;
-use Patchlevel\EventSourcing\Projection\ProjectionHandler;
-use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
-use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
-use Patchlevel\EventSourcing\Projection\ProjectionListener;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaProvider;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaSubscriber;
 use Patchlevel\EventSourcing\Schema\SchemaDirector;
-use Patchlevel\EventSourcing\Schema\SchemaManager;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr16SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr6SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\DefaultSnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
-use Patchlevel\EventSourcing\Store\MultiTableStore;
-use Patchlevel\EventSourcing\Store\SingleTableStore;
+use Patchlevel\EventSourcing\Store\DoctrineDbalStore;
 use Patchlevel\EventSourcing\Store\Store;
 use Patchlevel\EventSourcing\WatchServer\SocketWatchServer;
 use Patchlevel\EventSourcing\WatchServer\SocketWatchServerClient;
@@ -106,10 +97,8 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(Connection::class, $container->get('event_sourcing.dbal_connection'));
-        self::assertInstanceOf(MultiTableStore::class, $container->get(Store::class));
+        self::assertInstanceOf(DoctrineDbalStore::class, $container->get(Store::class));
         self::assertInstanceOf(DefaultEventBus::class, $container->get(EventBus::class));
-        self::assertInstanceOf(MetadataAwareProjectionHandler::class, $container->get(ProjectionHandler::class));
-        self::assertInstanceOf(ProjectionListener::class, $container->get(ProjectionListener::class));
         self::assertInstanceOf(AggregateRootRegistry::class, $container->get(AggregateRootRegistry::class));
         self::assertInstanceOf(DefaultRepositoryManager::class, $container->get(RepositoryManager::class));
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
@@ -131,71 +120,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(Connection::class, $container->get('event_sourcing.dbal_connection'));
-        self::assertInstanceOf(MultiTableStore::class, $container->get(Store::class));
-    }
-
-    public function testSingleTable(): void
-    {
-        $container = new ContainerBuilder();
-        $this->compileContainer(
-            $container,
-            [
-                'patchlevel_event_sourcing' => [
-                    'connection' => [
-                        'service' => 'doctrine.dbal.eventstore_connection',
-                    ],
-                    'store' => [
-                        'type' => 'single_table',
-                    ],
-                ],
-            ]
-        );
-
-        self::assertInstanceOf(SingleTableStore::class, $container->get(Store::class));
-    }
-
-    public function testMultiTable(): void
-    {
-        $container = new ContainerBuilder();
-        $this->compileContainer(
-            $container,
-            [
-                'patchlevel_event_sourcing' => [
-                    'connection' => [
-                        'service' => 'doctrine.dbal.eventstore_connection',
-                    ],
-                    'store' => [
-                        'type' => 'multi_table',
-                    ],
-                ],
-            ]
-        );
-
-        self::assertInstanceOf(MultiTableStore::class, $container->get(Store::class));
-    }
-
-    public function testOverrideSchemaManager(): void
-    {
-        $schemaManager = $this->prophesize(SchemaManager::class)->reveal();
-
-        $container = new ContainerBuilder();
-        $container->set('my_schema_manager', $schemaManager);
-
-        $this->compileContainer(
-            $container,
-            [
-                'patchlevel_event_sourcing' => [
-                    'connection' => [
-                        'service' => 'doctrine.dbal.eventstore_connection',
-                    ],
-                    'store' => [
-                        'schema_manager' => 'my_schema_manager',
-                    ],
-                ],
-            ]
-        );
-
-        self::assertEquals($schemaManager, $container->get(SchemaManager::class));
+        self::assertInstanceOf(DoctrineDbalStore::class, $container->get(Store::class));
     }
 
     public function testOverrideEventBus(): void
@@ -251,9 +176,6 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                 'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor2' => [
                     [],
                 ],
-                'Patchlevel\EventSourcing\Projection\ProjectionListener' => [
-                    ['priority' => -32],
-                ],
                 'Patchlevel\EventSourcingBundle\DataCollector\MessageListener' => [
                     []
                 ]
@@ -293,9 +215,6 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                 'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor2' => [
                     ['bus' => 'event.bus', 'priority' => 0],
                 ],
-                'Patchlevel\EventSourcing\Projection\ProjectionListener' => [
-                    ['bus' => 'event.bus', 'priority' => -32],
-                ],
                 'Patchlevel\EventSourcingBundle\DataCollector\MessageListener' => [
                     ['bus' => 'event.bus', 'priority' => 0],
                 ]
@@ -326,9 +245,6 @@ class PatchlevelEventSourcingBundleTest extends TestCase
             [
                 'Patchlevel\EventSourcingBundle\Tests\Fixtures\CreatedSubscriber' => [
                     ['priority' => -64],
-                ],
-                'Patchlevel\EventSourcing\Projection\ProjectionListener' => [
-                    ['priority' => -32],
                 ],
                 'Patchlevel\EventSourcingBundle\DataCollector\MessageListener' => [
                     []
@@ -587,9 +503,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(SchemaCreateCommand::class, $container->get(SchemaCreateCommand::class));
         self::assertInstanceOf(SchemaUpdateCommand::class, $container->get(SchemaUpdateCommand::class));
         self::assertInstanceOf(SchemaDropCommand::class, $container->get(SchemaDropCommand::class));
-        self::assertInstanceOf(ProjectionCreateCommand::class, $container->get(ProjectionCreateCommand::class));
-        self::assertInstanceOf(ProjectionDropCommand::class, $container->get(ProjectionDropCommand::class));
-        self::assertInstanceOf(ProjectionRebuildCommand::class, $container->get(ProjectionRebuildCommand::class));
+        self::assertInstanceOf(ProjectionistBootCommand::class, $container->get(ProjectionistBootCommand::class));
+        self::assertInstanceOf(ProjectionistRemoveCommand::class, $container->get(ProjectionistRemoveCommand::class));
+        self::assertInstanceOf(ProjectionistRunCommand::class, $container->get(ProjectionistRunCommand::class));
         self::assertInstanceOf(ShowCommand::class, $container->get(ShowCommand::class));
         self::assertInstanceOf(DebugCommand::class, $container->get(DebugCommand::class));
     }
@@ -700,11 +616,10 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(ChainMessageDecorator::class, $container->get(MessageDecorator::class));
-        self::assertInstanceOf(RecordedOnDecorator::class, $container->get(RecordedOnDecorator::class));
         self::assertInstanceOf(SplitStreamDecorator::class, $container->get(SplitStreamDecorator::class));
     }
 
-    public function testProjectionist(): void
+    public function testProjectionistTestMode(): void
     {
         $container = new ContainerBuilder();
 
@@ -716,15 +631,25 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
                     'projection' => [
-                        'projectionist' => true,
+                        'test_mode' => true,
                     ],
                 ],
             ]
         );
 
-        self::assertInstanceOf(Projectionist::class, $container->get(DefaultProjectionist::class));
-        self::assertInstanceOf(ProjectionistBootCommand::class, $container->get(ProjectionistBootCommand::class));
-        self::assertFalse($container->has(ProjectionListener::class));
+
+        self::assertInstanceOf(DefaultEventBus::class, $container->get(EventBus::class));
+        self::assertEquals(
+            [
+                'Patchlevel\EventSourcingBundle\DataCollector\MessageListener' => [
+                    []
+                ],
+                'Patchlevel\EventSourcing\Projection\Projector\SyncProjectorListener' => [
+                    ['priority' => -32],
+                ],
+            ],
+            $container->findTaggedServiceIds('event_sourcing.processor')
+        );
     }
 
     public function testSchemaMerge(): void
@@ -755,7 +680,6 @@ class PatchlevelEventSourcingBundleTest extends TestCase
     public function testFullBuild(): void
     {
         $container = new ContainerBuilder();
-        $container->set('my_schema_manager', $this->prophesize(SchemaManager::class)->reveal());
 
         $this->compileContainer(
             $container,
@@ -765,8 +689,6 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
                     'store' => [
-                        'type' => 'multi_table',
-                        'schema_manager' => 'my_schema_manager',
                     ],
                     'event_bus' => [
                         'type' => 'symfony',
@@ -792,9 +714,8 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(Connection::class, $container->get('event_sourcing.dbal_connection'));
-        self::assertInstanceOf(MultiTableStore::class, $container->get(Store::class));
+        self::assertInstanceOf(DoctrineDbalStore::class, $container->get(Store::class));
         self::assertInstanceOf(SymfonyEventBus::class, $container->get(EventBus::class));
-        self::assertInstanceOf(MetadataAwareProjectionHandler::class, $container->get(ProjectionHandler::class));
         self::assertInstanceOf(AggregateRootRegistry::class, $container->get(AggregateRootRegistry::class));
         self::assertInstanceOf(RepositoryManager::class, $container->get(RepositoryManager::class));
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));

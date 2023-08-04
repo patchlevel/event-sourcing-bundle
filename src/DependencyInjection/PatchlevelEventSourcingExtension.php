@@ -22,14 +22,11 @@ use Patchlevel\EventSourcing\Clock\SystemClock;
 use Patchlevel\EventSourcing\Console\Command\DatabaseCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\DatabaseDropCommand;
 use Patchlevel\EventSourcing\Console\Command\DebugCommand;
-use Patchlevel\EventSourcing\Console\Command\ProjectionCreateCommand;
-use Patchlevel\EventSourcing\Console\Command\ProjectionDropCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionistBootCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionistRemoveCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionistRunCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionistStatusCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionistTeardownCommand;
-use Patchlevel\EventSourcing\Console\Command\ProjectionRebuildCommand;
 use Patchlevel\EventSourcing\Console\Command\SchemaCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\SchemaDropCommand;
 use Patchlevel\EventSourcing\Console\Command\SchemaUpdateCommand;
@@ -38,7 +35,6 @@ use Patchlevel\EventSourcing\Console\Command\WatchCommand;
 use Patchlevel\EventSourcing\Console\DoctrineHelper;
 use Patchlevel\EventSourcing\EventBus\Decorator\ChainMessageDecorator;
 use Patchlevel\EventSourcing\EventBus\Decorator\MessageDecorator;
-use Patchlevel\EventSourcing\EventBus\Decorator\RecordedOnDecorator;
 use Patchlevel\EventSourcing\EventBus\Decorator\SplitStreamDecorator;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
@@ -50,44 +46,36 @@ use Patchlevel\EventSourcing\Metadata\Event\AttributeEventMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Event\AttributeEventRegistryFactory;
 use Patchlevel\EventSourcing\Metadata\Event\EventMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
-use Patchlevel\EventSourcing\Projection\MetadataAwareProjectionHandler;
-use Patchlevel\EventSourcing\Projection\Projection;
 use Patchlevel\EventSourcing\Projection\Projection\Store\DoctrineStore;
 use Patchlevel\EventSourcing\Projection\Projection\Store\ProjectionStore;
-use Patchlevel\EventSourcing\Projection\ProjectionHandler;
 use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
 use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
-use Patchlevel\EventSourcing\Projection\ProjectionListener;
 use Patchlevel\EventSourcing\Projection\Projector\InMemoryProjectorRepository;
 use Patchlevel\EventSourcing\Projection\Projector\MetadataProjectorResolver;
 use Patchlevel\EventSourcing\Projection\Projector\Projector;
 use Patchlevel\EventSourcing\Projection\Projector\ProjectorRepository;
 use Patchlevel\EventSourcing\Projection\Projector\ProjectorResolver;
+use Patchlevel\EventSourcing\Projection\Projector\SyncProjectorListener;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 use Patchlevel\EventSourcing\Schema\ChainSchemaConfigurator;
 use Patchlevel\EventSourcing\Schema\DoctrineMigrationSchemaProvider;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaDirector;
-use Patchlevel\EventSourcing\Schema\DoctrineSchemaManager;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaProvider;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaSubscriber;
 use Patchlevel\EventSourcing\Schema\SchemaConfigurator;
 use Patchlevel\EventSourcing\Schema\SchemaDirector;
-use Patchlevel\EventSourcing\Schema\SchemaManager;
 use Patchlevel\EventSourcing\Serializer\DefaultEventSerializer;
 use Patchlevel\EventSourcing\Serializer\Encoder\Encoder;
 use Patchlevel\EventSourcing\Serializer\Encoder\JsonEncoder;
 use Patchlevel\EventSourcing\Serializer\EventSerializer;
-use Patchlevel\EventSourcing\Serializer\Hydrator\EventHydrator;
-use Patchlevel\EventSourcing\Serializer\Hydrator\MetadataEventHydrator;
 use Patchlevel\EventSourcing\Serializer\Upcast\Upcaster;
 use Patchlevel\EventSourcing\Serializer\Upcast\UpcasterChain;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr16SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr6SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\DefaultSnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
-use Patchlevel\EventSourcing\Store\MultiTableStore;
-use Patchlevel\EventSourcing\Store\SingleTableStore;
+use Patchlevel\EventSourcing\Store\DoctrineDbalStore;
 use Patchlevel\EventSourcing\Store\Store;
 use Patchlevel\EventSourcing\WatchServer\MessageSerializer;
 use Patchlevel\EventSourcing\WatchServer\PhpNativeMessageSerializer;
@@ -98,6 +86,8 @@ use Patchlevel\EventSourcing\WatchServer\WatchServer;
 use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
 use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
 use Patchlevel\EventSourcingBundle\DataCollector\MessageListener;
+use Patchlevel\Hydrator\Hydrator;
+use Patchlevel\Hydrator\MetadataHydrator;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -111,10 +101,10 @@ use function sprintf;
 /**
  * @psalm-type Config = array{
  *     event_bus: ?array{type: string, service: string},
- *     projection: array{projectionist: bool},
+ *     projection: array{test_mode: bool},
  *     watch_server: array{enabled: bool, host: string},
  *     connection: ?array{service: ?string, url: ?string},
- *     store: array{schema_manager: string, type: string, merge_orm_schema: bool, options: array<string, mixed>},
+ *     store: array{merge_orm_schema: bool, options: array<string, mixed>},
  *     aggregates: list<string>,
  *     events: list<string>,
  *     snapshot_stores: array<string, array{type: string, service: string}>,
@@ -136,6 +126,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             return;
         }
 
+        $this->configureHydrator($container);
         $this->configureUpcaster($container);
         $this->configureSerializer($config, $container);
         $this->configureMessageDecorator($container);
@@ -148,14 +139,12 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureProfiler($container);
         $this->configureClock($config, $container);
         $this->configureSchema($config, $container);
-
-        $this->configureLegacyProjection($container);
         $this->configureProjection($container);
 
-        if ($config['projection']['projectionist']) {
-            $this->configureProjectionist($container);
-        } else {
+        if ($config['projection']['test_mode']) {
             $this->configureProjectionListener($container);
+        } else {
+            $this->configureProjectionist($container);
         }
 
         if (class_exists(DependencyFactory::class) && $config['store']['merge_orm_schema'] === false) {
@@ -181,17 +170,13 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(AttributeEventMetadataFactory::class);
         $container->setAlias(EventMetadataFactory::class, AttributeEventMetadataFactory::class);
 
-        $container->register(MetadataEventHydrator::class)
-            ->setArguments([new Reference(EventMetadataFactory::class)]);
-        $container->setAlias(EventHydrator::class, MetadataEventHydrator::class);
-
         $container->register(JsonEncoder::class);
         $container->setAlias(Encoder::class, JsonEncoder::class);
 
         $container->register(DefaultEventSerializer::class)
             ->setArguments([
                 new Reference(EventRegistry::class),
-                new Reference(EventHydrator::class),
+                new Reference(Hydrator::class),
                 new Reference(Encoder::class),
                 new Reference(Upcaster::class),
             ]);
@@ -226,36 +211,6 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->setAlias(EventBus::class, $config['event_bus']['service']);
     }
 
-    private function configureLegacyProjection(ContainerBuilder $container): void
-    {
-        $container->registerForAutoconfiguration(Projection::class)
-            ->addTag('event_sourcing.projection');
-
-        $container->register(MetadataAwareProjectionHandler::class)
-            ->setArguments([new TaggedIteratorArgument('event_sourcing.projection')]);
-
-        $container->setAlias(ProjectionHandler::class, MetadataAwareProjectionHandler::class);
-
-        $container->register(ProjectionCreateCommand::class)
-            ->setArguments([
-                new Reference(ProjectionHandler::class),
-            ])
-            ->addTag('console.command');
-
-        $container->register(ProjectionDropCommand::class)
-            ->setArguments([
-                new Reference(ProjectionHandler::class),
-            ])
-            ->addTag('console.command');
-
-        $container->register(ProjectionRebuildCommand::class)
-            ->setArguments([
-                new Reference(Store::class),
-                new Reference(ProjectionHandler::class),
-            ])
-            ->addTag('console.command');
-    }
-
     private function configureProjection(ContainerBuilder $container): void
     {
         $container->registerForAutoconfiguration(Projector::class)
@@ -274,8 +229,11 @@ final class PatchlevelEventSourcingExtension extends Extension
 
     private function configureProjectionListener(ContainerBuilder $container): void
     {
-        $container->register(ProjectionListener::class)
-            ->setArguments([new Reference(ProjectionHandler::class)])
+        $container->register(SyncProjectorListener::class)
+            ->setArguments([
+                new Reference(ProjectorRepository::class),
+                new Reference(ProjectorResolver::class),
+            ])
             ->addTag('event_sourcing.processor', ['priority' => -32]);
     }
 
@@ -332,6 +290,13 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->addTag('console.command');
     }
 
+    private function configureHydrator(ContainerBuilder $container): void
+    {
+        $container->register(MetadataHydrator::class);
+
+        $container->setAlias(Hydrator::class, MetadataHydrator::class);
+    }
+
     private function configureUpcaster(ContainerBuilder $container): void
     {
         $container->registerForAutoconfiguration(Upcaster::class)
@@ -345,10 +310,6 @@ final class PatchlevelEventSourcingExtension extends Extension
 
     private function configureMessageDecorator(ContainerBuilder $container): void
     {
-        $container->register(RecordedOnDecorator::class)
-            ->setArguments([new Reference('event_sourcing.clock')])
-            ->addTag('event_sourcing.message_decorator');
-
         $container->register(SplitStreamDecorator::class)
             ->setArguments([new Reference(EventMetadataFactory::class)])
             ->addTag('event_sourcing.message_decorator');
@@ -391,26 +352,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     /** @param Config $config */
     private function configureStorage(array $config, ContainerBuilder $container): void
     {
-        if ($config['store']['type'] === 'single_table') {
-            $container->register(SingleTableStore::class)
-                ->setArguments([
-                    new Reference('event_sourcing.dbal_connection'),
-                    new Reference(EventSerializer::class),
-                    new Reference(AggregateRootRegistry::class),
-                    $config['store']['options']['table_name'] ?? 'eventstore',
-                ])
-                ->addTag('event_sourcing.schema_configurator');
-
-            $container->setAlias(Store::class, SingleTableStore::class);
-
-            return;
-        }
-
-        if ($config['store']['type'] !== 'multi_table') {
-            return;
-        }
-
-        $container->register(MultiTableStore::class)
+        $container->register(DoctrineDbalStore::class)
             ->setArguments([
                 new Reference('event_sourcing.dbal_connection'),
                 new Reference(EventSerializer::class),
@@ -419,7 +361,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             ])
             ->addTag('event_sourcing.schema_configurator');
 
-        $container->setAlias(Store::class, MultiTableStore::class);
+        $container->setAlias(Store::class, DoctrineDbalStore::class);
     }
 
     /** @param Config $config */
@@ -470,6 +412,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(EventBus::class),
                 new Reference(SnapshotStore::class),
                 new Reference(MessageDecorator::class),
+                new Reference('event_sourcing.clock'),
             ]);
 
         $container->setAlias(RepositoryManager::class, DefaultRepositoryManager::class);
@@ -636,47 +579,36 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->setAlias(DoctrineSchemaProvider::class, DoctrineSchemaDirector::class);
         $container->setAlias(SchemaDirector::class, DoctrineSchemaDirector::class);
 
-        // deprecated
-        if ($config['store']['schema_manager']) {
-            $container->setAlias(SchemaManager::class, $config['store']['schema_manager']);
-        } else {
-            $container->register(DoctrineSchemaManager::class);
-            $container->setAlias(SchemaManager::class, DoctrineSchemaManager::class);
-        }
-
         $container->register(DoctrineHelper::class);
 
         $container->register(DatabaseCreateCommand::class)
             ->setArguments([
-                new Reference(Store::class),
+                new Reference('event_sourcing.dbal_connection'),
                 new Reference(DoctrineHelper::class),
             ])
             ->addTag('console.command');
 
         $container->register(DatabaseDropCommand::class)
             ->setArguments([
-                new Reference(Store::class),
+                new Reference('event_sourcing.dbal_connection'),
                 new Reference(DoctrineHelper::class),
             ])
             ->addTag('console.command');
 
         $container->register(SchemaCreateCommand::class)
             ->setArguments([
-                new Reference(Store::class),
                 new Reference(SchemaDirector::class),
             ])
             ->addTag('console.command');
 
         $container->register(SchemaUpdateCommand::class)
             ->setArguments([
-                new Reference(Store::class),
                 new Reference(SchemaDirector::class),
             ])
             ->addTag('console.command');
 
         $container->register(SchemaDropCommand::class)
             ->setArguments([
-                new Reference(Store::class),
                 new Reference(SchemaDirector::class),
             ])
             ->addTag('console.command');
