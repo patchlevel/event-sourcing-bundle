@@ -235,6 +235,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(ProjectionStore::class),
                 new Reference(ProjectorRepository::class),
                 new Reference(ProjectorResolver::class),
+                new Reference('event_dispatcher', ContainerInterface::NULL_ON_INVALID_REFERENCE),
                 new Reference(LoggerInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
             ])
             ->addTag('monolog.logger', ['channel' => 'projectionist']);

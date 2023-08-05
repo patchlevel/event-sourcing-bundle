@@ -31,6 +31,8 @@ use Patchlevel\EventSourcing\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
 use Patchlevel\EventSourcing\Projection\Projectionist\RunProjectionistEventBusWrapper;
+use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
+use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
@@ -59,6 +61,8 @@ use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Clock\ClockInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
+use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -652,6 +656,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(RunProjectionistEventBusWrapper::class, $container->get(EventBus::class));
+        self::assertInstanceOf(DefaultProjectionist::class, $container->get(Projectionist::class));
     }
 
     public function testProjectionistAsync(): void
@@ -761,6 +766,8 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         $container->set('event.bus', $this->prophesize(MessageBusInterface::class)->reveal());
         $container->set('cache.default', $this->prophesize(CacheItemPoolInterface::class)->reveal());
         $container->set('lock.default.factory', $this->prophesize(LockFactory::class)->reveal());
+        $container->set('event_dispatcher', $this->prophesize(EventDispatcherInterface::class)->reveal());
+        $container->set(LoggerInterface::class, $this->prophesize(LoggerInterface::class)->reveal());
 
         $extension = new PatchlevelEventSourcingExtension();
         $extension->load($config, $container);
