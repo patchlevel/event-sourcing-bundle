@@ -30,6 +30,7 @@ use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
+use Patchlevel\EventSourcing\Projection\Projectionist\RunProjectionistEventBusWrapper;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
@@ -61,6 +62,7 @@ use Psr\Clock\ClockInterface;
 use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 class PatchlevelEventSourcingBundleTest extends TestCase
@@ -98,7 +100,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertInstanceOf(Connection::class, $container->get('event_sourcing.dbal_connection'));
         self::assertInstanceOf(DoctrineDbalStore::class, $container->get(Store::class));
-        self::assertInstanceOf(DefaultEventBus::class, $container->get(EventBus::class));
+        self::assertInstanceOf(RunProjectionistEventBusWrapper::class, $container->get(EventBus::class));
         self::assertInstanceOf(AggregateRootRegistry::class, $container->get(AggregateRootRegistry::class));
         self::assertInstanceOf(DefaultRepositoryManager::class, $container->get(RepositoryManager::class));
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
@@ -141,6 +143,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                         'type' => 'custom',
                         'service' => 'my_event_bus',
                     ],
+                    'projection' => [
+                        'sync' => false,
+                    ],
                 ],
             ]
         );
@@ -162,6 +167,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                 'patchlevel_event_sourcing' => [
                     'connection' => [
                         'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'projection' => [
+                        'sync' => false,
                     ],
                 ],
             ]
@@ -202,6 +210,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     'event_bus' => [
                         'service' => 'event.bus',
                     ],
+                    'projection' => [
+                        'sync' => false,
+                    ],
                 ],
             ]
         );
@@ -235,6 +246,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                 'patchlevel_event_sourcing' => [
                     'connection' => [
                         'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'projection' => [
+                        'sync' => false,
                     ],
                 ],
             ]
@@ -619,7 +633,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(SplitStreamDecorator::class, $container->get(SplitStreamDecorator::class));
     }
 
-    public function testProjectionistTestMode(): void
+    public function testProjectionistSync(): void
     {
         $container = new ContainerBuilder();
 
@@ -631,25 +645,34 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
                     'projection' => [
-                        'test_mode' => true,
+                        'sync' => true,
                     ],
                 ],
             ]
         );
 
+        self::assertInstanceOf(RunProjectionistEventBusWrapper::class, $container->get(EventBus::class));
+    }
+
+    public function testProjectionistAsync(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'projection' => [
+                        'sync' => false,
+                    ],
+                ],
+            ]
+        );
 
         self::assertInstanceOf(DefaultEventBus::class, $container->get(EventBus::class));
-        self::assertEquals(
-            [
-                'Patchlevel\EventSourcingBundle\DataCollector\MessageListener' => [
-                    []
-                ],
-                'Patchlevel\EventSourcing\Projection\Projector\SyncProjectorListener' => [
-                    ['priority' => -32],
-                ],
-            ],
-            $container->findTaggedServiceIds('event_sourcing.processor')
-        );
     }
 
     public function testSchemaMerge(): void
@@ -665,6 +688,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     ],
                     'store' => [
                         'merge_orm_schema' => true,
+                    ],
+                    'projection' => [
+                        'sync' => false,
                     ],
                 ],
             ]
@@ -709,6 +735,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                         'enabled' => true,
                         'host' => 'localhost',
                     ],
+                    'projection' => [
+                        'sync' => false,
+                    ],
                 ],
             ]
         );
@@ -731,6 +760,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         $container->set('doctrine.dbal.eventstore_connection', $this->prophesize(Connection::class)->reveal());
         $container->set('event.bus', $this->prophesize(MessageBusInterface::class)->reveal());
         $container->set('cache.default', $this->prophesize(CacheItemPoolInterface::class)->reveal());
+        $container->set('lock.default.factory', $this->prophesize(LockFactory::class)->reveal());
 
         $extension = new PatchlevelEventSourcingExtension();
         $extension->load($config, $container);
