@@ -50,12 +50,12 @@ use Patchlevel\EventSourcing\Projection\Projection\Store\DoctrineStore;
 use Patchlevel\EventSourcing\Projection\Projection\Store\ProjectionStore;
 use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
 use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
+use Patchlevel\EventSourcing\Projection\Projectionist\RunProjectionistEventBusWrapper;
 use Patchlevel\EventSourcing\Projection\Projector\InMemoryProjectorRepository;
 use Patchlevel\EventSourcing\Projection\Projector\MetadataProjectorResolver;
 use Patchlevel\EventSourcing\Projection\Projector\Projector;
 use Patchlevel\EventSourcing\Projection\Projector\ProjectorRepository;
 use Patchlevel\EventSourcing\Projection\Projector\ProjectorResolver;
-use Patchlevel\EventSourcing\Projection\Projector\SyncProjectorListener;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 use Patchlevel\EventSourcing\Schema\ChainSchemaConfigurator;
@@ -101,7 +101,7 @@ use function sprintf;
 /**
  * @psalm-type Config = array{
  *     event_bus: ?array{type: string, service: string},
- *     projection: array{test_mode: bool},
+ *     projection: array{sync: bool},
  *     watch_server: array{enabled: bool, host: string},
  *     connection: ?array{service: ?string, url: ?string},
  *     store: array{merge_orm_schema: bool, options: array<string, mixed>},
@@ -139,13 +139,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureProfiler($container);
         $this->configureClock($config, $container);
         $this->configureSchema($config, $container);
-        $this->configureProjection($container);
-
-        if ($config['projection']['test_mode']) {
-            $this->configureProjectionListener($container);
-        } else {
-            $this->configureProjectionist($container);
-        }
+        $this->configureProjection($config, $container);
 
         if (class_exists(DependencyFactory::class) && $config['store']['merge_orm_schema'] === false) {
             $this->configureMigration($config, $container);
@@ -211,7 +205,8 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->setAlias(EventBus::class, $config['event_bus']['service']);
     }
 
-    private function configureProjection(ContainerBuilder $container): void
+    /** @param Config $config */
+    private function configureProjection(array $config, ContainerBuilder $container): void
     {
         $container->registerForAutoconfiguration(Projector::class)
             ->addTag('event_sourcing.projector');
@@ -225,20 +220,7 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->register(MetadataProjectorResolver::class);
         $container->setAlias(ProjectorResolver::class, MetadataProjectorResolver::class);
-    }
 
-    private function configureProjectionListener(ContainerBuilder $container): void
-    {
-        $container->register(SyncProjectorListener::class)
-            ->setArguments([
-                new Reference(ProjectorRepository::class),
-                new Reference(ProjectorResolver::class),
-            ])
-            ->addTag('event_sourcing.processor', ['priority' => -32]);
-    }
-
-    private function configureProjectionist(ContainerBuilder $container): void
-    {
         $container->register(DoctrineStore::class)
             ->setArguments([
                 new Reference('event_sourcing.dbal_connection'),
@@ -288,6 +270,21 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(Projectionist::class),
             ])
             ->addTag('console.command');
+
+        if (!$config['projection']['sync']) {
+            return;
+        }
+
+        $innerService = $container->getAlias(EventBus::class);
+
+        $container->register(RunProjectionistEventBusWrapper::class)
+            ->setArguments([
+                new Reference((string)$innerService),
+                new Reference(Projectionist::class),
+                new Reference('lock.default.factory'),
+            ]);
+
+        $container->setAlias(EventBus::class, RunProjectionistEventBusWrapper::class);
     }
 
     private function configureHydrator(ContainerBuilder $container): void

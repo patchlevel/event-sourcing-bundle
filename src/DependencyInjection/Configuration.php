@@ -93,7 +93,7 @@ final class Configuration implements ConfigurationInterface
             ->arrayNode('projection')
                 ->addDefaultsIfNotSet()
                 ->children()
-                    ->booleanNode('test_mode')->defaultValue(false)->end()
+                    ->booleanNode('sync')->defaultValue(true)->end()
                 ->end()
             ->end()
 
