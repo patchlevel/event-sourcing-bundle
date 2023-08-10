@@ -50,6 +50,7 @@ use Patchlevel\EventSourcing\WatchServer\SocketWatchServerClient;
 use Patchlevel\EventSourcing\WatchServer\WatchServer;
 use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
+use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoBootListener;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\CreatedSubscriber;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1;
@@ -678,6 +679,27 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(DefaultEventBus::class, $container->get(EventBus::class));
+    }
+
+    public function testProjectionistAutoBoot(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'projection' => [
+                        'auto_boot' => true,
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(ProjectionistAutoBootListener::class, $container->get(ProjectionistAutoBootListener::class));
     }
 
     public function testSchemaMerge(): void

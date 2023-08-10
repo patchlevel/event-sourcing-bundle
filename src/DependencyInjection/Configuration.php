@@ -94,6 +94,7 @@ final class Configuration implements ConfigurationInterface
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->booleanNode('sync')->defaultValue(true)->end()
+                    ->booleanNode('auto_boot')->defaultValue(false)->end()
                 ->end()
             ->end()
 
