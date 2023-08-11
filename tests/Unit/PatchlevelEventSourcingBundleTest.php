@@ -30,7 +30,7 @@ use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
-use Patchlevel\EventSourcing\Projection\Projectionist\RunProjectionistEventBusWrapper;
+use Patchlevel\EventSourcing\Projection\Projectionist\SyncProjectionistEventBusWrapper;
 use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
 use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
@@ -105,7 +105,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertInstanceOf(Connection::class, $container->get('event_sourcing.dbal_connection'));
         self::assertInstanceOf(DoctrineDbalStore::class, $container->get(Store::class));
-        self::assertInstanceOf(RunProjectionistEventBusWrapper::class, $container->get(EventBus::class));
+        self::assertInstanceOf(SyncProjectionistEventBusWrapper::class, $container->get(EventBus::class));
         self::assertInstanceOf(AggregateRootRegistry::class, $container->get(AggregateRootRegistry::class));
         self::assertInstanceOf(DefaultRepositoryManager::class, $container->get(RepositoryManager::class));
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
@@ -656,7 +656,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
             ]
         );
 
-        self::assertInstanceOf(RunProjectionistEventBusWrapper::class, $container->get(EventBus::class));
+        self::assertInstanceOf(SyncProjectionistEventBusWrapper::class, $container->get(EventBus::class));
         self::assertInstanceOf(DefaultProjectionist::class, $container->get(Projectionist::class));
     }
 

@@ -50,7 +50,7 @@ use Patchlevel\EventSourcing\Projection\Projection\Store\DoctrineStore;
 use Patchlevel\EventSourcing\Projection\Projection\Store\ProjectionStore;
 use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
 use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
-use Patchlevel\EventSourcing\Projection\Projectionist\RunProjectionistEventBusWrapper;
+use Patchlevel\EventSourcing\Projection\Projectionist\SyncProjectionistEventBusWrapper;
 use Patchlevel\EventSourcing\Projection\Projector\InMemoryProjectorRepository;
 use Patchlevel\EventSourcing\Projection\Projector\MetadataProjectorResolver;
 use Patchlevel\EventSourcing\Projection\Projector\Projector;
@@ -141,16 +141,13 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureClock($config, $container);
         $this->configureSchema($config, $container);
         $this->configureProjection($config, $container);
+        $this->configureWatchServer($config, $container);
 
-        if (class_exists(DependencyFactory::class) && $config['store']['merge_orm_schema'] === false) {
-            $this->configureMigration($config, $container);
-        }
-
-        if (!$config['watch_server']['enabled']) {
+        if (!class_exists(DependencyFactory::class) || $config['store']['merge_orm_schema'] !== false) {
             return;
         }
 
-        $this->configureWatchServer($config, $container);
+        $this->configureMigration($config, $container);
     }
 
     /** @param Config $config */
@@ -243,36 +240,6 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->setAlias(Projectionist::class, DefaultProjectionist::class);
 
-        $container->register(ProjectionistBootCommand::class)
-            ->setArguments([
-                new Reference(Projectionist::class),
-            ])
-            ->addTag('console.command');
-
-        $container->register(ProjectionistRunCommand::class)
-            ->setArguments([
-                new Reference(Projectionist::class),
-            ])
-            ->addTag('console.command');
-
-        $container->register(ProjectionistTeardownCommand::class)
-            ->setArguments([
-                new Reference(Projectionist::class),
-            ])
-            ->addTag('console.command');
-
-        $container->register(ProjectionistRemoveCommand::class)
-            ->setArguments([
-                new Reference(Projectionist::class),
-            ])
-            ->addTag('console.command');
-
-        $container->register(ProjectionistStatusCommand::class)
-            ->setArguments([
-                new Reference(Projectionist::class),
-            ])
-            ->addTag('console.command');
-
         if ($config['projection']['auto_boot']) {
             $container->register(ProjectionistAutoBootListener::class)
                 ->setArguments([
@@ -288,14 +255,14 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $innerService = $container->getAlias(EventBus::class);
 
-        $container->register(RunProjectionistEventBusWrapper::class)
+        $container->register(SyncProjectionistEventBusWrapper::class)
             ->setArguments([
                 new Reference((string)$innerService),
                 new Reference(Projectionist::class),
                 new Reference('lock.default.factory'),
             ]);
 
-        $container->setAlias(EventBus::class, RunProjectionistEventBusWrapper::class);
+        $container->setAlias(EventBus::class, SyncProjectionistEventBusWrapper::class);
     }
 
     private function configureHydrator(ContainerBuilder $container): void
@@ -442,11 +409,45 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(EventRegistry::class),
             ])
             ->addTag('console.command');
+
+        $container->register(ProjectionistBootCommand::class)
+            ->setArguments([
+                new Reference(Projectionist::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(ProjectionistRunCommand::class)
+            ->setArguments([
+                new Reference(Projectionist::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(ProjectionistTeardownCommand::class)
+            ->setArguments([
+                new Reference(Projectionist::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(ProjectionistRemoveCommand::class)
+            ->setArguments([
+                new Reference(Projectionist::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(ProjectionistStatusCommand::class)
+            ->setArguments([
+                new Reference(Projectionist::class),
+            ])
+            ->addTag('console.command');
     }
 
     /** @param Config $config */
     private function configureWatchServer(array $config, ContainerBuilder $container): void
     {
+        if (!$config['watch_server']['enabled']) {
+            return;
+        }
+
         $container->register(PhpNativeMessageSerializer::class)
             ->setArguments([new Reference(EventSerializer::class)]);
 
