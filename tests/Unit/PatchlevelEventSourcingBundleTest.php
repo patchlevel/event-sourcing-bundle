@@ -14,12 +14,17 @@ use Patchlevel\EventSourcing\Clock\SystemClock;
 use Patchlevel\EventSourcing\Console\Command\DatabaseCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\DatabaseDropCommand;
 use Patchlevel\EventSourcing\Console\Command\DebugCommand;
-use Patchlevel\EventSourcing\Console\Command\ProjectionistBootCommand;
-use Patchlevel\EventSourcing\Console\Command\ProjectionistRemoveCommand;
-use Patchlevel\EventSourcing\Console\Command\ProjectionistRunCommand;
+use Patchlevel\EventSourcing\Console\Command\ProjectionBootCommand;
+use Patchlevel\EventSourcing\Console\Command\ProjectionReactivateCommand;
+use Patchlevel\EventSourcing\Console\Command\ProjectionRebuildCommand;
+use Patchlevel\EventSourcing\Console\Command\ProjectionRemoveCommand;
+use Patchlevel\EventSourcing\Console\Command\ProjectionRunCommand;
+use Patchlevel\EventSourcing\Console\Command\ProjectionStatusCommand;
+use Patchlevel\EventSourcing\Console\Command\ProjectionTeardownCommand;
 use Patchlevel\EventSourcing\Console\Command\SchemaCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\SchemaDropCommand;
 use Patchlevel\EventSourcing\Console\Command\SchemaUpdateCommand;
+use Patchlevel\EventSourcing\Console\Command\ShowAggregateCommand;
 use Patchlevel\EventSourcing\Console\Command\ShowCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
 use Patchlevel\EventSourcing\EventBus\Decorator\ChainMessageDecorator;
@@ -519,14 +524,19 @@ class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertInstanceOf(DatabaseCreateCommand::class, $container->get(DatabaseCreateCommand::class));
         self::assertInstanceOf(DatabaseDropCommand::class, $container->get(DatabaseDropCommand::class));
+        self::assertInstanceOf(DebugCommand::class, $container->get(DebugCommand::class));
+        self::assertInstanceOf(ProjectionBootCommand::class, $container->get(ProjectionBootCommand::class));
+        self::assertInstanceOf(ProjectionReactivateCommand::class, $container->get(ProjectionReactivateCommand::class));
+        self::assertInstanceOf(ProjectionRebuildCommand::class, $container->get(ProjectionRebuildCommand::class));
+        self::assertInstanceOf(ProjectionRemoveCommand::class, $container->get(ProjectionRemoveCommand::class));
+        self::assertInstanceOf(ProjectionRunCommand::class, $container->get(ProjectionRunCommand::class));
+        self::assertInstanceOf(ProjectionStatusCommand::class, $container->get(ProjectionStatusCommand::class));
+        self::assertInstanceOf(ProjectionTeardownCommand::class, $container->get(ProjectionTeardownCommand::class));
         self::assertInstanceOf(SchemaCreateCommand::class, $container->get(SchemaCreateCommand::class));
         self::assertInstanceOf(SchemaUpdateCommand::class, $container->get(SchemaUpdateCommand::class));
         self::assertInstanceOf(SchemaDropCommand::class, $container->get(SchemaDropCommand::class));
-        self::assertInstanceOf(ProjectionistBootCommand::class, $container->get(ProjectionistBootCommand::class));
-        self::assertInstanceOf(ProjectionistRemoveCommand::class, $container->get(ProjectionistRemoveCommand::class));
-        self::assertInstanceOf(ProjectionistRunCommand::class, $container->get(ProjectionistRunCommand::class));
+        self::assertInstanceOf(ShowAggregateCommand::class, $container->get(ShowAggregateCommand::class));
         self::assertInstanceOf(ShowCommand::class, $container->get(ShowCommand::class));
-        self::assertInstanceOf(DebugCommand::class, $container->get(DebugCommand::class));
     }
 
     public function testMigrations(): void
