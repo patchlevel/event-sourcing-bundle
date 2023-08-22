@@ -1,0 +1,262 @@
+{% include '@PatchlevelEventSourcing/normalize.css.twig' %}
+{% include '@PatchlevelEventSourcing/hightlight.css.twig' %}
+
+/* Globale Reset-Styles */
+body, h1, h2, h3, h4, h5, h6, p, ul, ol, li {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Helvetica', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #333;
+}
+
+/* Container-Styles */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Überschriften-Styles */
+h1, h2, h3, h4, h5, h6 {
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+/* Link-Styles */
+a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Button-Styles */
+.button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: #0056b3;
+}
+
+/* Form-Styles */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Header-Styles */
+.header {
+    background-color: #333;
+    color: #fff;
+    padding: 20px 0;
+    text-align: center;
+}
+
+/* Footer-Styles */
+.footer {
+    background-color: #333;
+    color: #fff;
+    padding: 20px 0;
+    text-align: center;
+}
+
+/* Media Query für kleine Bildschirme */
+@media screen and (max-width: 768px) {
+    body {
+        font-size: 14px;
+    }
+
+    .container {
+        padding: 10px;
+    }
+}
+
+
+/* Stildefinitionen für die Top-Navigation */
+.top-nav {
+    background-color: #333;
+}
+
+.top-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+.top-nav li {
+    float: left;
+}
+
+.top-nav a {
+    display: block;
+    color: #fff;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.top-nav a:hover {
+    background-color: #555;
+}
+
+/* Aktives Element hervorheben */
+.top-nav .active {
+    background-color: #007bff;
+}
+
+/* Responsive Navigation */
+@media screen and (max-width: 768px) {
+    .top-nav li {
+        float: none;
+        display: block;
+    }
+}
+
+
+
+
+
+
+
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Tabellenkopf */
+.table thead {
+    background-color: #f5f5f5;
+}
+
+.table th, .table td {
+    padding: 12px 15px;
+    text-align: left;
+}
+
+/* Wechselnde Zeilenfarben für bessere Lesbarkeit */
+.table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Hover-Effekt für Tabellenzeilen */
+.table tbody tr:hover {
+    background-color: #e0e0e0;
+}
+
+/* Stil für Tabellendaten */
+.table td {
+    border-top: 1px solid #e0e0e0;
+}
+
+/* Anpassung an mobile Geräte */
+@media screen and (max-width: 600px) {
+    .table {
+        display: block;
+    }
+    .table thead {
+        display: none;
+    }
+    .table tr {
+        margin-bottom: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .table td:before {
+        content: attr(data-label);
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+}
+
+
+dialog {
+    background-color: #fff;
+    border-radius: 5px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    width: 70%;
+}
+
+dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.dialog-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+}
+
+.dialog-close:hover {
+    color: red;
+}
+
+/* Styles für den Inhalt im Dialog */
+dialog p {
+    margin-bottom: 15px;
+}
+
+dialog h2 {
+    margin-bottom: 10px;
+}
+
+/* Responsive Anpassungen */
+@media screen and (max-width: 768px) {
+    dialog {
+        width: 90%;
+    }
+}
+
+button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+

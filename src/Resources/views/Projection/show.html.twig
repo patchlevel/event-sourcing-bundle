@@ -1,0 +1,33 @@
+{% extends '@PatchlevelEventSourcing/layout.html.twig' %}
+
+{% block content %}
+    <h1>Projection</h1>
+    <table class="table">
+
+        <tbody>
+        <tr>
+            <th>Name</th>
+            <th>Version</th>
+            <th>Position</th>
+            <th>Status</th>
+            <th>Error Message</th>
+            <th></th>
+        </tr>
+        </tbody>
+            {% for projection in projections %}
+                <tr>
+                    <td>{{ projection.id.name }}</td>
+                    <td>{{ projection.id.version }}</td>
+                    <td>{{ projection.position }} / {{ messageCount }}</td>
+                    <td>{{ projection.status.value }}</td>
+                    <td>{{ projection.errorMessage }}</td>
+                    <td>
+                        <a href="{{ path('patchlevel_eventsourcing_projection_rebuild', {'id': projection.id.toString}) }}" class="btn btn-danger">Rebuild</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        <tbody>
+
+        </tbody>
+    </table>
+{% endblock %}

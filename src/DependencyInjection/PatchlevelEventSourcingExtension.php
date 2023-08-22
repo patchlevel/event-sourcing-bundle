@@ -90,6 +90,8 @@ use Patchlevel\EventSourcing\WatchServer\WatchListener;
 use Patchlevel\EventSourcing\WatchServer\WatchServer;
 use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
 use Patchlevel\EventSourcingBundle\Attribute\AsProcessor;
+use Patchlevel\EventSourcingBundle\Controller\DefaultController;
+use Patchlevel\EventSourcingBundle\Controller\ProjectionController;
 use Patchlevel\EventSourcingBundle\Controller\StoreController;
 use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
 use Patchlevel\EventSourcingBundle\DataCollector\MessageListener;
@@ -97,6 +99,7 @@ use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoBootListener;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoRecoveryListener;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoTeardownListener;
+use Patchlevel\EventSourcingBundle\Twig\EventSourcingExtension;
 use Patchlevel\Hydrator\Hydrator;
 use Patchlevel\Hydrator\MetadataHydrator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
@@ -106,6 +109,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
+use Symfony\Component\Routing\RouterInterface;
 use function class_exists;
 use function sprintf;
 
@@ -712,11 +716,37 @@ final class PatchlevelEventSourcingExtension extends Extension
             return;
         }
 
+        $container->register(DefaultController::class)
+            ->setArguments([
+                new Reference('twig'),
+                new Reference(RouterInterface::class),
+            ])
+            ->addTag('controller.service_arguments');
+
         $container->register(StoreController::class)
             ->setArguments([
                 new Reference('twig'),
                 new Reference(Store::class),
+                new Reference(AggregateRootRegistry::class),
+                new Reference(EventRegistry::class),
             ])
         ->addTag('controller.service_arguments');
+
+        $container->register(ProjectionController::class)
+            ->setArguments([
+                new Reference('twig'),
+                new Reference(Projectionist::class),
+                new Reference(Store::class),
+                new Reference(RouterInterface::class),
+            ])
+            ->addTag('controller.service_arguments');
+
+        $container->register(EventSourcingExtension::class)
+            ->setArguments([
+                new Reference(AggregateRootRegistry::class),
+                new Reference(EventRegistry::class),
+                new Reference(EventSerializer::class),
+            ])
+            ->addTag('twig.extension');
     }
 }

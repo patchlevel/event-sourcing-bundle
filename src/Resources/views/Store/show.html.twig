@@ -1,5 +1,111 @@
 {% extends '@PatchlevelEventSourcing/layout.html.twig' %}
 
 {% block content %}
-    Hello World
+    <h1>Store</h1>
+    <table class="table">
+
+        <tbody>
+        <tr>
+            <th>Aggregate</th>
+            <th>Aggregate Id</th>
+            <th>Playhead</th>
+            <th>Event</th>
+            <th>Recorded On</th>
+            <th></th>
+        </tr>
+        </tbody>
+
+        <tbody>
+        {% for message in messages %}
+            <tr>
+                <td>{{ eventsourcing_aggregate_name(message) }}</td>
+                <td>{{ message.aggregateId }}</td>
+                <td>{{ message.playhead }}</td>
+                <td>{{ eventsourcing_event_name(message) }}</td>
+                <td>{{ message.recordedOn|date }}</td>
+                <td>
+                    <button data-modal="modal-{{ loop.index }}">show</button>
+                    <dialog id="modal-{{ loop.index }}">
+                        <table class="table">
+                            <tbody>
+                            <tr>
+                                <td>Aggregate</td>
+                                <td>
+                                    {{ eventsourcing_aggregate_name(message) }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Aggregate Class</td>
+                                <td>
+                                    {{ message.aggregateClass }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Aggregate Id</td>
+                                <td>
+                                    {{ message.aggregateId }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Aggregate Playhead</td>
+                                <td>
+                                    {{ message.playhead }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Event Name</td>
+                                <td>
+                                    {{ eventsourcing_event_name(message) }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Event Class</td>
+                                <td>
+                                    {{ eventsourcing_event_class(message) }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Event Payload</td>
+                                <td>
+                                    <div class="json">
+                                    {{~ eventsourcing_event_payload(message) ~}}
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Recorded on</td>
+                                <td>{{ message.recordedOn|date }}</td>
+                            </tr>
+                            <tr>
+                                <td>Custom Headers</td>
+                                <td>
+                                    <div class="json">
+                                    {{~ message.customHeaders|json_encode(constant('JSON_PRETTY_PRINT')) ~}}
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <form method="dialog">
+                            <button>Close</button>
+                        </form>
+                    </dialog>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        document.querySelectorAll('[data-modal]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                var dialog = document.getElementById(button.dataset.modal);
+                dialog.showModal();
+                dialog.querySelector('button').addEventListener('click', function () {
+                    dialog.close();
+                });
+            });
+        });
+    </script>
+
 {% endblock %}

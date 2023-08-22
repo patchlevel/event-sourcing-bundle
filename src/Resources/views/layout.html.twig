@@ -1,7 +1,17 @@
 {% extends '@PatchlevelEventSourcing/base.html.twig' %}
 
 {% block body %}
-    {% block content %}
-
-    {% endblock %}
+    <nav class="top-nav">
+        <ul>
+            <li>
+                <a href="{{ path('patchlevel_eventsourcing_store_show') }}">Store</a>
+            </li>
+            <li>
+                <a href="{{ path('patchlevel_eventsourcing_projection_show') }}">Projection</a>
+            </li>
+        </ul>
+    </nav>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
 {% endblock %}
