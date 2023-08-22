@@ -66,9 +66,9 @@ final class Configuration implements ConfigurationInterface
             ->end()
 
             ->arrayNode('watch_server')
+                ->canBeEnabled()
                 ->addDefaultsIfNotSet()
                 ->children()
-                    ->booleanNode('enabled')->defaultValue(false)->end()
                     ->scalarNode('host')->defaultValue('127.0.0.1:5000')->end()
                 ->end()
             ->end()
@@ -99,6 +99,10 @@ final class Configuration implements ConfigurationInterface
                     ->booleanNode('auto_recovery')->defaultValue(false)->end()
                     ->booleanNode('auto_teardown')->defaultValue(false)->end()
                 ->end()
+            ->end()
+
+            ->arrayNode('ui')
+                ->canBeEnabled()
             ->end()
 
         ->end();

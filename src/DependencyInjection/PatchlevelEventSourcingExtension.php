@@ -90,6 +90,7 @@ use Patchlevel\EventSourcing\WatchServer\WatchListener;
 use Patchlevel\EventSourcing\WatchServer\WatchServer;
 use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
 use Patchlevel\EventSourcingBundle\Attribute\AsProcessor;
+use Patchlevel\EventSourcingBundle\Controller\StoreController;
 use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
 use Patchlevel\EventSourcingBundle\DataCollector\MessageListener;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
@@ -119,7 +120,8 @@ use function sprintf;
  *     events: list<string>,
  *     snapshot_stores: array<string, array{type: string, service: string}>,
  *     migration: array{path: string, namespace: string},
- *     clock: array{freeze: ?string, service: ?string}
+ *     clock: array{freeze: ?string, service: ?string},
+ *     ui: array{enabled: bool}
  * }
  */
 final class PatchlevelEventSourcingExtension extends Extension
@@ -151,6 +153,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureSchema($config, $container);
         $this->configureProjection($config, $container);
         $this->configureWatchServer($config, $container);
+        $this->configureUi($config, $container);
 
         if (!class_exists(DependencyFactory::class) || $config['store']['merge_orm_schema'] !== false) {
             return;
@@ -700,5 +703,20 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(SchemaDirector::class),
             ])
             ->addTag('console.command');
+    }
+
+    /** @param Config $config */
+    private function configureUi(array $config, ContainerBuilder $container): void
+    {
+        if (!$config['ui']['enabled']) {
+            return;
+        }
+
+        $container->register(StoreController::class)
+            ->setArguments([
+                new Reference('twig'),
+                new Reference(Store::class),
+            ])
+        ->addTag('controller.service_arguments');
     }
 }
