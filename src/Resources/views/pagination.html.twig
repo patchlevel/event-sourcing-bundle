@@ -1,0 +1,15 @@
+<div class="pagination">
+    {% set total = (count / limit)|round(0, 'ceil') %}
+
+    {% if page > 1 %}
+        <a href="{{ path(app.request.get('_route'), app.request.query|merge({'page': page - 1})) }}" class="page-link">&laquo; Vorherige</a>
+    {% endif %}
+
+    {% for p in 1..total %}
+        <a href="{{ path(app.request.get('_route'), app.request.query|merge({'page': p})) }}" class="page-link{% if p == page %} active{% endif %}">{{ p }}</a>
+    {% endfor %}
+
+    {% if page < total %}
+        <a href="{{ path(app.request.get('_route'), app.request.query|merge({'page': page + 1})) }}" class="page-link">Nächste &raquo;</a>
+    {% endif %}
+</div>

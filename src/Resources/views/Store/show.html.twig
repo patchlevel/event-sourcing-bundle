@@ -2,10 +2,28 @@
 
 {% block content %}
     <h1>Store</h1>
+
+    <div class="filter">
+        <form action="{{ path('patchlevel_eventsourcing_store_show') }}">
+            <select name="aggregate">
+                <option value="">All</option>
+                {% for aggregate in aggregates %}
+                    <option {% if app.request.get('aggregate') == aggregate %}selected{% endif %} value="{{ aggregate }}">{{ aggregate }}</option>
+                {% endfor %}
+            </select>
+
+            <input name="aggregateId" value="{{ app.request.get('aggregateId') }}">
+
+            <button type="submit">Filter</button>
+            <a href="{{ path('patchlevel_eventsourcing_store_show') }}">Clear</a>
+        </form>
+    </div>
+
     <table class="table">
 
         <tbody>
         <tr>
+            <th>#</th>
             <th>Aggregate</th>
             <th>Aggregate Id</th>
             <th>Playhead</th>
@@ -18,8 +36,17 @@
         <tbody>
         {% for message in messages %}
             <tr>
-                <td>{{ eventsourcing_aggregate_name(message) }}</td>
-                <td>{{ message.aggregateId }}</td>
+                <td>{{ messages.index }}</td>
+                <td>
+                    <a href="{{ path('patchlevel_eventsourcing_store_show', {aggregate: eventsourcing_aggregate_name(message)}) }}">
+                        {{ eventsourcing_aggregate_name(message) }}
+                    </a>
+                </td>
+                <td>
+                    <a href="{{ path('patchlevel_eventsourcing_store_show', {aggregate: eventsourcing_aggregate_name(message), aggregateId: message.aggregateId}) }}">
+                        {{ message.aggregateId }}
+                    </a>
+                </td>
                 <td>{{ message.playhead }}</td>
                 <td>{{ eventsourcing_event_name(message) }}</td>
                 <td>{{ message.recordedOn|date }}</td>
@@ -28,6 +55,12 @@
                     <dialog id="modal-{{ loop.index }}">
                         <table class="table">
                             <tbody>
+                            <tr>
+                                <td>#</td>
+                                <td>
+                                    {{ messages.index }}
+                                </td>
+                            </tr>
                             <tr>
                                 <td>Aggregate</td>
                                 <td>
@@ -95,6 +128,12 @@
         {% endfor %}
         </tbody>
     </table>
+
+    {% include '@PatchlevelEventSourcing/pagination.html.twig' with {
+        page: page,
+        count: count,
+        limit: limit,
+    } only %}
 
     <script>
         document.querySelectorAll('[data-modal]').forEach(function (button) {

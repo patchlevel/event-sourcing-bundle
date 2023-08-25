@@ -728,7 +728,6 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference('twig'),
                 new Reference(Store::class),
                 new Reference(AggregateRootRegistry::class),
-                new Reference(EventRegistry::class),
             ])
         ->addTag('controller.service_arguments');
 
