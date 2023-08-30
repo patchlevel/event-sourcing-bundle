@@ -28,6 +28,10 @@ final class ProjectionistAutoBootListener
             return;
         }
 
-        $this->projectionist->boot();
+        try {
+            $this->projectionist->boot();
+        } finally {
+            $lock->release();
+        }
     }
 }
