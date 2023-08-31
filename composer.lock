@@ -5018,12 +5018,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "05cbd34d3f34203a5be403e69e1fc9fef70d546a"
+                "reference": "3a677ef3f90ef5ac5280ee470272a162878f3998"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/05cbd34d3f34203a5be403e69e1fc9fef70d546a",
-                "reference": "05cbd34d3f34203a5be403e69e1fc9fef70d546a",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/3a677ef3f90ef5ac5280ee470272a162878f3998",
+                "reference": "3a677ef3f90ef5ac5280ee470272a162878f3998",
                 "shasum": ""
             },
             "conflict": {
@@ -5314,6 +5314,7 @@
                 "mobiledetect/mobiledetectlib": "<2.8.32",
                 "modx/revolution": "<=2.8.3.0-patch",
                 "mojo42/jirafeau": "<4.4",
+                "mongodb/mongodb": ">=1,<1.9.2",
                 "monolog/monolog": ">=1.8,<1.12",
                 "moodle/moodle": "<4.2.0.0-RC2-dev|==4.2",
                 "movim/moxl": ">=0.8,<=0.10",
@@ -5673,7 +5674,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-08-29T19:04:20+00:00"
+            "time": "2023-08-30T22:04:36+00:00"
         },
         {
             "name": "sanmai/later",
