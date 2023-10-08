@@ -1,6 +1,17 @@
 {% include '@PatchlevelEventSourcing/normalize.css.twig' %}
 {% include '@PatchlevelEventSourcing/hightlight.css.twig' %}
 
+:root {
+    --primary: #1166dd;
+    --secondary1: #6341f0;
+    --secondary2: #0ba6be;
+
+    --white: #ffffff; /* tw white */
+    --light-grey: #d1d5db; /* gray-300 */
+    --grey: #1f2937; /* tw gray-800 */
+    --black: #000000; /* tw black */
+}
+
 /* Globale Reset-Styles */
 body, h1, h2, h3, h4, h5, h6, p, ul, ol, li {
     margin: 0;
@@ -29,27 +40,28 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Link-Styles */
 a {
-    color: #007bff;
+    color: var(--primary);
     text-decoration: none;
 }
 
 a:hover {
-    text-decoration: underline;
+    filter: brightness(80%);
 }
 
 /* Button-Styles */
 .button {
     display: inline-block;
     padding: 10px 20px;
-    background-color: #007bff;
-    color: #fff;
+    background-color: var(--primary);
+    color: var(--white);
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    line-height: 1;
 }
 
 .button:hover {
-    background-color: #0056b3;
+    filter: brightness(80%);
 }
 
 /* Form-Styles */
