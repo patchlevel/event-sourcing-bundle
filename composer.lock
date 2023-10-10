@@ -101,16 +101,16 @@
         },
         {
             "name": "doctrine/dbal",
-            "version": "3.7.0",
+            "version": "3.7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/dbal.git",
-                "reference": "00d03067f07482f025d41ab55e4ba0db5eca2cdf"
+                "reference": "5b7bd66c9ff58c04c5474ab85edce442f8081cb2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/dbal/zipball/00d03067f07482f025d41ab55e4ba0db5eca2cdf",
-                "reference": "00d03067f07482f025d41ab55e4ba0db5eca2cdf",
+                "url": "https://api.github.com/repos/doctrine/dbal/zipball/5b7bd66c9ff58c04c5474ab85edce442f8081cb2",
+                "reference": "5b7bd66c9ff58c04c5474ab85edce442f8081cb2",
                 "shasum": ""
             },
             "require": {
@@ -194,7 +194,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/dbal/issues",
-                "source": "https://github.com/doctrine/dbal/tree/3.7.0"
+                "source": "https://github.com/doctrine/dbal/tree/3.7.1"
             },
             "funding": [
                 {
@@ -210,7 +210,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-09-26T20:56:55+00:00"
+            "time": "2023-10-06T05:06:20+00:00"
         },
         {
             "name": "doctrine/deprecations",
@@ -3518,16 +3518,16 @@
         },
         {
             "name": "infection/infection",
-            "version": "0.27.3",
+            "version": "0.27.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/infection/infection.git",
-                "reference": "3fe68ec001d6abd7f9494f4dfadeb61848d2c9d0"
+                "reference": "2789fdd689689b0c85f2c0ae9db50c8d2b39fb92"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/infection/infection/zipball/3fe68ec001d6abd7f9494f4dfadeb61848d2c9d0",
-                "reference": "3fe68ec001d6abd7f9494f4dfadeb61848d2c9d0",
+                "url": "https://api.github.com/repos/infection/infection/zipball/2789fdd689689b0c85f2c0ae9db50c8d2b39fb92",
+                "reference": "2789fdd689689b0c85f2c0ae9db50c8d2b39fb92",
                 "shasum": ""
             },
             "require": {
@@ -3634,7 +3634,7 @@
             ],
             "support": {
                 "issues": "https://github.com/infection/infection/issues",
-                "source": "https://github.com/infection/infection/tree/0.27.3"
+                "source": "https://github.com/infection/infection/tree/0.27.4"
             },
             "funding": [
                 {
@@ -3646,7 +3646,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2023-09-28T07:13:56+00:00"
+            "time": "2023-10-09T12:03:22+00:00"
         },
         {
             "name": "justinrainbow/json-schema",
@@ -5018,12 +5018,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "85afa852eeecec97cec35d987dcfbc602c025620"
+                "reference": "66dba7265a37e4081f443ed8211d507cd3cce5ef"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/85afa852eeecec97cec35d987dcfbc602c025620",
-                "reference": "85afa852eeecec97cec35d987dcfbc602c025620",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/66dba7265a37e4081f443ed8211d507cd3cce5ef",
+                "reference": "66dba7265a37e4081f443ed8211d507cd3cce5ef",
                 "shasum": ""
             },
             "conflict": {
@@ -5476,7 +5476,7 @@
                 "slim/slim": "<2.6",
                 "slub/slub-events": "<3.0.3",
                 "smarty/smarty": "<3.1.48|>=4,<4.3.1",
-                "snipe/snipe-it": "<=6.0.14",
+                "snipe/snipe-it": "<=6.2.1",
                 "socalnick/scn-social-auth": "<1.15.2",
                 "socialiteproviders/steam": "<1.1",
                 "spatie/browsershot": "<3.57.4",
@@ -5690,7 +5690,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-10-06T19:04:00+00:00"
+            "time": "2023-10-09T22:04:13+00:00"
         },
         {
             "name": "sanmai/later",
