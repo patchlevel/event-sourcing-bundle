@@ -5018,12 +5018,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "73fbec342767cd5a70fce4335c499c4170fcbc06"
+                "reference": "a3da8a5c1d1a998d2e344bf54fec95acb0c1c0aa"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/73fbec342767cd5a70fce4335c499c4170fcbc06",
-                "reference": "73fbec342767cd5a70fce4335c499c4170fcbc06",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/a3da8a5c1d1a998d2e344bf54fec95acb0c1c0aa",
+                "reference": "a3da8a5c1d1a998d2e344bf54fec95acb0c1c0aa",
                 "shasum": ""
             },
             "conflict": {
@@ -5135,7 +5135,7 @@
                 "doctrine/mongodb-odm": "<1.0.2",
                 "doctrine/mongodb-odm-bundle": "<3.0.1",
                 "doctrine/orm": ">=2,<2.4.8|>=2.5,<2.5.1|>=2.8.3,<2.8.4",
-                "dolibarr/dolibarr": "<18",
+                "dolibarr/dolibarr": "<18.0.2",
                 "dompdf/dompdf": "<2.0.2|==2.0.2",
                 "drupal/core": "<9.4.14|>=9.5,<9.5.8|>=10,<10.0.8",
                 "drupal/drupal": ">=6,<6.38|>=7,<7.80|>=8,<8.9.16|>=9,<9.1.12|>=9.2,<9.2.4",
@@ -5399,7 +5399,7 @@
                 "pimcore/data-hub": "<1.2.4",
                 "pimcore/demo": "<10.3",
                 "pimcore/perspective-editor": "<1.5.1",
-                "pimcore/pimcore": "<10.6.8",
+                "pimcore/pimcore": "<11.1",
                 "pixelfed/pixelfed": "<=0.11.4",
                 "pocketmine/bedrock-protocol": "<8.0.2",
                 "pocketmine/pocketmine-mp": "<=4.23|>=5,<5.3.1",
@@ -5695,7 +5695,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-10-31T23:04:17+00:00"
+            "time": "2023-11-02T02:10:23+00:00"
         },
         {
             "name": "sanmai/later",
