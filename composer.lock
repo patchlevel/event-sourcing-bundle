@@ -5018,12 +5018,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "c94f18868ecd2096eb16794d766a6371f42a846c"
+                "reference": "c4fd7758ddbe86b94226ad8c96d1f5fcbb19dbc5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/c94f18868ecd2096eb16794d766a6371f42a846c",
-                "reference": "c94f18868ecd2096eb16794d766a6371f42a846c",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/c4fd7758ddbe86b94226ad8c96d1f5fcbb19dbc5",
+                "reference": "c4fd7758ddbe86b94226ad8c96d1f5fcbb19dbc5",
                 "shasum": ""
             },
             "conflict": {
@@ -5326,7 +5326,7 @@
                 "mojo42/jirafeau": "<4.4",
                 "mongodb/mongodb": ">=1,<1.9.2",
                 "monolog/monolog": ">=1.8,<1.12",
-                "moodle/moodle": "<4.2.0.0-RC2-dev|==4.2",
+                "moodle/moodle": "<4.3.0.0-RC2-dev",
                 "mos/cimage": "<0.7.19",
                 "movim/moxl": ">=0.8,<=0.10",
                 "mpdf/mpdf": "<=7.1.7",
@@ -5436,6 +5436,7 @@
                 "react/http": ">=0.7,<1.9",
                 "really-simple-plugins/complianz-gdpr": "<6.4.2",
                 "remdex/livehelperchat": "<3.99",
+                "reportico-web/reportico": "<=7.1.21",
                 "rmccue/requests": ">=1.6,<1.8",
                 "robrichards/xmlseclibs": "<3.0.4",
                 "roots/soil": "<4.1",
@@ -5700,7 +5701,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-11-08T20:04:29+00:00"
+            "time": "2023-11-09T23:04:23+00:00"
         },
         {
             "name": "sanmai/later",
