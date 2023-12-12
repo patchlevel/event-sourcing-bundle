@@ -18,29 +18,29 @@
     }
   ],
   "require": {
-    "php": "~8.1.0 || ~8.2.0",
-    "patchlevel/event-sourcing": "^3.0.0-beta3",
-    "symfony/config": "^4.4.34|^5.4.0|^6.0.0",
-    "symfony/console": "^4.4.34|^5.4.0|^6.0.0",
-    "symfony/dependency-injection": "^4.4.34|^5.4.0|^6.0.0",
-    "symfony/finder": "^4.4.34|^5.4.0|^6.0.0",
-    "symfony/http-kernel": "^4.4.34|^5.4.0|^6.0.0"
+    "php": "~8.1.0 || ~8.2.0 || ~8.3.0",
+    "patchlevel/event-sourcing": "^3.0.0-beta6",
+    "symfony/config": "^5.4.31|^6.4.0|^7.0.0",
+    "symfony/console": "^5.4.32|^6.4.1|^7.0.1",
+    "symfony/dependency-injection": "^5.4.33|^6.4.1|^7.0.1",
+    "symfony/finder": "^5.4.27|^6.4.0|^7.0.0",
+    "symfony/http-kernel": "^5.4.33|^6.4.1|^7.0.1"
   },
   "require-dev": {
     "ext-pdo_sqlite": "*",
     "doctrine/migrations": "^3.3.2",
     "infection/infection": "^0.27.0",
     "patchlevel/coding-standard": "^1.3.0",
-    "phpspec/prophecy-phpunit": "^2.0.1",
-    "phpstan/phpstan": "^1.4.2",
-    "phpunit/phpunit": "^9.5.13",
-    "psalm/plugin-symfony": "^5.0",
+    "phpspec/prophecy-phpunit": "^2.1.0",
+    "phpstan/phpstan": "^1.10.48",
+    "phpunit/phpunit": "^10.5.2",
+    "psalm/plugin-symfony": "^5.1.0",
     "roave/security-advisories": "dev-master",
-    "symfony/messenger": "^4.4.34|^5.4.0|^6.0.0",
-    "symfony/uid": "^5.4.0|^6.0.0",
-    "symfony/var-dumper": "^5.4.0|^6.0.0",
-    "symfony/web-profiler-bundle": "^4.4.34|^5.4.0|^6.0.0",
-    "vimeo/psalm": "^5.1.0"
+    "symfony/messenger": "^5.4.31|^6.4.0|^7.0.0",
+    "symfony/uid": "^5.4.31|^6.4.0|^7.0.0",
+    "symfony/var-dumper": "^5.4.29|^6.4.0|^7.0.0",
+    "symfony/web-profiler-bundle": "^5.4.31|^6.4.0|^7.0.0",
+    "vimeo/psalm": "^5.17.0"
   },
   "suggest": {
     "doctrine/migrations": "for migration management",
@@ -49,8 +49,8 @@
   },
   "conflict": {
     "doctrine/migrations": "<3.3",
-    "symfony/cache": "<4.4",
-    "symfony/messenger": "<4.4"
+    "symfony/cache": "<5.4",
+    "symfony/messenger": "<5.4"
   },
   "config": {
     "preferred-install": {

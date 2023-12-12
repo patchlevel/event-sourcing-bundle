@@ -23,22 +23,23 @@ jobs:
         php-version:
           - "8.1"
           - "8.2"
+          - "8.3"
         operating-system:
           - "ubuntu-latest"
           - "windows-latest"
         include:
           - dependencies: "locked"
-            php-version: "8.2"
+            php-version: "8.3"
             operating-system: "ubuntu-latest"
           - dependencies: "locked"
-            php-version: "8.2"
+            php-version: "8.3"
             operating-system: "windows-latest"
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: "Install PHP"
-        uses: "shivammathur/setup-php@2.25.5"
+        uses: "shivammathur/setup-php@2.28.0"
         with:
           coverage: "pcov"
           php-version: "${{ matrix.php-version }}"

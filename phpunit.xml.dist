@@ -1,22 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit bootstrap="tests/bootstrap.php" colors="true">
-    <testsuites>
-        <testsuite name="unit">
-            <directory>./tests/Unit</directory>
-        </testsuite>
-    </testsuites>
-
-    <coverage processUncoveredFiles="true">
-        <include>
-            <directory suffix=".php">src</directory>
-        </include>
-        <report>
-            <html outputDirectory="./coverage"/>
-            <text outputFile="php://stdout"/>
-        </report>
-    </coverage>
-
-    <php>
-        <ini name="error_reporting" value="E_ALL"/>
-    </php>
+<phpunit
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        bootstrap="tests/bootstrap.php"
+        colors="true"
+        xsi:noNamespaceSchemaLocation="/vendor/phpunit/phpunit/phpunit.xsd"
+        cacheDirectory=".phpunit.cache"
+>
+  <testsuites>
+    <testsuite name="unit">
+      <directory>./tests/Unit</directory>
+    </testsuite>
+  </testsuites>
+  <coverage>
+    <report>
+      <html outputDirectory="./coverage"/>
+      <text outputFile="php://stdout"/>
+    </report>
+  </coverage>
+  <php>
+    <ini name="error_reporting" value="E_ALL"/>
+  </php>
+  <source>
+    <include>
+      <directory suffix=".php">src</directory>
+    </include>
+  </source>
 </phpunit>
