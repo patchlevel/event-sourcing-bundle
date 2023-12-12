@@ -31,7 +31,7 @@ psalm-baseline: vendor                                                          
 
 .PHONY: phpunit
 phpunit: vendor                                                                 ## run phpunit tests
-	vendor/bin/phpunit --testdox --colors=always -v $(OPTIONS)
+	XDEBUG_MODE=coverage vendor/bin/phpunit
 
 .PHONY: static
 static: psalm phpstan phpcs-check                                               ## run static analyser
