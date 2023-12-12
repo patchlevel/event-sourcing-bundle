@@ -16,7 +16,6 @@ use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
 use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
 use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
-use Patchlevel\EventSourcing\Clock\Clock;
 use Patchlevel\EventSourcing\Clock\FrozenClock;
 use Patchlevel\EventSourcing\Clock\SystemClock;
 use Patchlevel\EventSourcing\Console\Command\DatabaseCreateCommand;
@@ -567,8 +566,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             $container->register(FrozenClock::class)
                 ->setArguments([new DateTimeImmutable($config['clock']['freeze'])]);
 
-            $container->setAlias(Clock::class, FrozenClock::class);
-            $container->setAlias('event_sourcing.clock', Clock::class);
+            $container->setAlias('event_sourcing.clock', FrozenClock::class);
 
             return;
         }
@@ -580,8 +578,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         }
 
         $container->register(SystemClock::class);
-        $container->setAlias(Clock::class, SystemClock::class);
-        $container->setAlias('event_sourcing.clock', Clock::class);
+        $container->setAlias('event_sourcing.clock', SystemClock::class);
     }
 
     /** @param Config $config */

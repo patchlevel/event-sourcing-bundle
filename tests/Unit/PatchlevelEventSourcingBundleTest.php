@@ -114,7 +114,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(AggregateRootRegistry::class, $container->get(AggregateRootRegistry::class));
         self::assertInstanceOf(DefaultRepositoryManager::class, $container->get(RepositoryManager::class));
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
-        self::assertInstanceOf(SystemClock::class, $container->get(Clock::class));
+        self::assertInstanceOf(SystemClock::class, $container->get('event_sourcing.clock'));
     }
 
     public function testConnectionService(): void
@@ -576,7 +576,6 @@ class PatchlevelEventSourcingBundleTest extends TestCase
             ]
         );
 
-        self::assertInstanceOf(SystemClock::class, $container->get(Clock::class));
         self::assertInstanceOf(SystemClock::class, $container->get('event_sourcing.clock'));
     }
 
@@ -598,10 +597,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
             ]
         );
 
-        $clock = $container->get(Clock::class);
+        $clock = $container->get('event_sourcing.clock');
 
         self::assertInstanceOf(FrozenClock::class, $clock);
-        self::assertInstanceOf(FrozenClock::class, $container->get('event_sourcing.clock'));
         self::assertSame('2020-01-01 22:00:00', $clock->now()->format('Y-m-d H:i:s'));
     }
 
