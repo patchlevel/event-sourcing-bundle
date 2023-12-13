@@ -5099,12 +5099,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "a747aad4472d74a283a8aa2c31f2cfa504d4b573"
+                "reference": "0a3e7872604c4dc7d0efce28d490b301f106ee90"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/a747aad4472d74a283a8aa2c31f2cfa504d4b573",
-                "reference": "a747aad4472d74a283a8aa2c31f2cfa504d4b573",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/0a3e7872604c4dc7d0efce28d490b301f106ee90",
+                "reference": "0a3e7872604c4dc7d0efce28d490b301f106ee90",
                 "shasum": ""
             },
             "conflict": {
@@ -5251,7 +5251,7 @@
                 "ezsystems/ezplatform-solr-search-engine": ">=1.7,<1.7.12|>=2,<2.0.2|>=3.3,<3.3.15",
                 "ezsystems/ezplatform-user": ">=1,<1.0.1",
                 "ezsystems/ezpublish-kernel": "<6.13.8.2-dev|>=7,<7.5.31",
-                "ezsystems/ezpublish-legacy": "<=2017.12.7.3|>=2018.6,<=2019.03.5.1",
+                "ezsystems/ezpublish-legacy": "<=2017.12.7.3|>=2018.06,<=2019.03.5.1",
                 "ezsystems/platform-ui-assets-bundle": ">=4.2,<4.2.3",
                 "ezsystems/repository-forms": ">=2.3,<2.3.2.1-dev|>=2.5,<2.5.15",
                 "ezyang/htmlpurifier": "<4.1.1",
@@ -5805,7 +5805,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-12-11T22:04:17+00:00"
+            "time": "2023-12-13T03:04:17+00:00"
         },
         {
             "name": "sanmai/later",
