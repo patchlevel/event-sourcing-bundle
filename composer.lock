@@ -5099,12 +5099,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "3c2385497f806decca1e5abeba3cb8fd7caba4e0"
+                "reference": "98ceed764ff7fcf20081fdc2e0914441f46b0906"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/3c2385497f806decca1e5abeba3cb8fd7caba4e0",
-                "reference": "3c2385497f806decca1e5abeba3cb8fd7caba4e0",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/98ceed764ff7fcf20081fdc2e0914441f46b0906",
+                "reference": "98ceed764ff7fcf20081fdc2e0914441f46b0906",
                 "shasum": ""
             },
             "conflict": {
@@ -5725,6 +5725,7 @@
                 "yii2mod/yii2-cms": "<1.9.2",
                 "yiisoft/yii": "<1.1.29",
                 "yiisoft/yii2": "<2.0.38",
+                "yiisoft/yii2-authclient": "<2.2.15",
                 "yiisoft/yii2-bootstrap": "<2.0.4",
                 "yiisoft/yii2-dev": "<2.0.43",
                 "yiisoft/yii2-elasticsearch": "<2.0.5",
@@ -5807,7 +5808,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-12-15T16:04:17+00:00"
+            "time": "2023-12-18T20:04:29+00:00"
         },
         {
             "name": "sanmai/later",
