@@ -5099,12 +5099,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "6d3d49988325b4f65dc4a115ff808c1a9d70803b"
+                "reference": "bdde663d321b2d2130c2f88e2607c2edf4071f2c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/6d3d49988325b4f65dc4a115ff808c1a9d70803b",
-                "reference": "6d3d49988325b4f65dc4a115ff808c1a9d70803b",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/bdde663d321b2d2130c2f88e2607c2edf4071f2c",
+                "reference": "bdde663d321b2d2130c2f88e2607c2edf4071f2c",
                 "shasum": ""
             },
             "conflict": {
@@ -5220,7 +5220,7 @@
                 "dolibarr/dolibarr": "<18.0.2",
                 "dompdf/dompdf": "<2.0.4",
                 "doublethreedigital/guest-entries": "<3.1.2",
-                "drupal/core": "<9.4.14|>=9.5,<9.5.8|>=10,<10.0.8",
+                "drupal/core": "<9.5.11|>=10,<10.0.11|>=10.1,<10.1.4",
                 "drupal/drupal": ">=6,<6.38|>=7,<7.80|>=8,<8.9.16|>=9,<9.1.12|>=9.2,<9.2.4",
                 "duncanmcclean/guest-entries": "<3.1.2",
                 "dweeves/magmi": "<=0.7.24",
@@ -5808,7 +5808,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-12-19T22:03:59+00:00"
+            "time": "2023-12-20T21:04:04+00:00"
         },
         {
             "name": "sanmai/later",
