@@ -3,9 +3,8 @@
 In our little getting started example, we manage hotels. We keep the example small, so we can only create hotels and let
 guests check in and check out.
 
-For this example we use following packages:
+For this example we use following package:
 
-* [symfony/uid](https://symfony.com/doc/current/components/uid.html)
 * [symfony/mailer](https://symfony.com/doc/current/mailer.html)
 
 ## Installation
@@ -22,9 +21,9 @@ A hotel can be created with a `name`:
 ```php
 namespace App\Domain\Hotel\Event;
 
+use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Attribute\Event;
 use Patchlevel\EventSourcingBundle\Normalizer\UuidNormalizer;
-use Symfony\Component\Uid\Uuid;
 
 #[Event('hotel.created')]
 final class HotelCreated
@@ -88,14 +87,16 @@ namespace App\Domain\Hotel;
 use App\Domain\Hotel\Event\HotelCreated;
 use App\Domain\Hotel\Event\GuestIsCheckedIn;
 use App\Domain\Hotel\Event\GuestIsCheckedOut;
-use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
+use Patchlevel\EventSourcing\Aggregate\BasicAggregateRoot;
+use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Attribute\Aggregate;
 use Patchlevel\EventSourcing\Attribute\Apply;
-use Symfony\Component\Uid\Uuid;
+use Patchlevel\EventSourcing\Attribute\Id;
 
 #[Aggregate(name: 'hotel')]
-final class Hotel extends AggregateRoot
+final class Hotel extends BasicAggregateRoot
 {
+    #[Id]
     private Uuid $id;
     private string $name;
     
@@ -164,11 +165,6 @@ final class Hotel extends AggregateRoot
             )
         );
     }
-
-    public function aggregateRootId(): string
-    {
-        return $this->id->toString();
-    }
 }
 ```
 
@@ -189,14 +185,18 @@ use App\Domain\Hotel\Event\HotelCreated;
 use App\Domain\Hotel\Event\GuestIsCheckedIn;
 use App\Domain\Hotel\Event\GuestIsCheckedOut;
 use Doctrine\DBAL\Connection;
-use Patchlevel\EventSourcing\Attribute\Create;
-use Patchlevel\EventSourcing\Attribute\Drop;
-use Patchlevel\EventSourcing\Attribute\Handle;
+use Patchlevel\EventSourcing\Attribute\Setup;
+use Patchlevel\EventSourcing\Attribute\Teardown;
+use Patchlevel\EventSourcing\Attribute\Subscribe;
+use Patchlevel\EventSourcing\Attribute\Projector;
 use Patchlevel\EventSourcing\EventBus\Message;
-use Patchlevel\EventSourcing\Projection\Projector\Projector;
+use Patchlevel\EventSourcing\Projection\Projector\ProjectorUtil;
 
-final class HotelProjection implements Projector
+#[Projector('hotel')]
+final class HotelProjection
 {
+    use ProjectorUtil;
+
     private Connection $db;
 
     public function __construct(Connection $db)
@@ -209,14 +209,14 @@ final class HotelProjection implements Projector
      */
     public function getHotels(): array 
     {
-        return $this->db->fetchAllAssociative('SELECT id, name, guests FROM hotel;')
+        return $this->db->fetchAllAssociative("SELECT id, name, guests FROM ${this->table()};")
     }
 
-    #[Handle(HotelCreated::class)]
+    #[Subscribe(HotelCreated::class)]
     public function handleHotelCreated(Message $message): void
     {
         $this->db->insert(
-            'hotel', 
+            $this->table(), 
             [
                 'id' => $message->aggregateId(), 
                 'name' => $message->event()->hotelName(),
@@ -225,34 +225,39 @@ final class HotelProjection implements Projector
         );
     }
     
-    #[Handle(GuestIsCheckedIn::class)]
+    #[Subscribe(GuestIsCheckedIn::class)]
     public function handleGuestIsCheckedIn(Message $message): void
     {
         $this->db->executeStatement(
-            'UPDATE hotel SET guests = guests + 1 WHERE id = ?;',
+            "UPDATE ${this->table()} SET guests = guests + 1 WHERE id = ?;",
             [$message->aggregateId()]
         );
     }
     
-    #[Handle(GuestIsCheckedOut::class)]
+    #[Subscribe(GuestIsCheckedOut::class)]
     public function handleGuestIsCheckedOut(Message $message): void
     {
         $this->db->executeStatement(
-            'UPDATE hotel SET guests = guests - 1 WHERE id = ?;',
+            "UPDATE ${this->table()} SET guests = guests - 1 WHERE id = ?;",
             [$message->aggregateId()]
         );
     }
     
-    #[Create]
+    #[Setup]
     public function create(): void
     {
-        $this->db->executeStatement('CREATE TABLE IF NOT EXISTS hotel (id VARCHAR PRIMARY KEY, name VARCHAR, guests INTEGER);');
+        $this->db->executeStatement("CREATE TABLE IF NOT EXISTS ${this->table()} (id VARCHAR PRIMARY KEY, name VARCHAR, guests INTEGER);");
     }
 
-    #[Drop]
+    #[Teardown]
     public function drop(): void
     {
-        $this->db->executeStatement('DROP TABLE IF EXISTS hotel;');
+        $this->db->executeStatement("DROP TABLE IF EXISTS ${this->table()};");
+    }
+    
+    private function table(): string 
+    {
+        return sprintf('%s_%s', $this->projectionName(), $this->projectionVersion());
     }
 }
 ```
@@ -273,27 +278,23 @@ In our example we also want to send an email to the head office as soon as a gue
 namespace App\Domain\Hotel\Listener;
 
 use App\Domain\Hotel\Event\GuestIsCheckedIn;
-use Patchlevel\EventSourcing\EventBus\Listener;
 use Patchlevel\EventSourcing\EventBus\Message;
+use Patchlevel\EventSourcing\EventBus\Subscriber;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 
-final class SendCheckInEmailListener implements Listener
+final class SendCheckInEmailListener extends Subscriber
 {
-    private MailerInterface $mailer;
-
-    private function __construct(MailerInterface $mailer) 
+    private function __construct(
+        private readonly MailerInterface $mailer
+    ) 
     {
-        $this->mailer = $mailer;
     }
 
-    public function __invoke(Message $message): void
+    #[Subscribe(GuestIsCheckedIn::class)]
+    public function onGuestIsCheckedIn(Message $message): void
     {
         $event = $message->event();
-    
-        if (!$event instanceof GuestIsCheckedIn) {
-            return;
-        }
         
         $email = (new Email())
             ->from('noreply@patchlevel.de')
@@ -321,7 +322,7 @@ So that we can actually write the data to a database, we need the associated sch
 ```bash
 bin/console event-sourcing:database:create
 bin/console event-sourcing:schema:create
-bin/console event-sourcing:projection:create
+bin/console event-sourcing:projection:boot
 ```
 
 ### Usage
@@ -332,12 +333,12 @@ We are now ready to use the Event Sourcing System. We can load, change and save 
 namespace App\Controller;
 
 use App\Domain\Hotel\Hotel;
+use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Repository\Repository;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Uid\Uuid;
 
 final class HotelController
 {
@@ -365,7 +366,7 @@ final class HotelController
     public function createAction(Request $request): JsonResponse
     {
         $hotelName = $request->request->get('name'); // need validation!
-        $id = Uuid::v4();
+        $id = Uuid::v7();
         
         $hotel = Hotel::create($id, $hotelName);
         $this->hotelRepository->save($hotel);
