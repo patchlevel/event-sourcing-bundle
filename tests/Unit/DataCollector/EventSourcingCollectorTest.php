@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Patchlevel\EventSourcingBundle\Tests\Unit\DataCollector;
 
 use DateTimeImmutable;
+use Patchlevel\EventSourcing\Aggregate\CustomId;
 use Patchlevel\EventSourcing\EventBus\Message;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
@@ -36,7 +37,7 @@ class EventSourcingCollectorTest extends TestCase
             'profile' => Profile::class,
         ]);
 
-        $event = new ProfileCreated('1');
+        $event = new ProfileCreated(new CustomId('1'));
 
         $message = Message::createWithHeaders($event, [
             Message::HEADER_AGGREGATE_CLASS => Profile::class,

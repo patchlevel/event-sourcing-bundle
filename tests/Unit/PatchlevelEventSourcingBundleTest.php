@@ -38,6 +38,7 @@ use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
 use Patchlevel\EventSourcing\Projection\Projectionist\SyncProjectionistEventBusWrapper;
 use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
 use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
+use Patchlevel\EventSourcing\Projection\Projector\ProjectorRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
@@ -62,6 +63,7 @@ use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor2;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Profile;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileCreated;
+use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileProjector;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\SnapshotableProfile;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -192,6 +194,43 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     ['priority' => -64],
                 ],
                 'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor2' => [
+                    [],
+                ],
+                'Patchlevel\EventSourcingBundle\DataCollector\MessageListener' => [
+                    []
+                ]
+            ],
+            $container->findTaggedServiceIds('event_sourcing.processor')
+        );
+    }
+
+
+    public function testAutoconfigureProcessorListener(): void
+    {
+        $container = new ContainerBuilder();
+        $container->setDefinition(Processor1::class, new Definition(Processor1::class))
+            ->setAutoconfigured(true);
+        $container->setDefinition(Processor2::class, new Definition(Processor1::class))
+            ->setAutoconfigured(false);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'projection' => [
+                        'sync' => false,
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(DefaultEventBus::class, $container->get(EventBus::class));
+        self::assertEquals(
+            [
+                'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1' => [
                     [],
                 ],
                 'Patchlevel\EventSourcingBundle\DataCollector\MessageListener' => [
@@ -708,6 +747,30 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(ProjectionistAutoBootListener::class, $container->get(ProjectionistAutoBootListener::class));
+    }
+
+    public function testAutoconfigureProjector(): void
+    {
+        $container = new ContainerBuilder();
+        $container->setDefinition(ProfileProjector::class, new Definition(ProfileProjector::class))
+            ->setAutoconfigured(true);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                ],
+            ]
+        );
+
+        $repository = $container->get(ProjectorRepository::class);
+        $projectors = $repository->projectors();
+
+        self::assertCount(1, $projectors);
+        self::assertInstanceOf(ProfileProjector::class, $projectors[0]);
     }
 
     public function testSchemaMerge(): void
