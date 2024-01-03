@@ -16,6 +16,7 @@ use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
 use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
 use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
+use Patchlevel\EventSourcing\Attribute\Projector;
 use Patchlevel\EventSourcing\Clock\FrozenClock;
 use Patchlevel\EventSourcing\Clock\SystemClock;
 use Patchlevel\EventSourcing\Console\Command\DatabaseCreateCommand;
@@ -55,7 +56,6 @@ use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
 use Patchlevel\EventSourcing\Projection\Projectionist\SyncProjectionistEventBusWrapper;
 use Patchlevel\EventSourcing\Projection\Projector\InMemoryProjectorRepository;
 use Patchlevel\EventSourcing\Projection\Projector\MetadataProjectorResolver;
-use Patchlevel\EventSourcing\Projection\Projector\Projector;
 use Patchlevel\EventSourcing\Projection\Projector\ProjectorRepository;
 use Patchlevel\EventSourcing\Projection\Projector\ProjectorResolver;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
@@ -93,6 +93,7 @@ use Patchlevel\Hydrator\Hydrator;
 use Patchlevel\Hydrator\MetadataHydrator;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
+use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
@@ -208,8 +209,12 @@ final class PatchlevelEventSourcingExtension extends Extension
     /** @param Config $config */
     private function configureProjection(array $config, ContainerBuilder $container): void
     {
-        $container->registerForAutoconfiguration(Projector::class)
-            ->addTag('event_sourcing.projector');
+        $container->registerAttributeForAutoconfiguration(
+            Projector::class,
+            static function (ChildDefinition $definition): void {
+                $definition->addTag('event_sourcing.projector');
+            },
+        );
 
         $container->register(InMemoryProjectorRepository::class)
             ->setArguments([
