@@ -23,13 +23,13 @@ namespace App\Domain\Hotel\Event;
 
 use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Attribute\Event;
-use Patchlevel\EventSourcingBundle\Normalizer\UuidNormalizer;
+use Patchlevel\EventSourcing\Serializer\Normalizer\IdNormalizer;
 
 #[Event('hotel.created')]
 final class HotelCreated
 {
     public function __construct(
-        #[UuidNormalizer]
+        #[IdNormalizer(Uuid::class)]
         public readonly Uuid $id, 
         public readonly string $hotelName
     ) {
