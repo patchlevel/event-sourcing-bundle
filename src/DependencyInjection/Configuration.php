@@ -95,6 +95,8 @@ final class Configuration implements ConfigurationInterface
                 ->children()
                     ->booleanNode('sync')->defaultValue(true)->end()
                     ->booleanNode('auto_boot')->defaultValue(false)->end()
+                    ->booleanNode('auto_recovery')->defaultValue(false)->end()
+                    ->booleanNode('auto_teardown')->defaultValue(false)->end()
                 ->end()
             ->end()
 

@@ -89,6 +89,8 @@ use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
 use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
 use Patchlevel\EventSourcingBundle\DataCollector\MessageListener;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoBootListener;
+use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoRecoveryListener;
+use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoTeardownListener;
 use Patchlevel\Hydrator\Hydrator;
 use Patchlevel\Hydrator\MetadataHydrator;
 use Psr\Log\LoggerInterface;
@@ -105,7 +107,7 @@ use function sprintf;
 /**
  * @psalm-type Config = array{
  *     event_bus: ?array{type: string, service: string},
- *     projection: array{sync: bool, auto_boot: bool},
+ *     projection: array{sync: bool, auto_boot: bool, auto_recovery: bool, auto_teardown: bool},
  *     watch_server: array{enabled: bool, host: string},
  *     connection: ?array{service: ?string, url: ?string},
  *     store: array{merge_orm_schema: bool, options: array<string, mixed>},
@@ -252,7 +254,25 @@ final class PatchlevelEventSourcingExtension extends Extension
                     new Reference(Projectionist::class),
                     new Reference('lock.default.factory'),
                 ])
-                ->addTag('kernel.event_listener');
+                ->addTag('kernel.event_listener', ['priority' => 0]);
+        }
+
+        if ($config['projection']['auto_recovery']) {
+            $container->register(ProjectionistAutoRecoveryListener::class)
+                ->setArguments([
+                    new Reference(Projectionist::class),
+                    new Reference('lock.default.factory'),
+                ])
+                ->addTag('kernel.event_listener', ['priority' => 2]);
+        }
+
+        if ($config['projection']['auto_teardown']) {
+            $container->register(ProjectionistAutoTeardownListener::class)
+                ->setArguments([
+                    new Reference(Projectionist::class),
+                    new Reference('lock.default.factory'),
+                ])
+                ->addTag('kernel.event_listener', ['priority' => -2]);
         }
 
         if (!$config['projection']['sync']) {
