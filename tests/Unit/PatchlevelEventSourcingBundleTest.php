@@ -57,6 +57,8 @@ use Patchlevel\EventSourcing\WatchServer\WatchServer;
 use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoBootListener;
+use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoRecoveryListener;
+use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoTeardownListener;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\CreatedSubscriber;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1;
@@ -747,6 +749,48 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(ProjectionistAutoBootListener::class, $container->get(ProjectionistAutoBootListener::class));
+    }
+
+    public function testProjectionistAutoRecovery(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'projection' => [
+                        'auto_recovery' => true,
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(ProjectionistAutoRecoveryListener::class, $container->get(ProjectionistAutoRecoveryListener::class));
+    }
+
+    public function testProjectionistAutoTeardown(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'projection' => [
+                        'auto_teardown' => true,
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(ProjectionistAutoTeardownListener::class, $container->get(ProjectionistAutoTeardownListener::class));
     }
 
     public function testAutoconfigureProjector(): void
