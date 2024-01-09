@@ -43,6 +43,8 @@ use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\Listener;
 use Patchlevel\EventSourcing\EventBus\SymfonyEventBus;
+use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootMetadataAwareMetadataFactory;
+use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AttributeAggregateRootRegistryFactory;
 use Patchlevel\EventSourcing\Metadata\Event\AttributeEventMetadataFactory;
@@ -93,7 +95,6 @@ use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoRecoveryListener;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoTeardownListener;
 use Patchlevel\Hydrator\Hydrator;
 use Patchlevel\Hydrator\MetadataHydrator;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -242,9 +243,9 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(ProjectionStore::class),
                 new Reference(ProjectorRepository::class),
                 new Reference(ProjectorResolver::class),
-                new Reference(LoggerInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             ])
-            ->addTag('monolog.logger', ['channel' => 'projectionist']);
+            ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
 
         $container->setAlias(Projectionist::class, DefaultProjectionist::class);
 
@@ -400,6 +401,9 @@ final class PatchlevelEventSourcingExtension extends Extension
     /** @param Config $config */
     private function configureAggregates(array $config, ContainerBuilder $container): void
     {
+        $container->register(AggregateRootMetadataAwareMetadataFactory::class);
+        $container->setAlias(AggregateRootMetadataFactory::class, AggregateRootMetadataAwareMetadataFactory::class);
+
         $container->register(AttributeAggregateRootRegistryFactory::class);
 
         $container->register(AggregateRootRegistry::class)
@@ -414,7 +418,10 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(SnapshotStore::class),
                 new Reference(MessageDecorator::class),
                 new Reference('event_sourcing.clock'),
-            ]);
+                new Reference(AggregateRootMetadataFactory::class),
+                new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            ])
+            ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
 
         $container->setAlias(RepositoryManager::class, DefaultRepositoryManager::class);
     }
