@@ -95,7 +95,6 @@ use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoRecoveryListener;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoTeardownListener;
 use Patchlevel\Hydrator\Hydrator;
 use Patchlevel\Hydrator\MetadataHydrator;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -244,7 +243,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(ProjectionStore::class),
                 new Reference(ProjectorRepository::class),
                 new Reference(ProjectorResolver::class),
-                new Reference(LoggerInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             ])
             ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
 
@@ -420,10 +419,9 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(MessageDecorator::class),
                 new Reference('event_sourcing.clock'),
                 new Reference(AggregateRootMetadataFactory::class),
-                new Reference(LoggerInterface::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             ])
-            ->addTag('monolog.logger', ['channel' => 'event_sourcing'])
-        ;
+            ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
 
         $container->setAlias(RepositoryManager::class, DefaultRepositoryManager::class);
     }
