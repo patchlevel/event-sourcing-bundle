@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Patchlevel\EventSourcingBundle\Listener;
 
 use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
-use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Component\Lock\LockFactory;
 
 final class ProjectionistAutoTeardownListener
@@ -16,7 +16,7 @@ final class ProjectionistAutoTeardownListener
     ) {
     }
 
-    public function __invoke(RequestEvent $event): void
+    public function __invoke(TerminateEvent $event): void
     {
         if (!$event->isMainRequest()) {
             return;

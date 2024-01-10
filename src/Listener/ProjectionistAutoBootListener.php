@@ -13,6 +13,7 @@ final class ProjectionistAutoBootListener
     public function __construct(
         private readonly Projectionist $projectionist,
         private readonly LockFactory $lockFactory,
+        private readonly bool $throwByError = true,
     ) {
     }
 
@@ -29,7 +30,7 @@ final class ProjectionistAutoBootListener
         }
 
         try {
-            $this->projectionist->boot();
+            $this->projectionist->boot(throwByError: $this->throwByError);
         } finally {
             $lock->release();
         }
