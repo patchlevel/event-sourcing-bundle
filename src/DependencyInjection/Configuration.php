@@ -35,10 +35,11 @@ final class Configuration implements ConfigurationInterface
             ->end()
 
             ->arrayNode('event_bus')
+                ->addDefaultsIfNotSet()
                 ->children()
                     ->enumNode('type')
-                        ->values(['symfony', 'custom'])
-                        ->defaultValue('symfony')
+                        ->values(['default', 'psr14', 'custom'])
+                        ->defaultValue('default')
                     ->end()
                     ->scalarNode('service')->defaultNull()->end()
                 ->end()
