@@ -167,7 +167,7 @@ final class Hotel extends AggregateRoot
 
     public function aggregateRootId(): string
     {
-        return $this->id->jsonSerialize();
+        return (string)$this->id;
     }
 }
 ```
@@ -376,26 +376,26 @@ final class HotelController
         return new JsonResponse(['id' => $id->jsonSerialize()]);
     }
 
-    #[Route("/{id}/check-in", methods:["POST"])]
-    public function checkInAction(string $id, Request $request): JsonResponse
+    #[Route("/{hotel}/check-in", methods:["POST"])]
+    public function checkInAction(string $hotel, Request $request): JsonResponse
     {
-        $id = Uuid::fromString($id);
+        $id = Uuid::fromString($hotel);
         $guestName = $request->request->get('name'); // need validation!
 
-        $hotel = $this->hotelRepository->load($id->jsonSerialize());
+        $hotel = $this->hotelRepository->load((string)$id);
         $hotel->checkIn($guestName);
         $this->hotelRepository->save($hotel);
 
         return new JsonResponse();
     }
 
-    #[Route("/{id}/check-out", methods:["POST"])]
-    public function checkOutAction(string $id, Request $request): JsonResponse
+    #[Route("/{hotel}/check-out", methods:["POST"])]
+    public function checkOutAction(string $hotel, Request $request): JsonResponse
     {
-        $id = Uuid::fromString($id);
+        $id = Uuid::fromString($hotel);
         $guestName = $request->request->get('name'); // need validation!
 
-        $hotel = $this->hotelRepository->load($id->jsonSerialize());
+        $hotel = $this->hotelRepository->load((string)$id);
         $hotel->checkOut($guestName);
         $this->hotelRepository->save($hotel);
 
