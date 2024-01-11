@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\DependencyInjection\Compiler;
 
-use Patchlevel\EventSourcing\EventBus\ListenerProvider;
+use Patchlevel\EventSourcing\EventBus\AttributeListenerProvider;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
 use function krsort;
 
-final class ProcessorPass implements CompilerPassInterface
+final class AttributeListenerProviderPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
-        if ($container->hasDefinition(ListenerProvider::class)) {
+        if ($container->hasDefinition(AttributeListenerProvider::class)) {
             $this->processDefaultEventBus($container);
         }
     }
@@ -43,7 +43,7 @@ final class ProcessorPass implements CompilerPassInterface
             }
         }
 
-        $eventBus = $container->getDefinition(ListenerProvider::class);
+        $eventBus = $container->getDefinition(AttributeListenerProvider::class);
         $eventBus->setArgument(0, $listeners);
     }
 }
