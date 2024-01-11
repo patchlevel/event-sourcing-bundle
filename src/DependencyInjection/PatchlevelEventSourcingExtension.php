@@ -200,8 +200,8 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         if ($config['event_bus']['type'] === 'default') {
             $container->register(AttributeListenerProvider::class)
-                ->setArguments([[]])
-                ->setLazy(true);
+                ->setArguments([new TaggedIteratorArgument('event_sourcing.processor')]);
+
             $container->setAlias(ListenerProvider::class, AttributeListenerProvider::class);
 
             $container
