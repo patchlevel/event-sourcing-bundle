@@ -109,7 +109,7 @@ final class Hotel extends AggregateRoot
         return $this->name;
     }
 
-    public function guests(): int
+    public function guests(): array
     {
         return $this->guests;
     }
@@ -128,7 +128,7 @@ final class Hotel extends AggregateRoot
             throw new GuestHasAlreadyCheckedIn($guestName);
         }
     
-        $this->recordThat(new GuestIsCheckedIn(guestName));
+        $this->recordThat(new GuestIsCheckedIn($guestName));
     }
     
     public function checkOut(string $guestName): void
@@ -160,14 +160,14 @@ final class Hotel extends AggregateRoot
         $this->guests = array_values(
             array_filter(
                 $this->guests,
-                fn ($name) => $name !== $event->guestName;
+                fn($name) => $name !== $event->guestName
             )
         );
     }
 
     public function aggregateRootId(): string
     {
-        return $this->id->toString();
+        return (string)$this->id;
     }
 }
 ```
@@ -209,7 +209,7 @@ final class HotelProjection implements Projector
      */
     public function getHotels(): array 
     {
-        return $this->db->fetchAllAssociative('SELECT id, name, guests FROM hotel;')
+        return $this->db->fetchAllAssociative('SELECT id, name, guests FROM hotel;');
     }
 
     #[Handle(HotelCreated::class)]
@@ -299,7 +299,7 @@ final class SendCheckInEmailListener implements Listener
             ->from('noreply@patchlevel.de')
             ->to('hq@patchlevel.de')
             ->subject('Guest is checked in')
-            ->text(sprintf('A new guest named "%s" is checked in', $event->guestName()));
+            ->text(sprintf('A new guest named "%s" is checked in', $event->guestName));
             
         $this->mailer->send($email);
     }
@@ -332,13 +332,16 @@ We are now ready to use the Event Sourcing System. We can load, change and save 
 namespace App\Controller;
 
 use App\Domain\Hotel\Hotel;
+use App\Projection\HotelProjection;
 use Patchlevel\EventSourcing\Repository\Repository;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Uid\Uuid;
 
+#[AsController]
 final class HotelController
 {
     /** @var Repository<Hotel> */
@@ -352,7 +355,7 @@ final class HotelController
         $this->hotelRepository = $repositoryManager->get(Hotel::class);
         $this->hotelProjection = $hotelProjection;
     }
-    
+
     #[Route("/", methods:["GET"])]
     public function listAction(): JsonResponse
     {
@@ -366,33 +369,33 @@ final class HotelController
     {
         $hotelName = $request->request->get('name'); // need validation!
         $id = Uuid::v4();
-        
+
         $hotel = Hotel::create($id, $hotelName);
         $this->hotelRepository->save($hotel);
 
-        return new JsonResponse(['id' => $id->toString()]);
+        return new JsonResponse(['id' => $id->jsonSerialize()]);
     }
-    
-    #[Route("/:id/check-in", methods:["POST"])]
-    public function checkInAction(string $id, Request $request): JsonResponse
+
+    #[Route("/{hotel}/check-in", methods:["POST"])]
+    public function checkInAction(string $hotel, Request $request): JsonResponse
     {
-        $id = Uuid::fromString($id);
+        $id = Uuid::fromString($hotel);
         $guestName = $request->request->get('name'); // need validation!
-        
-        $hotel = $this->hotelRepository->load($id);
+
+        $hotel = $this->hotelRepository->load((string)$id);
         $hotel->checkIn($guestName);
         $this->hotelRepository->save($hotel);
 
         return new JsonResponse();
     }
 
-     #[Route("/:id/check-out", methods:["POST"])]
-    public function checkOutAction(string $id, Request $request): JsonResponse
+    #[Route("/{hotel}/check-out", methods:["POST"])]
+    public function checkOutAction(string $hotel, Request $request): JsonResponse
     {
-        $id = Uuid::fromString($id);
+        $id = Uuid::fromString($hotel);
         $guestName = $request->request->get('name'); // need validation!
-        
-        $hotel = $this->hotelRepository->load($id);
+
+        $hotel = $this->hotelRepository->load((string)$id);
         $hotel->checkOut($guestName);
         $this->hotelRepository->save($hotel);
 
