@@ -532,11 +532,9 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->setAlias(WatchServerClient::class, SocketWatchServerClient::class);
 
-        /*
         $container->register(WatchListener::class)
             ->setArguments([new Reference(WatchServerClient::class)])
             ->addTag('event_sourcing.processor');
-        */
 
         $container->register(SocketWatchServer::class)
             ->setArguments([$config['watch_server']['host'], new Reference(MessageSerializer::class)]);
