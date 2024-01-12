@@ -209,17 +209,17 @@ final class HotelProjection implements Projector
      */
     public function getHotels(): array 
     {
-        return $this->db->fetchAllAssociative('SELECT id, name, guests FROM hotel;');
+        return $this->db->fetchAllAssociative('SELECT id, name, guests FROM projection_hotel;');
     }
 
     #[Handle(HotelCreated::class)]
     public function handleHotelCreated(Message $message): void
     {
         $this->db->insert(
-            'hotel', 
+            'projection_hotel', 
             [
                 'id' => $message->aggregateId(), 
-                'name' => $message->event()->hotelName(),
+                'name' => $message->event()->hotelName,
                 'guests' => 0
             ]
         );
@@ -229,7 +229,7 @@ final class HotelProjection implements Projector
     public function handleGuestIsCheckedIn(Message $message): void
     {
         $this->db->executeStatement(
-            'UPDATE hotel SET guests = guests + 1 WHERE id = ?;',
+            'UPDATE projection_hotel SET guests = guests + 1 WHERE id = ?;',
             [$message->aggregateId()]
         );
     }
@@ -238,7 +238,7 @@ final class HotelProjection implements Projector
     public function handleGuestIsCheckedOut(Message $message): void
     {
         $this->db->executeStatement(
-            'UPDATE hotel SET guests = guests - 1 WHERE id = ?;',
+            'UPDATE projection_hotel SET guests = guests - 1 WHERE id = ?;',
             [$message->aggregateId()]
         );
     }
@@ -246,13 +246,13 @@ final class HotelProjection implements Projector
     #[Create]
     public function create(): void
     {
-        $this->db->executeStatement('CREATE TABLE IF NOT EXISTS hotel (id VARCHAR PRIMARY KEY, name VARCHAR, guests INTEGER);');
+        $this->db->executeStatement('CREATE TABLE IF NOT EXISTS projection_hotel (id VARCHAR PRIMARY KEY, name VARCHAR, guests INTEGER);');
     }
 
     #[Drop]
     public function drop(): void
     {
-        $this->db->executeStatement('DROP TABLE IF EXISTS hotel;');
+        $this->db->executeStatement('DROP TABLE IF EXISTS projection_hotel;');
     }
 }
 ```
