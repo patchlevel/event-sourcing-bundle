@@ -280,10 +280,12 @@ namespace App\Domain\Hotel\Listener;
 use App\Domain\Hotel\Event\GuestIsCheckedIn;
 use Patchlevel\EventSourcing\EventBus\Message;
 use Patchlevel\EventSourcing\EventBus\Subscriber;
+use Patchlevel\EventSourcingBundle\Attribute\AsProcessor;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 
-final class SendCheckInEmailListener extends Subscriber
+#[AsProcessor]
+final class SendCheckInEmailListener
 {
     private function __construct(
         private readonly MailerInterface $mailer

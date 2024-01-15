@@ -109,7 +109,7 @@ use function sprintf;
 
 /**
  * @psalm-type Config = array{
- *     event_bus: ?array{type: string, service: string},
+ *     event_bus: array{type: string, service: string},
  *     projection: array{sync: bool, auto_boot: bool, auto_recovery: bool, auto_teardown: bool},
  *     watch_server: array{enabled: bool, host: string},
  *     connection: ?array{service: ?string, url: ?string},
