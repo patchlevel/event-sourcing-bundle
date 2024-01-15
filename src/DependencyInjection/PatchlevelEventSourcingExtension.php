@@ -42,10 +42,8 @@ use Patchlevel\EventSourcing\EventBus\Decorator\MessageDecorator;
 use Patchlevel\EventSourcing\EventBus\Decorator\SplitStreamDecorator;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
-use Patchlevel\EventSourcing\EventBus\Listener;
 use Patchlevel\EventSourcing\EventBus\ListenerProvider;
 use Patchlevel\EventSourcing\EventBus\Psr14EventBus;
-use Patchlevel\EventSourcing\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootMetadataAwareMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
@@ -195,7 +193,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                 $definition->addTag('event_sourcing.processor', [
                     'priority' => $attribute->priority,
                 ]);
-            }
+            },
         );
 
         if ($config['event_bus']['type'] === 'default') {
@@ -210,8 +208,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                     new Reference(ListenerProvider::class),
                     new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
                 ])
-                ->addTag('monolog.logger', ['channel' => 'event_sourcing'])
-            ;
+                ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
 
             $container->setAlias(EventBus::class, DefaultEventBus::class);
 
