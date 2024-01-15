@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4171daef165583b539ef58c68df7485d",
+    "content-hash": "b84914e6ba7675b99df1fcee631bf238",
     "packages": [
         {
             "name": "brick/math",
@@ -407,16 +407,16 @@
         },
         {
             "name": "patchlevel/event-sourcing",
-            "version": "3.0.0-rc2",
+            "version": "3.0.0-rc3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "baf2ba65ce0d6d246266687f738f457db9eda2f5"
+                "reference": "b0e4be2d2043aaef91976766ebceb0f0cdbc33b4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/baf2ba65ce0d6d246266687f738f457db9eda2f5",
-                "reference": "baf2ba65ce0d6d246266687f738f457db9eda2f5",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/b0e4be2d2043aaef91976766ebceb0f0cdbc33b4",
+                "reference": "b0e4be2d2043aaef91976766ebceb0f0cdbc33b4",
                 "shasum": ""
             },
             "require": {
@@ -426,6 +426,7 @@
                 "php": "~8.1.0 || ~8.2.0 || ~8.3.0",
                 "psr/cache": "^2.0.0|^3.0.0",
                 "psr/clock": "^1.0",
+                "psr/event-dispatcher": "^1.0",
                 "psr/log": "^2.0.0|^3.0.0",
                 "psr/simple-cache": "^2.0.0|^3.0.0",
                 "ramsey/uuid": "^4.7",
@@ -434,8 +435,7 @@
                 "symfony/lock": "^5.4.32|^6.4.0|^7.0.0"
             },
             "conflict": {
-                "doctrine/migrations": "<3.3",
-                "symfony/messenger": "<5.4"
+                "doctrine/migrations": "<3.3"
             },
             "require-dev": {
                 "cspray/phinal": "^2.0.0",
@@ -487,9 +487,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
-                "source": "https://github.com/patchlevel/event-sourcing/tree/3.0.0-rc2"
+                "source": "https://github.com/patchlevel/event-sourcing/tree/3.0.0-rc3"
             },
-            "time": "2024-01-06T14:11:05+00:00"
+            "time": "2024-01-15T12:51:11+00:00"
         },
         {
             "name": "patchlevel/hydrator",

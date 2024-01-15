@@ -10,39 +10,6 @@ and offers two different store strategies.
     [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/store/). 
     This documentation is limited to bundle integration.
 
-## Store types
-
-We offer two store strategies that you can choose as you like.
-
-### Single Table Store
-
-With the `single_table` everything is saved in one table.
-
-```yaml
-patchlevel_event_sourcing:
-    store:
-        type: single_table
-```
-
-!!! note
-
-    You can switch between strategies using the [pipeline](./pipeline.md).
-
-### Multi Table Store
-
-With the `multi_table` a separate table is created for each aggregate type.
-In addition, a meta table is created by referencing all events in the correct order.
-
-```yaml
-patchlevel_event_sourcing:
-    store:
-        type: multi_table
-```
-
-!!! note
-
-    You can switch between strategies using the [pipeline](./pipeline.md).
-
 ## Manage database and schema
 
 The bundle provides you with a few `commands` with which you can create and delete the `database`. 

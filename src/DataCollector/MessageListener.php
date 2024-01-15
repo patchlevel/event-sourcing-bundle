@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\DataCollector;
 
-use Patchlevel\EventSourcing\EventBus\Listener;
+use Patchlevel\EventSourcing\Attribute\Subscribe;
 use Patchlevel\EventSourcing\EventBus\Message;
 
-final class MessageListener implements Listener
+final class MessageListener
 {
     /** @var list<Message<object>> */
     private array $messages = [];
 
     /** @param Message<object> $message */
+    #[Subscribe('*')]
     public function __invoke(Message $message): void
     {
         $this->messages[] = $message;

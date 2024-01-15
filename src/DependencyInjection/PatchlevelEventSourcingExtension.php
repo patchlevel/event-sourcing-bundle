@@ -36,13 +36,14 @@ use Patchlevel\EventSourcing\Console\Command\ShowAggregateCommand;
 use Patchlevel\EventSourcing\Console\Command\ShowCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
 use Patchlevel\EventSourcing\Console\DoctrineHelper;
+use Patchlevel\EventSourcing\EventBus\AttributeListenerProvider;
 use Patchlevel\EventSourcing\EventBus\Decorator\ChainMessageDecorator;
 use Patchlevel\EventSourcing\EventBus\Decorator\MessageDecorator;
 use Patchlevel\EventSourcing\EventBus\Decorator\SplitStreamDecorator;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
-use Patchlevel\EventSourcing\EventBus\Listener;
-use Patchlevel\EventSourcing\EventBus\SymfonyEventBus;
+use Patchlevel\EventSourcing\EventBus\ListenerProvider;
+use Patchlevel\EventSourcing\EventBus\Psr14EventBus;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootMetadataAwareMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
@@ -88,6 +89,7 @@ use Patchlevel\EventSourcing\WatchServer\SocketWatchServerClient;
 use Patchlevel\EventSourcing\WatchServer\WatchListener;
 use Patchlevel\EventSourcing\WatchServer\WatchServer;
 use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
+use Patchlevel\EventSourcingBundle\Attribute\AsProcessor;
 use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
 use Patchlevel\EventSourcingBundle\DataCollector\MessageListener;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoBootListener;
@@ -107,7 +109,7 @@ use function sprintf;
 
 /**
  * @psalm-type Config = array{
- *     event_bus: ?array{type: string, service: string},
+ *     event_bus: array{type: string, service: string},
  *     projection: array{sync: bool, auto_boot: bool, auto_recovery: bool, auto_teardown: bool},
  *     watch_server: array{enabled: bool, host: string},
  *     connection: ?array{service: ?string, url: ?string},
@@ -185,22 +187,39 @@ final class PatchlevelEventSourcingExtension extends Extension
     /** @param Config $config */
     private function configureEventBus(array $config, ContainerBuilder $container): void
     {
-        $container->registerForAutoconfiguration(Listener::class)
-            ->addTag('event_sourcing.processor');
+        $container->registerAttributeForAutoconfiguration(
+            AsProcessor::class,
+            static function (ChildDefinition $definition, AsProcessor $attribute): void {
+                $definition->addTag('event_sourcing.processor', [
+                    'priority' => $attribute->priority,
+                ]);
+            },
+        );
 
-        if (!isset($config['event_bus'])) {
-            $container->register(DefaultEventBus::class);
+        if ($config['event_bus']['type'] === 'default') {
+            $container->register(AttributeListenerProvider::class)
+                ->setArguments([new TaggedIteratorArgument('event_sourcing.processor')]);
+
+            $container->setAlias(ListenerProvider::class, AttributeListenerProvider::class);
+
+            $container
+                ->register(DefaultEventBus::class)
+                ->setArguments([
+                    new Reference(ListenerProvider::class),
+                    new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                ])
+                ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
+
             $container->setAlias(EventBus::class, DefaultEventBus::class);
 
             return;
         }
 
-        if ($config['event_bus']['type'] === 'symfony') {
-            $container->register(SymfonyEventBus::class)
+        if ($config['event_bus']['type'] === 'psr14') {
+            $container->register(Psr14EventBus::class)
                 ->setArguments([new Reference($config['event_bus']['service'])]);
 
-            $container->setAlias(EventBus::class, SymfonyEventBus::class);
-            $container->setParameter('event_sourcing.event_bus_service', $config['event_bus']['service']);
+            $container->setAlias(EventBus::class, Psr14EventBus::class);
 
             return;
         }

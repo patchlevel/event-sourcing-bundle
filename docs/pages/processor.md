@@ -16,12 +16,14 @@ A process can be for example used to send an email when a guest is checked in:
 namespace App\Domain\Hotel\Listener;
 
 use App\Domain\Hotel\Event\GuestIsCheckedIn;
-use Patchlevel\EventSourcing\EventBus\Listener;
+use Patchlevel\EventSourcing\Attribute\Subscribe;
 use Patchlevel\EventSourcing\EventBus\Message;
+use Patchlevel\EventSourcingBundle\Attribute\AsProcessor;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 
-final class SendCheckInEmailListener implements Listener
+#[AsProcessor]
+final class SendCheckInEmailListener
 {
     private MailerInterface $mailer;
 
@@ -29,7 +31,8 @@ final class SendCheckInEmailListener implements Listener
     {
         $this->mailer = $mailer;
     }
-
+ 
+    #[Subscribe]
     public function __invoke(Message $message): void
     {
         $event = $message->event();
@@ -50,7 +53,7 @@ final class SendCheckInEmailListener implements Listener
 ```
 
 If you have the symfony default service setting with `autowire`and `autoconfiger` enabled, 
-the processor is automatically recognized and registered at the `Listener` interface. 
+the processor is automatically recognized and registered at the `AsProcessor` attribute. 
 Otherwise you have to define the processor in the symfony service file:
 
 ```yaml
@@ -66,6 +69,16 @@ You can also determine the `priority` in which the processors are executed.
 The higher the priority, the earlier the processor is executed. 
 You have to add the tag manually and specify the priority.
 
+```php
+namespace App\Domain\Hotel\Listener;
+
+#[AsProcessor(priority: 16)]
+final class SendCheckInEmailListener
+{
+    // ...
+}
+```
+
 ```yaml
 services:
     App\Domain\Hotel\Listener\SendCheckInEmailListener:
@@ -79,8 +92,3 @@ services:
 
     You have to deactivate the `autoconfigure` for this service, 
     otherwise the service will be added twice.
-
-!!! note
-
-    The `projection` listener has a priority of `-32`, 
-    to do things after the projection, you have to be lower.

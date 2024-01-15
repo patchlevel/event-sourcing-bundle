@@ -233,83 +233,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertEquals(
             [
                 'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1' => [
-                    [],
-                ],
-                'Patchlevel\EventSourcingBundle\DataCollector\MessageListener' => [
-                    []
-                ]
-            ],
-            $container->findTaggedServiceIds('event_sourcing.processor')
-        );
-    }
-
-    public function testSymfonyEventBus(): void
-    {
-        $container = new ContainerBuilder();
-        $container->setDefinition(Processor1::class, new Definition(Processor1::class))
-            ->addTag('event_sourcing.processor', ['priority' => -64]);
-        $container->setDefinition(Processor2::class, new Definition(Processor2::class))
-            ->addTag('event_sourcing.processor');
-
-        $this->compileContainer(
-            $container,
-            [
-                'patchlevel_event_sourcing' => [
-                    'connection' => [
-                        'service' => 'doctrine.dbal.eventstore_connection',
+                    [
+                        'priority' => 0,
                     ],
-                    'event_bus' => [
-                        'service' => 'event.bus',
-                    ],
-                    'projection' => [
-                        'sync' => false,
-                    ],
-                ],
-            ]
-        );
-
-        self::assertInstanceOf(SymfonyEventBus::class, $container->get(EventBus::class));
-        self::assertEquals(
-            [
-                'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1' => [
-                    ['bus' => 'event.bus', 'priority' => -64],
-                ],
-                'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor2' => [
-                    ['bus' => 'event.bus', 'priority' => 0],
-                ],
-                'Patchlevel\EventSourcingBundle\DataCollector\MessageListener' => [
-                    ['bus' => 'event.bus', 'priority' => 0],
-                ]
-            ],
-            $container->findTaggedServiceIds('messenger.message_handler')
-        );
-    }
-
-    public function testSubscriber(): void
-    {
-        $container = new ContainerBuilder();
-        $container->setDefinition(CreatedSubscriber::class, new Definition(CreatedSubscriber::class))
-            ->addTag('event_sourcing.processor', ['priority' => -64]);
-
-        $this->compileContainer(
-            $container,
-            [
-                'patchlevel_event_sourcing' => [
-                    'connection' => [
-                        'service' => 'doctrine.dbal.eventstore_connection',
-                    ],
-                    'projection' => [
-                        'sync' => false,
-                    ],
-                ],
-            ]
-        );
-
-        self::assertInstanceOf(DefaultEventBus::class, $container->get(EventBus::class));
-        self::assertEquals(
-            [
-                'Patchlevel\EventSourcingBundle\Tests\Fixtures\CreatedSubscriber' => [
-                    ['priority' => -64],
                 ],
                 'Patchlevel\EventSourcingBundle\DataCollector\MessageListener' => [
                     []
@@ -859,8 +785,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     'store' => [
                     ],
                     'event_bus' => [
-                        'type' => 'symfony',
-                        'service' => 'event.bus',
+                        'type' => 'default',
                     ],
                     'aggregates' => [__DIR__ . '/../Fixtures'],
                     'migration' => [
@@ -886,7 +811,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertInstanceOf(Connection::class, $container->get('event_sourcing.dbal_connection'));
         self::assertInstanceOf(DoctrineDbalStore::class, $container->get(Store::class));
-        self::assertInstanceOf(SymfonyEventBus::class, $container->get(EventBus::class));
+        self::assertInstanceOf(DefaultEventBus::class, $container->get(EventBus::class));
         self::assertInstanceOf(AggregateRootRegistry::class, $container->get(AggregateRootRegistry::class));
         self::assertInstanceOf(RepositoryManager::class, $container->get(RepositoryManager::class));
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
