@@ -92,6 +92,7 @@ use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
 use Patchlevel\EventSourcingBundle\Attribute\AsProcessor;
 use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
 use Patchlevel\EventSourcingBundle\DataCollector\MessageListener;
+use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoBootListener;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoRecoveryListener;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoTeardownListener;
@@ -211,6 +212,15 @@ final class PatchlevelEventSourcingExtension extends Extension
                 ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
 
             $container->setAlias(EventBus::class, DefaultEventBus::class);
+
+            return;
+        }
+
+        if ($config['event_bus']['type'] === 'symfony') {
+            $container->register(SymfonyEventBus::class)
+                ->setArguments([new Reference($config['event_bus']['service'])]);
+
+            $container->setAlias(EventBus::class, SymfonyEventBus::class);
 
             return;
         }

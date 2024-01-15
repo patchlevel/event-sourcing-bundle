@@ -8,7 +8,6 @@ use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
 use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
 use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
-use Patchlevel\EventSourcing\Clock\Clock;
 use Patchlevel\EventSourcing\Clock\FrozenClock;
 use Patchlevel\EventSourcing\Clock\SystemClock;
 use Patchlevel\EventSourcing\Console\Command\DatabaseCreateCommand;
@@ -32,7 +31,7 @@ use Patchlevel\EventSourcing\EventBus\Decorator\MessageDecorator;
 use Patchlevel\EventSourcing\EventBus\Decorator\SplitStreamDecorator;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
-use Patchlevel\EventSourcing\EventBus\SymfonyEventBus;
+use Patchlevel\EventSourcing\EventBus\Psr14EventBus;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
 use Patchlevel\EventSourcing\Projection\Projectionist\SyncProjectionistEventBusWrapper;
@@ -56,6 +55,7 @@ use Patchlevel\EventSourcing\WatchServer\SocketWatchServerClient;
 use Patchlevel\EventSourcing\WatchServer\WatchServer;
 use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
+use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoBootListener;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoRecoveryListener;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoTeardownListener;
@@ -139,7 +139,63 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(DoctrineDbalStore::class, $container->get(Store::class));
     }
 
-    public function testOverrideEventBus(): void
+    public function testSymfonyEventBus(): void
+    {
+        $eventBus = $this->prophesize(MessageBusInterface::class)->reveal();
+
+        $container = new ContainerBuilder();
+        $container->set('my_event_bus', $eventBus);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'event_bus' => [
+                        'type' => 'symfony',
+                        'service' => 'my_event_bus',
+                    ],
+                    'projection' => [
+                        'sync' => false,
+                    ],
+                ],
+            ]
+        );
+
+        self::assertEquals(new SymfonyEventBus($eventBus), $container->get(EventBus::class));
+    }
+
+    public function testPsr14EventBus(): void
+    {
+        $eventBus = $this->prophesize(EventDispatcherInterface::class)->reveal();
+
+        $container = new ContainerBuilder();
+        $container->set('my_event_bus', $eventBus);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'event_bus' => [
+                        'type' => 'psr14',
+                        'service' => 'my_event_bus',
+                    ],
+                    'projection' => [
+                        'sync' => false,
+                    ],
+                ],
+            ]
+        );
+
+        self::assertEquals(new Psr14EventBus($eventBus), $container->get(EventBus::class));
+    }
+
+    public function testCustomEventBus(): void
     {
         $eventBus = $this->prophesize(EventBus::class)->reveal();
 

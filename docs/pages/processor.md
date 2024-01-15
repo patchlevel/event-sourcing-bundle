@@ -8,6 +8,12 @@ The `processor` is a kind of [event bus](./event_bus.md) listener that can execu
     [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/processor/). 
     This documentation is limited to bundle integration.
 
+!!! warning
+
+    The following configuration option is only available with the default event bus. 
+    If you use a different event bus, you will need to configure the listeners with that system. 
+    You can find out more about this in the [event bus](./event_bus.md) documentation.
+
 ## Usage
 
 A process can be for example used to send an email when a guest is checked in:
@@ -32,14 +38,10 @@ final class SendCheckInEmailListener
         $this->mailer = $mailer;
     }
  
-    #[Subscribe]
+    #[Subscribe(GuestIsCheckedIn::class)]
     public function __invoke(Message $message): void
     {
         $event = $message->event();
-    
-        if (!$event instanceof GuestIsCheckedIn) {
-            return;
-        }
         
         $email = (new Email())
             ->from('noreply@patchlevel.de')

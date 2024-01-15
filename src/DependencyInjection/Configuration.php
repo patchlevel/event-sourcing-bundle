@@ -38,7 +38,7 @@ final class Configuration implements ConfigurationInterface
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->enumNode('type')
-                        ->values(['default', 'psr14', 'custom'])
+                        ->values(['default', 'symfony', 'psr14', 'custom'])
                         ->defaultValue('default')
                     ->end()
                     ->scalarNode('service')->defaultNull()->end()
