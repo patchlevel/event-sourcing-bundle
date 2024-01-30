@@ -52,6 +52,8 @@ use Patchlevel\EventSourcing\Metadata\Event\AttributeEventMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Event\AttributeEventRegistryFactory;
 use Patchlevel\EventSourcing\Metadata\Event\EventMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
+use Patchlevel\EventSourcing\Metadata\Projector\AttributeProjectorMetadataFactory;
+use Patchlevel\EventSourcing\Metadata\Projector\ProjectorMetadataFactory;
 use Patchlevel\EventSourcing\Projection\Projection\Store\DoctrineStore;
 use Patchlevel\EventSourcing\Projection\Projection\Store\ProjectionStore;
 use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
@@ -59,6 +61,7 @@ use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
 use Patchlevel\EventSourcing\Projection\Projectionist\SyncProjectionistEventBusWrapper;
 use Patchlevel\EventSourcing\Projection\Projector\InMemoryProjectorRepository;
 use Patchlevel\EventSourcing\Projection\Projector\MetadataProjectorResolver;
+use Patchlevel\EventSourcing\Projection\Projector\ProjectorHelper;
 use Patchlevel\EventSourcing\Projection\Projector\ProjectorRepository;
 use Patchlevel\EventSourcing\Projection\Projector\ProjectorResolver;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
@@ -255,8 +258,18 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->setAlias(ProjectorRepository::class, InMemoryProjectorRepository::class);
 
-        $container->register(MetadataProjectorResolver::class);
+        $container->register(AttributeProjectorMetadataFactory::class);
+        $container->setAlias(ProjectorMetadataFactory::class, AttributeProjectorMetadataFactory::class);
+
+        $container->register(MetadataProjectorResolver::class)
+            ->setArguments([
+                new Reference(ProjectorMetadataFactory::class),
+            ]);
+
         $container->setAlias(ProjectorResolver::class, MetadataProjectorResolver::class);
+
+        $container->register(ProjectorHelper::class)
+            ->setArguments([new Reference(ProjectorMetadataFactory::class)]);
 
         $container->register(DoctrineStore::class)
             ->setArguments([
