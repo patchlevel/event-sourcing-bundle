@@ -26,7 +26,8 @@ for [event-sourcing](https://github.com/patchlevel/event-sourcing) library.
 composer require patchlevel/event-sourcing-bundle
 ```
 
-> :warning: If you don't use the symfony flex recipe for this bundle, you need to follow
+> [!WARNING]
+> If you don't use the symfony flex recipe for this bundle, you need to follow
 this [installation documentation](https://patchlevel.github.io/event-sourcing-bundle-docs/latest/installation/).
 
 ## Documentation
