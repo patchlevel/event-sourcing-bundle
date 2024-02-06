@@ -77,6 +77,7 @@ use Psr\Clock\ClockInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\Lock\LockFactory;
@@ -330,6 +331,39 @@ class PatchlevelEventSourcingBundleTest extends TestCase
     public function testOutboxParallel(): void
     {
         $container = new ContainerBuilder();
+        $publisher = $this->prophesize(OutboxPublisher::class)->reveal();
+
+        $container->set('my_publisher', $publisher);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'outbox' => [
+                        'parallel' => true,
+                        'publisher' => 'my_publisher',
+                    ],
+                    'projection' => [
+                        'sync' => false,
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(ChainEventBus::class, $container->get(EventBus::class));
+        self::assertEquals($publisher, $container->get(OutboxPublisher::class));
+    }
+
+
+    public function testOutboxParallelWithoutPublisher(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+
+        $container = new ContainerBuilder();
+        $publisher = $this->prophesize(OutboxPublisher::class)->reveal();
 
         $this->compileContainer(
             $container,
@@ -349,13 +383,15 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(ChainEventBus::class, $container->get(EventBus::class));
-        self::assertInstanceOf(EventBusPublisher::class, $container->get(OutboxPublisher::class));
+        self::assertEquals($publisher, $container->get(OutboxPublisher::class));
     }
 
-
-    public function testOutboxAndSyncProjection(): void
+    public function testParallelOutboxAndSyncProjection(): void
     {
         $container = new ContainerBuilder();
+        $publisher = $this->prophesize(OutboxPublisher::class)->reveal();
+
+        $container->set('my_publisher', $publisher);
 
         $this->compileContainer(
             $container,
@@ -366,6 +402,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     ],
                     'outbox' => [
                         'parallel' => true,
+                        'publisher' => 'my_publisher',
                     ],
                     'projection' => [
                         'sync' => true,
@@ -375,7 +412,6 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(ChainEventBus::class, $container->get(EventBus::class));
-        self::assertInstanceOf(EventBusPublisher::class, $container->get(OutboxPublisher::class));
     }
 
     public function testSnapshotStore(): void
