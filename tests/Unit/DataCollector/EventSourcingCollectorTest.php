@@ -40,7 +40,7 @@ class EventSourcingCollectorTest extends TestCase
         $event = new ProfileCreated(new CustomId('1'));
 
         $message = Message::createWithHeaders($event, [
-            Message::HEADER_AGGREGATE_CLASS => Profile::class,
+            Message::HEADER_AGGREGATE_NAME => 'profile',
             Message::HEADER_AGGREGATE_ID => '1',
             Message::HEADER_PLAYHEAD => 1,
             Message::HEADER_RECORDED_ON => new DateTimeImmutable('2022-07-07T18:55:50+02:00'),

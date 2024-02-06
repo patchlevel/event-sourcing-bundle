@@ -6,7 +6,6 @@ namespace Patchlevel\EventSourcingBundle\DependencyInjection;
 
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DriverManager;
 use Doctrine\Migrations\Configuration\Connection\ExistingConnection;
 use Doctrine\Migrations\Configuration\Migration\ConfigurationArray;
 use Doctrine\Migrations\DependencyFactory;
@@ -22,6 +21,7 @@ use Patchlevel\EventSourcing\Clock\SystemClock;
 use Patchlevel\EventSourcing\Console\Command\DatabaseCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\DatabaseDropCommand;
 use Patchlevel\EventSourcing\Console\Command\DebugCommand;
+use Patchlevel\EventSourcing\Console\Command\OutboxConsumeCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionBootCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionReactivateCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionRebuildCommand;
@@ -37,9 +37,12 @@ use Patchlevel\EventSourcing\Console\Command\ShowCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
 use Patchlevel\EventSourcing\Console\DoctrineHelper;
 use Patchlevel\EventSourcing\EventBus\AttributeListenerProvider;
+use Patchlevel\EventSourcing\EventBus\ChainEventBus;
+use Patchlevel\EventSourcing\EventBus\Consumer;
 use Patchlevel\EventSourcing\EventBus\Decorator\ChainMessageDecorator;
 use Patchlevel\EventSourcing\EventBus\Decorator\MessageDecorator;
 use Patchlevel\EventSourcing\EventBus\Decorator\SplitStreamDecorator;
+use Patchlevel\EventSourcing\EventBus\DefaultConsumer;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\ListenerProvider;
@@ -54,11 +57,18 @@ use Patchlevel\EventSourcing\Metadata\Event\EventMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
 use Patchlevel\EventSourcing\Metadata\Projector\AttributeProjectorMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Projector\ProjectorMetadataFactory;
+use Patchlevel\EventSourcing\Outbox\DoctrineOutboxStore;
+use Patchlevel\EventSourcing\Outbox\EventBusPublisher;
+use Patchlevel\EventSourcing\Outbox\OutboxEventBus;
+use Patchlevel\EventSourcing\Outbox\OutboxProcessor;
+use Patchlevel\EventSourcing\Outbox\OutboxPublisher;
+use Patchlevel\EventSourcing\Outbox\OutboxStore;
+use Patchlevel\EventSourcing\Outbox\StoreOutboxProcessor;
 use Patchlevel\EventSourcing\Projection\Projection\Store\DoctrineStore;
 use Patchlevel\EventSourcing\Projection\Projection\Store\ProjectionStore;
 use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
 use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
-use Patchlevel\EventSourcing\Projection\Projectionist\SyncProjectionistEventBusWrapper;
+use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistEventBus;
 use Patchlevel\EventSourcing\Projection\Projector\InMemoryProjectorRepository;
 use Patchlevel\EventSourcing\Projection\Projector\MetadataProjectorResolver;
 use Patchlevel\EventSourcing\Projection\Projector\ProjectorHelper;
@@ -95,6 +105,7 @@ use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
 use Patchlevel\EventSourcingBundle\Attribute\AsProcessor;
 use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
 use Patchlevel\EventSourcingBundle\DataCollector\MessageListener;
+use Patchlevel\EventSourcingBundle\Doctrine\DbalConnectionFactory;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoBootListener;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoRecoveryListener;
@@ -114,6 +125,7 @@ use function sprintf;
 /**
  * @psalm-type Config = array{
  *     event_bus: array{type: string, service: string},
+ *     outbox: array{enabled: bool, publisher: ?string, parallel: bool},
  *     projection: array{sync: bool, auto_boot: bool, auto_recovery: bool, auto_teardown: bool},
  *     watch_server: array{enabled: bool, host: string},
  *     connection: ?array{service: ?string, url: ?string},
@@ -144,6 +156,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureSerializer($config, $container);
         $this->configureMessageDecorator($container);
         $this->configureEventBus($config, $container);
+        $this->configureOutbox($config, $container);
         $this->configureConnection($config, $container);
         $this->configureStore($config, $container);
         $this->configureSnapshots($config, $container);
@@ -206,10 +219,19 @@ final class PatchlevelEventSourcingExtension extends Extension
 
             $container->setAlias(ListenerProvider::class, AttributeListenerProvider::class);
 
+            $container->register(DefaultConsumer::class)
+                ->setArguments([
+                    new Reference(ListenerProvider::class),
+                    new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                ])
+                ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
+
+            $container->setAlias(Consumer::class, DefaultConsumer::class);
+
             $container
                 ->register(DefaultEventBus::class)
                 ->setArguments([
-                    new Reference(ListenerProvider::class),
+                    new Reference(Consumer::class),
                     new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
                 ])
                 ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
@@ -239,6 +261,71 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->register($config['event_bus']['service'], EventBus::class);
         $container->setAlias(EventBus::class, $config['event_bus']['service']);
+    }
+
+    /** @param Config $config */
+    private function configureOutbox(array $config, ContainerBuilder $container): void
+    {
+        if (!$config['outbox']['enabled']) {
+            return;
+        }
+
+        $container->register(DoctrineOutboxStore::class)
+            ->setArguments([
+                new Reference('event_sourcing.dbal_connection'),
+                new Reference(EventSerializer::class),
+            ])
+            ->addTag('event_sourcing.schema_configurator');
+
+        $container->setAlias(OutboxStore::class, DoctrineOutboxStore::class);
+
+        $container->register(OutboxEventBus::class)
+            ->setArguments([
+                new Reference(OutboxStore::class),
+                new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            ])
+            ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
+
+        if ($config['outbox']['parallel'] === true) {
+            $innerService = $container->getAlias(EventBus::class);
+
+            $container->register('event_sourcing.event_bus.outbox_chain', ChainEventBus::class)
+                ->setArguments([
+                    [
+                        new Reference((string)$innerService),
+                        new Reference(OutboxEventBus::class),
+                    ],
+                ]);
+
+            $container->setAlias(EventBus::class, 'event_sourcing.event_bus.outbox_chain');
+        } else {
+            $container->setAlias(EventBus::class, OutboxEventBus::class);
+        }
+
+        if ($config['outbox']['publisher'] === null) {
+            $container->register(EventBusPublisher::class)
+                ->setArguments([
+                    new Reference(Consumer::class),
+                ]);
+
+            $container->setAlias(OutboxPublisher::class, EventBusPublisher::class);
+        } else {
+            $container->setAlias(OutboxPublisher::class, $config['outbox']['publisher']);
+        }
+
+        $container->register(StoreOutboxProcessor::class)
+            ->setArguments([
+                new Reference(OutboxStore::class),
+                new Reference(OutboxPublisher::class),
+            ]);
+
+        $container->setAlias(OutboxProcessor::class, StoreOutboxProcessor::class);
+
+        $container->register(OutboxConsumeCommand::class)
+            ->setArguments([
+                new Reference(OutboxProcessor::class),
+            ])
+            ->addTag('console.command');
     }
 
     /** @param Config $config */
@@ -322,16 +409,23 @@ final class PatchlevelEventSourcingExtension extends Extension
             return;
         }
 
-        $innerService = $container->getAlias(EventBus::class);
-
-        $container->register(SyncProjectionistEventBusWrapper::class)
+        $container->register(ProjectionistEventBus::class)
             ->setArguments([
-                new Reference((string)$innerService),
                 new Reference(Projectionist::class),
                 new Reference('lock.default.factory'),
             ]);
 
-        $container->setAlias(EventBus::class, SyncProjectionistEventBusWrapper::class);
+        $innerService = $container->getAlias(EventBus::class);
+
+        $container->register('event_sourcing.event_bus.projectionist_chain', ChainEventBus::class)
+            ->setArguments([
+                [
+                    new Reference((string)$innerService),
+                    new Reference(ProjectionistEventBus::class),
+                ],
+            ]);
+
+        $container->setAlias(EventBus::class, 'event_sourcing.event_bus.projectionist_chain');
     }
 
     private function configureHydrator(ContainerBuilder $container): void
@@ -374,19 +468,17 @@ final class PatchlevelEventSourcingExtension extends Extension
             return;
         }
 
-        if ($config['connection']['url']) {
+        if ($config['connection']['url'] !== null) {
             $container->register('event_sourcing.dbal_connection', Connection::class)
-                ->setFactory([DriverManager::class, 'getConnection'])
+                ->setFactory([DbalConnectionFactory::class, 'createConnection'])
                 ->setArguments([
-                    [
-                        'url' => $config['connection']['url'],
-                    ],
+                    $config['connection']['url'],
                 ]);
 
             return;
         }
 
-        if (!$config['connection']['service']) {
+        if ($config['connection']['service'] === null) {
             return;
         }
 
@@ -400,7 +492,6 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->setArguments([
                 new Reference('event_sourcing.dbal_connection'),
                 new Reference(EventSerializer::class),
-                new Reference(AggregateRootRegistry::class),
                 $config['store']['options']['table_name'] ?? 'eventstore',
             ])
             ->addTag('event_sourcing.schema_configurator');
@@ -645,7 +736,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             return;
         }
 
-        if ($config['clock']['service']) {
+        if ($config['clock']['service'] !== null) {
             $container->setAlias('event_sourcing.clock', $config['clock']['service']);
 
             return;

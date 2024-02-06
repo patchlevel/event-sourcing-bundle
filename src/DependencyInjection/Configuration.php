@@ -45,6 +45,15 @@ final class Configuration implements ConfigurationInterface
                 ->end()
             ->end()
 
+            ->arrayNode('outbox')
+                ->canBeEnabled()
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->scalarNode('publisher')->defaultNull()->end()
+                    ->booleanNode('parallel')->defaultFalse()->end()
+                ->end()
+            ->end()
+
             ->arrayNode('events')
                 ->beforeNormalization()->castToArray()->end()
                 ->defaultValue([])
@@ -66,9 +75,9 @@ final class Configuration implements ConfigurationInterface
             ->end()
 
             ->arrayNode('watch_server')
+                ->canBeEnabled()
                 ->addDefaultsIfNotSet()
                 ->children()
-                    ->booleanNode('enabled')->defaultValue(false)->end()
                     ->scalarNode('host')->defaultValue('127.0.0.1:5000')->end()
                 ->end()
             ->end()
