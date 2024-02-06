@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "85f04e7ceba53d09b6c3fe58c8d1afe4",
+    "content-hash": "8fe5095938bb7d959a0d5bb44b56223e",
     "packages": [
         {
             "name": "brick/math",
@@ -218,7 +218,7 @@
         },
         {
             "name": "patchlevel/event-sourcing",
-            "version": "3.0.x-dev",
+            "version": "3.0.0-rc6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
@@ -298,7 +298,7 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
-                "source": "https://github.com/patchlevel/event-sourcing/tree/3.0.x"
+                "source": "https://github.com/patchlevel/event-sourcing/tree/3.0.0-rc6"
             },
             "time": "2024-02-06T14:25:29+00:00"
         },
@@ -8945,7 +8945,6 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "patchlevel/event-sourcing": 20,
         "roave/security-advisories": 20
     },
     "prefer-stable": true,
