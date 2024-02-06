@@ -22,6 +22,7 @@ use Patchlevel\EventSourcing\Console\Command\DatabaseCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\DatabaseDropCommand;
 use Patchlevel\EventSourcing\Console\Command\DebugCommand;
 use Patchlevel\EventSourcing\Console\Command\OutboxConsumeCommand;
+use Patchlevel\EventSourcing\Console\Command\OutboxInfoCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionBootCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionReactivateCommand;
 use Patchlevel\EventSourcing\Console\Command\ProjectionRebuildCommand;
@@ -324,6 +325,13 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(OutboxConsumeCommand::class)
             ->setArguments([
                 new Reference(OutboxProcessor::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(OutboxInfoCommand::class)
+            ->setArguments([
+                new Reference(OutboxStore::class),
+                new Reference(EventSerializer::class),
             ])
             ->addTag('console.command');
     }
