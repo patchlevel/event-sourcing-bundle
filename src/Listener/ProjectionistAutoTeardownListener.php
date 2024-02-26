@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Patchlevel\EventSourcingBundle\Listener;
 
 use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
+use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistCriteria;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
-use Symfony\Component\Lock\LockFactory;
 
 final class ProjectionistAutoTeardownListener
 {
     public function __construct(
         private readonly Projectionist $projectionist,
-        private readonly LockFactory $lockFactory,
+        private readonly ProjectionistCriteria|null $criteria = null,
     ) {
     }
 
@@ -22,16 +22,6 @@ final class ProjectionistAutoTeardownListener
             return;
         }
 
-        $lock = $this->lockFactory->createLock('projectionist-teardown');
-
-        if (!$lock->acquire()) {
-            return;
-        }
-
-        try {
-            $this->projectionist->teardown();
-        } finally {
-            $lock->release();
-        }
+        $this->projectionist->teardown($this->criteria);
     }
 }

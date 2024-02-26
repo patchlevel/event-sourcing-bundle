@@ -25,12 +25,20 @@ With the `Uuid` Normalizer, as the name suggests, you can convert Symfony Uuid o
 
 ```php
 use Patchlevel\EventSourcing\Attribute\Normalize;
-use Patchlevel\EventSourcingBundle\Normalizer\UuidNormalizer;
+use Patchlevel\EventSourcingBundle\Normalizer\SymfonyUuidNormalizer;
 use Symfony\Component\Uid\Uuid;
 
 final class DTO 
 {
-    #[UuidNormalizer]
+    #[SymfonyUuidNormalizer]
     public Uuid $id;
 }
 ```
+
+!!! warning
+
+    The symfony uuid don't implement the `AggregateId` interface, so it can be used as aggregate id.
+
+!!! tip
+
+    Use the `Uuid` implementation and `IdNormalizer` from the library to use it as an aggregate id.

@@ -22,16 +22,19 @@ patchlevel_event_sourcing:
 ## Define aggregates
 
 Next, you need to create a class to serve as an aggregate. 
-In our example it is a hotel. This class must inherit from `AggregateRoot` and get the `Aggregate` attribute.
+In our example it is a hotel. 
+This class must be marked with the `#[Aggregate]` attribute.
+And has to implement the `Patchlevel\EventSourcing\Aggregate\AggregateRoot` interface.
+To do this, you can extend the `Patchlevel\EventSourcing\Aggregate\BasicAggregateRoot` class.
 
 ```php
 namespace App\Domain\Hotel;
 
-use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
+use Patchlevel\EventSourcing\Aggregate\BasicAggregateRoot;
 use Patchlevel\EventSourcing\Attribute\Aggregate;
 
 #[Aggregate(name: 'hotel')]
-final class Hotel extends AggregateRoot
+final class Hotel extends BasicAggregateRoot
 {
     // ...
 }

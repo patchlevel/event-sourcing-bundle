@@ -16,6 +16,7 @@ We want to add the header information which user was logged in when this event w
 
 ```php
 use Patchlevel\EventSourcing\EventBus\Message;
+use Patchlevel\EventSourcing\Repository\MessageDecorator\MessageDecorator;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 final class LoggedUserDecorator implements MessageDecorator

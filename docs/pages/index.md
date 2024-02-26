@@ -13,7 +13,6 @@ for [event-sourcing](https://github.com/patchlevel/event-sourcing) library.
 * [Snapshots](snapshots.md) system to quickly rebuild the aggregates
 * [Pipeline](pipeline.md) to build new [projections](projection.md) or to migrate events
 * [Scheme management](store.md) and [doctrine migration](store.md) support
-* Dev [tools](watch_server.md) such as a realtime event watcher
 * Built in [cli commands](cli.md) with [symfony](https://symfony.com/)
 
 ## Installation

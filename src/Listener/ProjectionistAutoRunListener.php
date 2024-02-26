@@ -8,7 +8,7 @@ use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
 use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistCriteria;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
-final class ProjectionistAutoBootListener
+final class ProjectionistAutoRunListener
 {
     /** @param positive-int|null $limit */
     public function __construct(

@@ -17,6 +17,7 @@ And each repository is only responsible for one aggregate.
 You can access the specific repositories using the `RepositoryManager`.
 
 ```php
+use Patchlevel\EventSourcing\Aggregate\CustomId;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 
 final class HotelController
@@ -24,7 +25,7 @@ final class HotelController
     public function doStuffAction(RepositoryManager $repositoryManager): Response
     {
         $hotelRepository = $repositoryManager->get(Hotel::class);
-        $hotel = $hotelRepository->load('1');
+        $hotel = $hotelRepository->load(CostomerId::fromString('1'));
         
         $hotel->doStuff();
         

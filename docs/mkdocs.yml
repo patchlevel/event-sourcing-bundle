@@ -90,7 +90,4 @@ nav:
     - Pipeline: pipeline.md
     - Message Decorator: message_decorator.md
     - Time / Clock: clock.md
-  - Other / Tools:
     - CLI: cli.md
-    - Schema Migration: migration.md
-    - Watch Server: watch_server.md
