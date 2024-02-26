@@ -40,18 +40,13 @@ use Patchlevel\EventSourcing\Console\DoctrineHelper;
 use Patchlevel\EventSourcing\EventBus\AttributeListenerProvider;
 use Patchlevel\EventSourcing\EventBus\ChainEventBus;
 use Patchlevel\EventSourcing\EventBus\Consumer;
-use Patchlevel\EventSourcing\EventBus\Serializer\EventSerializerMessageSerializer;
-use Patchlevel\EventSourcing\EventBus\Serializer\MessageSerializer;
-use Patchlevel\EventSourcing\Projection\RetryStrategy\ClockBasedRetryStrategy;
-use Patchlevel\EventSourcing\Projection\RetryStrategy\RetryStrategy;
-use Patchlevel\EventSourcing\Repository\MessageDecorator\ChainMessageDecorator;
-use Patchlevel\EventSourcing\Repository\MessageDecorator\MessageDecorator;
-use Patchlevel\EventSourcing\Repository\MessageDecorator\SplitStreamDecorator;
 use Patchlevel\EventSourcing\EventBus\DefaultConsumer;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\ListenerProvider;
 use Patchlevel\EventSourcing\EventBus\Psr14EventBus;
+use Patchlevel\EventSourcing\EventBus\Serializer\EventSerializerMessageSerializer;
+use Patchlevel\EventSourcing\EventBus\Serializer\MessageSerializer;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootMetadataAwareMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
@@ -74,7 +69,12 @@ use Patchlevel\EventSourcing\Projection\Projection\Store\ProjectionStore;
 use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
 use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
 use Patchlevel\EventSourcing\Projection\Projector\ProjectorHelper;
+use Patchlevel\EventSourcing\Projection\RetryStrategy\ClockBasedRetryStrategy;
+use Patchlevel\EventSourcing\Projection\RetryStrategy\RetryStrategy;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
+use Patchlevel\EventSourcing\Repository\MessageDecorator\ChainMessageDecorator;
+use Patchlevel\EventSourcing\Repository\MessageDecorator\MessageDecorator;
+use Patchlevel\EventSourcing\Repository\MessageDecorator\SplitStreamDecorator;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 use Patchlevel\EventSourcing\Schema\ChainSchemaConfigurator;
 use Patchlevel\EventSourcing\Schema\DoctrineMigrationSchemaProvider;
@@ -396,13 +396,15 @@ final class PatchlevelEventSourcingExtension extends Extension
                 ->addTag('kernel.event_listener', ['priority' => 0]);
         }
 
-        if ($config['projection']['auto_teardown']) {
-            $container->register(ProjectionistAutoTeardownListener::class)
-                ->setArguments([
-                    new Reference(Projectionist::class),
-                ])
-                ->addTag('kernel.event_listener', ['priority' => -2]);
+        if (!$config['projection']['auto_teardown']) {
+            return;
         }
+
+        $container->register(ProjectionistAutoTeardownListener::class)
+            ->setArguments([
+                new Reference(Projectionist::class),
+            ])
+            ->addTag('kernel.event_listener', ['priority' => -2]);
     }
 
     private function configureHydrator(ContainerBuilder $container): void

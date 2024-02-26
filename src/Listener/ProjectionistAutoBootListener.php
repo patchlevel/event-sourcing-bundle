@@ -10,6 +10,7 @@ use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
 final class ProjectionistAutoBootListener
 {
+    /** @param positive-int|null $limit */
     public function __construct(
         private readonly Projectionist $projectionist,
         private readonly ProjectionistCriteria|null $criteria = null,
