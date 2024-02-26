@@ -29,7 +29,7 @@ use Patchlevel\EventSourcing\Serializer\Normalizer\IdNormalizer;
 final class HotelCreated
 {
     public function __construct(
-        #[IdNormalizer(Uuid::class)]
+        #[IdNormalizer]
         public readonly Uuid $id, 
         public readonly string $hotelName
     ) {
@@ -257,7 +257,7 @@ final class HotelProjection
     
     private function table(): string 
     {
-        return sprintf('%s_%s', $this->projectionName(), $this->projectionVersion());
+        return 'projection_' . $this->projectorId();
     }
 }
 ```
@@ -326,6 +326,10 @@ bin/console event-sourcing:database:create
 bin/console event-sourcing:schema:create
 bin/console event-sourcing:projection:boot
 ```
+
+!!! note
+
+    You can find out more about the database [here](store.md).
 
 ### Usage
 

@@ -34,3 +34,11 @@ final class DTO
     public Uuid $id;
 }
 ```
+
+!!! warning
+
+    The symfony uuid don't implement the `AggregateId` interface, so it can be used as aggregate id.
+
+!!! tip
+
+    Use the `Uuid` implementation and `IdNormalizer` from the library to use it as an aggregate id.

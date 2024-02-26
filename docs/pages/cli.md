@@ -34,3 +34,17 @@ The creation, deletion and rebuilding of the projections is also possible via th
 !!! note
 
     The [pipeline](./pipeline.md) will be used to rebuild the projection.
+
+
+## Migration commands
+
+After the migration lib has been installed, the migration commands are automatically configured:
+
+* ExecuteCommand: `event-sourcing:migrations:execute`
+* GenerateCommand: `event-sourcing:migrations:generate`
+* LatestCommand: `event-sourcing:migrations:latest`
+* ListCommand: `event-sourcing:migrations:list`
+* MigrateCommand: `event-sourcing:migrations:migrate`
+* DiffCommand: `event-sourcing:migrations:diff`
+* StatusCommand: `event-sourcing:migrations:status`
+* VersionCommand: `event-sourcing:migrations:version`

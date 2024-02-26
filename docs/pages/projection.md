@@ -30,9 +30,13 @@ use Patchlevel\EventSourcing\Attribute\Drop;
 use Patchlevel\EventSourcing\Attribute\Handle;
 use Patchlevel\EventSourcing\EventBus\Message;
 use Patchlevel\EventSourcing\Projection\Projector\Projector;
+use Patchlevel\EventSourcing\Projection\Projector\ProjectorUtil;
 
-final class HotelProjection implements Projector
+#[Projector(name: 'hotel')]
+final class HotelProjection
 {
+    use ProjectorUtil;
+
     private Connection $db;
 
     public function __construct(Connection $db)
@@ -45,7 +49,7 @@ final class HotelProjection implements Projector
      */
     public function getHotels(): array 
     {
-        return $this->db->fetchAllAssociative('SELECT id, name, guests FROM hotel;')
+        return $this->db->fetchAllAssociative(`SELECT id, name, guests FROM ${$this->table()};`)
     }
 
     #[Handle(HotelCreated::class)]
@@ -54,7 +58,7 @@ final class HotelProjection implements Projector
         $event = $message->event();
     
         $this->db->insert(
-            'hotel', 
+            $this->table(), 
             [
                 'id' => $event->aggregateId(), 
                 'name' => $event->hotelName(),
@@ -69,7 +73,7 @@ final class HotelProjection implements Projector
         $event = $message->event();
         
         $this->db->executeStatement(
-            'UPDATE hotel SET guests = guests + 1 WHERE id = ?;',
+            `UPDATE ${$this->table()} SET guests = guests + 1 WHERE id = ?;`,
             [$event->aggregateId()]
         );
     }
@@ -80,7 +84,7 @@ final class HotelProjection implements Projector
         $event = $message->event();
         
         $this->db->executeStatement(
-            'UPDATE hotel SET guests = guests - 1 WHERE id = ?;',
+            `UPDATE ${$this->table()} SET guests = guests - 1 WHERE id = ?;`,
             [$event->aggregateId()]
         );
     }
@@ -88,13 +92,18 @@ final class HotelProjection implements Projector
     #[Create]
     public function create(): void
     {
-        $this->db->executeStatement('CREATE TABLE IF NOT EXISTS hotel (id VARCHAR PRIMARY KEY, name VARCHAR, guests INTEGER);');
+        $this->db->executeStatement(`CREATE TABLE IF NOT EXISTS ${$this->table()} (id VARCHAR PRIMARY KEY, name VARCHAR, guests INTEGER);`);
     }
 
     #[Drop]
     public function drop(): void
     {
-        $this->db->executeStatement('DROP TABLE IF EXISTS hotel;');
+        $this->db->executeStatement(`DROP TABLE IF EXISTS ${$this->table()};`);
+    }
+    
+    private function table(): string 
+    {
+        return 'hotel_' . $this->projectorId();
     }
 }
 ```
@@ -115,7 +124,10 @@ services:
 The bundle also provides a few commands to create, delete or rebuild projections:
 
 ```bash
-bin/console event-sourcing:projection:create
-bin/console event-sourcing:projection:drop
+bin/console event-sourcing:projection:boot
+bin/console event-sourcing:projection:run
+bin/console event-sourcing:projection:teardown
+bin/console event-sourcing:projection:remove
+bin/console event-sourcing:projection:status
 bin/console event-sourcing:projection:rebuild
 ```

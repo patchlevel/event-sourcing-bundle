@@ -61,16 +61,6 @@ patchlevel_event_sourcing:
 
 You can also manage your schema with doctrine migrations.
 
-In order to be able to use `doctrine/migrations`,
-you have to install the associated package.
-
-```bash
-composer require doctrine/migrations
-```
-
-With this package, further commands are available such as. 
-for creating and executing migrations.
-
 ```bash
 bin/console event-sourcing:migration:diff
 bin/console event-sourcing:migration:migrate
@@ -84,7 +74,6 @@ patchlevel_event_sourcing:
         namespace: EventSourcingMigrations
         path: "%kernel.project_dir%/migrations"
 ```
-
 
 ## Merge ORM Schema
 
