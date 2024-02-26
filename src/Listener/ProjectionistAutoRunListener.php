@@ -8,11 +8,12 @@ use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
 use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistCriteria;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
-final class ProjectionistAutoTeardownListener
+final class ProjectionistAutoRunListener
 {
     public function __construct(
         private readonly Projectionist $projectionist,
         private readonly ProjectionistCriteria|null $criteria = null,
+        private readonly int|null $limit = null,
     ) {
     }
 
@@ -22,6 +23,6 @@ final class ProjectionistAutoTeardownListener
             return;
         }
 
-        $this->projectionist->teardown($this->criteria);
+        $this->projectionist->boot($this->criteria, $this->limit);
     }
 }

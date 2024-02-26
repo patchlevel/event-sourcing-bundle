@@ -40,9 +40,13 @@ use Patchlevel\EventSourcing\Console\DoctrineHelper;
 use Patchlevel\EventSourcing\EventBus\AttributeListenerProvider;
 use Patchlevel\EventSourcing\EventBus\ChainEventBus;
 use Patchlevel\EventSourcing\EventBus\Consumer;
-use Patchlevel\EventSourcing\EventBus\Decorator\ChainMessageDecorator;
-use Patchlevel\EventSourcing\EventBus\Decorator\MessageDecorator;
-use Patchlevel\EventSourcing\EventBus\Decorator\SplitStreamDecorator;
+use Patchlevel\EventSourcing\EventBus\Serializer\EventSerializerMessageSerializer;
+use Patchlevel\EventSourcing\EventBus\Serializer\MessageSerializer;
+use Patchlevel\EventSourcing\Projection\RetryStrategy\ClockBasedRetryStrategy;
+use Patchlevel\EventSourcing\Projection\RetryStrategy\RetryStrategy;
+use Patchlevel\EventSourcing\Repository\MessageDecorator\ChainMessageDecorator;
+use Patchlevel\EventSourcing\Repository\MessageDecorator\MessageDecorator;
+use Patchlevel\EventSourcing\Repository\MessageDecorator\SplitStreamDecorator;
 use Patchlevel\EventSourcing\EventBus\DefaultConsumer;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
@@ -69,12 +73,7 @@ use Patchlevel\EventSourcing\Projection\Projection\Store\DoctrineStore;
 use Patchlevel\EventSourcing\Projection\Projection\Store\ProjectionStore;
 use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
 use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
-use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistEventBus;
-use Patchlevel\EventSourcing\Projection\Projector\InMemoryProjectorRepository;
-use Patchlevel\EventSourcing\Projection\Projector\MetadataProjectorResolver;
 use Patchlevel\EventSourcing\Projection\Projector\ProjectorHelper;
-use Patchlevel\EventSourcing\Projection\Projector\ProjectorRepository;
-use Patchlevel\EventSourcing\Projection\Projector\ProjectorResolver;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 use Patchlevel\EventSourcing\Schema\ChainSchemaConfigurator;
@@ -96,20 +95,13 @@ use Patchlevel\EventSourcing\Snapshot\DefaultSnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
 use Patchlevel\EventSourcing\Store\DoctrineDbalStore;
 use Patchlevel\EventSourcing\Store\Store;
-use Patchlevel\EventSourcing\WatchServer\MessageSerializer;
-use Patchlevel\EventSourcing\WatchServer\PhpNativeMessageSerializer;
-use Patchlevel\EventSourcing\WatchServer\SocketWatchServer;
-use Patchlevel\EventSourcing\WatchServer\SocketWatchServerClient;
-use Patchlevel\EventSourcing\WatchServer\WatchListener;
-use Patchlevel\EventSourcing\WatchServer\WatchServer;
-use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
 use Patchlevel\EventSourcingBundle\Attribute\AsProcessor;
 use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
 use Patchlevel\EventSourcingBundle\DataCollector\MessageListener;
 use Patchlevel\EventSourcingBundle\Doctrine\DbalConnectionFactory;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoBootListener;
-use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoRecoveryListener;
+use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoRunListener;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoTeardownListener;
 use Patchlevel\Hydrator\Hydrator;
 use Patchlevel\Hydrator\MetadataHydrator;
@@ -127,8 +119,7 @@ use function sprintf;
  * @psalm-type Config = array{
  *     event_bus: array{type: string, service: string},
  *     outbox: array{enabled: bool, publisher: ?string, parallel: bool},
- *     projection: array{sync: bool, auto_boot: bool, auto_recovery: bool, auto_teardown: bool},
- *     watch_server: array{enabled: bool, host: string},
+ *     projection: array{retry_strategy: array{base_delay: int, delay_factor: int, max_attempts: int}, auto_boot: bool, auto_run: bool, auto_teardown: bool},
  *     connection: ?array{service: ?string, url: ?string},
  *     store: array{merge_orm_schema: bool, options: array<string, mixed>},
  *     aggregates: list<string>,
@@ -167,7 +158,6 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureClock($config, $container);
         $this->configureSchema($config, $container);
         $this->configureProjection($config, $container);
-        $this->configureWatchServer($config, $container);
 
         if (!class_exists(DependencyFactory::class) || $config['store']['merge_orm_schema'] !== false) {
             return;
@@ -213,6 +203,13 @@ final class PatchlevelEventSourcingExtension extends Extension
                 ]);
             },
         );
+
+        $container->register(EventSerializerMessageSerializer::class)
+            ->setArguments([
+                new Reference(EventSerializer::class),
+            ]);
+
+        $container->setAlias(MessageSerializer::class, EventSerializerMessageSerializer::class);
 
         if ($config['event_bus']['type'] === 'default') {
             $container->register(AttributeListenerProvider::class)
@@ -274,7 +271,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(DoctrineOutboxStore::class)
             ->setArguments([
                 new Reference('event_sourcing.dbal_connection'),
-                new Reference(EventSerializer::class),
+                new Reference(MessageSerializer::class),
             ])
             ->addTag('event_sourcing.schema_configurator');
 
@@ -346,22 +343,18 @@ final class PatchlevelEventSourcingExtension extends Extension
             },
         );
 
-        $container->register(InMemoryProjectorRepository::class)
-            ->setArguments([
-                new TaggedIteratorArgument('event_sourcing.projector'),
-            ]);
-
-        $container->setAlias(ProjectorRepository::class, InMemoryProjectorRepository::class);
-
         $container->register(AttributeProjectorMetadataFactory::class);
         $container->setAlias(ProjectorMetadataFactory::class, AttributeProjectorMetadataFactory::class);
 
-        $container->register(MetadataProjectorResolver::class)
+        $container->register(ClockBasedRetryStrategy::class)
             ->setArguments([
-                new Reference(ProjectorMetadataFactory::class),
+                new Reference('event_sourcing.clock'),
+                $config['projection']['retry_strategy']['base_delay'],
+                $config['projection']['retry_strategy']['delay_factor'],
+                $config['projection']['retry_strategy']['max_attempts'],
             ]);
 
-        $container->setAlias(ProjectorResolver::class, MetadataProjectorResolver::class);
+        $container->setAlias(RetryStrategy::class, ClockBasedRetryStrategy::class);
 
         $container->register(ProjectorHelper::class)
             ->setArguments([new Reference(ProjectorMetadataFactory::class)]);
@@ -378,8 +371,9 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->setArguments([
                 new Reference(Store::class),
                 new Reference(ProjectionStore::class),
-                new Reference(ProjectorRepository::class),
-                new Reference(ProjectorResolver::class),
+                new TaggedIteratorArgument('event_sourcing.projector'),
+                new Reference(RetryStrategy::class),
+                new Reference(ProjectorMetadataFactory::class),
                 new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             ])
             ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
@@ -390,50 +384,25 @@ final class PatchlevelEventSourcingExtension extends Extension
             $container->register(ProjectionistAutoBootListener::class)
                 ->setArguments([
                     new Reference(Projectionist::class),
-                    new Reference('lock.default.factory'),
-                ])
-                ->addTag('kernel.event_listener', ['priority' => 0]);
-        }
-
-        if ($config['projection']['auto_recovery']) {
-            $container->register(ProjectionistAutoRecoveryListener::class)
-                ->setArguments([
-                    new Reference(Projectionist::class),
-                    new Reference('lock.default.factory'),
                 ])
                 ->addTag('kernel.event_listener', ['priority' => 2]);
+        }
+
+        if ($config['projection']['auto_run']) {
+            $container->register(ProjectionistAutoRunListener::class)
+                ->setArguments([
+                    new Reference(Projectionist::class),
+                ])
+                ->addTag('kernel.event_listener', ['priority' => 0]);
         }
 
         if ($config['projection']['auto_teardown']) {
             $container->register(ProjectionistAutoTeardownListener::class)
                 ->setArguments([
                     new Reference(Projectionist::class),
-                    new Reference('lock.default.factory'),
                 ])
                 ->addTag('kernel.event_listener', ['priority' => -2]);
         }
-
-        if (!$config['projection']['sync']) {
-            return;
-        }
-
-        $container->register(ProjectionistEventBus::class)
-            ->setArguments([
-                new Reference(Projectionist::class),
-                new Reference('lock.default.factory'),
-            ]);
-
-        $innerService = $container->getAlias(EventBus::class);
-
-        $container->register('event_sourcing.event_bus.projectionist_chain', ChainEventBus::class)
-            ->setArguments([
-                [
-                    new Reference((string)$innerService),
-                    new Reference(ProjectionistEventBus::class),
-                ],
-            ]);
-
-        $container->setAlias(EventBus::class, 'event_sourcing.event_bus.projectionist_chain');
     }
 
     private function configureHydrator(ContainerBuilder $container): void
@@ -584,6 +553,13 @@ final class PatchlevelEventSourcingExtension extends Extension
             ])
             ->addTag('console.command');
 
+        $container->register(WatchCommand::class)
+            ->setArguments([
+                new Reference(Store::class),
+                new Reference(EventSerializer::class),
+            ])
+            ->addTag('console.command');
+
         $container->register(DebugCommand::class)
             ->setArguments([
                 new Reference(AggregateRootRegistry::class),
@@ -630,40 +606,6 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(ProjectionRebuildCommand::class)
             ->setArguments([
                 new Reference(Projectionist::class),
-            ])
-            ->addTag('console.command');
-    }
-
-    /** @param Config $config */
-    private function configureWatchServer(array $config, ContainerBuilder $container): void
-    {
-        if (!$config['watch_server']['enabled']) {
-            return;
-        }
-
-        $container->register(PhpNativeMessageSerializer::class)
-            ->setArguments([new Reference(EventSerializer::class)]);
-
-        $container->setAlias(MessageSerializer::class, PhpNativeMessageSerializer::class);
-
-        $container->register(SocketWatchServerClient::class)
-            ->setArguments([$config['watch_server']['host'], new Reference(MessageSerializer::class)]);
-
-        $container->setAlias(WatchServerClient::class, SocketWatchServerClient::class);
-
-        $container->register(WatchListener::class)
-            ->setArguments([new Reference(WatchServerClient::class)])
-            ->addTag('event_sourcing.processor');
-
-        $container->register(SocketWatchServer::class)
-            ->setArguments([$config['watch_server']['host'], new Reference(MessageSerializer::class)]);
-
-        $container->setAlias(WatchServer::class, SocketWatchServer::class);
-
-        $container->register(WatchCommand::class)
-            ->setArguments([
-                new Reference(WatchServer::class),
-                new Reference(EventSerializer::class),
             ])
             ->addTag('console.command');
     }

@@ -33,14 +33,14 @@ This class must get the `Event` attribute with a unique event name.
 namespace App\Domain\Hotel\Event;
 
 use Patchlevel\EventSourcing\Attribute\Event;
-use Patchlevel\EventSourcingBundle\Normalizer\UuidNormalizer;
+use Patchlevel\EventSourcingBundle\Normalizer\SymfonyUuidNormalizer;
 use Symfony\Component\Uid\Uuid;
 
 #[Event('hotel.created')]
 final class HotelCreated
 {
     public function __construct(
-        #[UuidNormalizer]
+        #[SymfonyUuidNormalizer]
         public readonly Uuid $id, 
         public readonly string $hotelName
     ) {

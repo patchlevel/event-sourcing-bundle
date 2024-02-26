@@ -25,12 +25,12 @@ With the `Uuid` Normalizer, as the name suggests, you can convert Symfony Uuid o
 
 ```php
 use Patchlevel\EventSourcing\Attribute\Normalize;
-use Patchlevel\EventSourcingBundle\Normalizer\UuidNormalizer;
+use Patchlevel\EventSourcingBundle\Normalizer\SymfonyUuidNormalizer;
 use Symfony\Component\Uid\Uuid;
 
 final class DTO 
 {
-    #[UuidNormalizer]
+    #[SymfonyUuidNormalizer]
     public Uuid $id;
 }
 ```
