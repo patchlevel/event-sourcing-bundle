@@ -10,9 +10,14 @@ use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
 final class ProjectionistAutoTeardownListener
 {
+    /**
+     * @param list<string>|null $ids
+     * @param list<string>|null $groups
+     */
     public function __construct(
         private readonly Projectionist $projectionist,
-        private readonly ProjectionistCriteria|null $criteria = null,
+        private readonly array|null $ids = null,
+        private readonly array|null $groups = null,
     ) {
     }
 
@@ -22,6 +27,11 @@ final class ProjectionistAutoTeardownListener
             return;
         }
 
-        $this->projectionist->teardown($this->criteria);
+        $this->projectionist->teardown(
+            new ProjectionistCriteria(
+                $this->ids,
+                $this->groups,
+            )
+        );
     }
 }

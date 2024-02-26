@@ -58,7 +58,6 @@ use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoBootListener;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoRunListener;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoTeardownListener;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
-use Patchlevel\EventSourcingBundle\Tests\Fixtures\CreatedSubscriber;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor2;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Profile;
@@ -117,6 +116,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(DefaultRepositoryManager::class, $container->get(RepositoryManager::class));
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
         self::assertInstanceOf(SystemClock::class, $container->get('event_sourcing.clock'));
+        self::assertInstanceOf(DefaultProjectionist::class, $container->get(Projectionist::class));
     }
 
     public function testConnectionService(): void

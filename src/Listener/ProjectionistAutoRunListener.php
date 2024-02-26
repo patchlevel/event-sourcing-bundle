@@ -10,10 +10,15 @@ use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
 final class ProjectionistAutoRunListener
 {
-    /** @param positive-int|null $limit */
+    /**
+     * @param list<string>|null $ids
+     * @param list<string>|null $groups
+     * @param positive-int|null $limit
+     */
     public function __construct(
         private readonly Projectionist $projectionist,
-        private readonly ProjectionistCriteria|null $criteria = null,
+        private readonly array|null $ids = null,
+        private readonly array|null $groups = null,
         private readonly int|null $limit = null,
     ) {
     }
@@ -24,6 +29,12 @@ final class ProjectionistAutoRunListener
             return;
         }
 
-        $this->projectionist->boot($this->criteria, $this->limit);
+        $this->projectionist->run(
+            new ProjectionistCriteria(
+                $this->ids,
+                $this->groups,
+            ),
+            $this->limit
+        );
     }
 }

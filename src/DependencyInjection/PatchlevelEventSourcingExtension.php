@@ -117,16 +117,21 @@ use function sprintf;
 
 /**
  * @psalm-type Config = array{
- *     event_bus: array{type: string, service: string},
- *     outbox: array{enabled: bool, publisher: ?string, parallel: bool},
- *     projection: array{retry_strategy: array{base_delay: int, delay_factor: int, max_attempts: int}, auto_boot: bool, auto_run: bool, auto_teardown: bool},
- *     connection: ?array{service: ?string, url: ?string},
- *     store: array{merge_orm_schema: bool, options: array<string, mixed>},
- *     aggregates: list<string>,
- *     events: list<string>,
- *     snapshot_stores: array<string, array{type: string, service: string}>,
- *     migration: array{path: string, namespace: string},
- *     clock: array{freeze: ?string, service: ?string}
+ *      event_bus: array{type: string, service: string},
+ *      outbox: array{enabled: bool, publisher: ?string, parallel: bool},
+ *      projection: array{
+ *          retry_strategy: array{base_delay: int, delay_factor: int, max_attempts: int},
+ *          auto_boot: array{enabled: bool, ids: list<string>, groups: list<string>, limit: positive-int|null},
+ *          auto_run: array{enabled: bool, ids: list<string>, groups: list<string>, limit: positive-int|null},
+ *          auto_teardown: array{enabled: bool, ids: list<string>, groups: list<string>}
+ *      },
+ *      connection: ?array{service: ?string, url: ?string},
+ *      store: array{merge_orm_schema: bool, options: array<string, mixed>},
+ *      aggregates: list<string>,
+ *      events: list<string>,
+ *      snapshot_stores: array<string, array{type: string, service: string}>,
+ *      migration: array{path: string, namespace: string},
+ *      clock: array{freeze: ?string, service: ?string}
  * }
  */
 final class PatchlevelEventSourcingExtension extends Extension
@@ -380,29 +385,37 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->setAlias(Projectionist::class, DefaultProjectionist::class);
 
-        if ($config['projection']['auto_boot']) {
+        if ($config['projection']['auto_boot']['enabled']) {
             $container->register(ProjectionistAutoBootListener::class)
                 ->setArguments([
                     new Reference(Projectionist::class),
+                    $config['projection']['auto_boot']['ids'] ?? null,
+                    $config['projection']['auto_boot']['groups'] ?? null,
+                    $config['projection']['auto_boot']['limit'],
                 ])
                 ->addTag('kernel.event_listener', ['priority' => 2]);
         }
 
-        if ($config['projection']['auto_run']) {
+        if ($config['projection']['auto_run']['enabled']) {
             $container->register(ProjectionistAutoRunListener::class)
                 ->setArguments([
                     new Reference(Projectionist::class),
+                    $config['projection']['auto_run']['ids'] ?? null,
+                    $config['projection']['auto_run']['groups'] ?? null,
+                    $config['projection']['auto_run']['limit'],
                 ])
                 ->addTag('kernel.event_listener', ['priority' => 0]);
         }
 
-        if (!$config['projection']['auto_teardown']) {
+        if (!$config['projection']['auto_teardown']['enabled']) {
             return;
         }
 
         $container->register(ProjectionistAutoTeardownListener::class)
             ->setArguments([
                 new Reference(Projectionist::class),
+                $config['projection']['auto_teardown']['ids'] ?? null,
+                $config['projection']['auto_teardown']['groups'] ?? null,
             ])
             ->addTag('kernel.event_listener', ['priority' => -2]);
     }
