@@ -670,7 +670,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(SplitStreamDecorator::class, $container->get(SplitStreamDecorator::class));
     }
 
-    public function testProjectionistAutoBoot(): void
+    public function testProjectionistAutoListener(): void
     {
         $container = new ContainerBuilder();
 
@@ -682,54 +682,27 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
                     'projection' => [
-                        'auto_boot' => true,
+                        'auto_boot' => [
+                            'ids' => ['foo'],
+                            'groups' => ['bar'],
+                            'limit' => 10,
+                        ],
+                        'auto_run' => [
+                            'ids' => ['foo'],
+                            'groups' => ['bar'],
+                            'limit' => 10,
+                        ],
+                        'auto_teardown' => [
+                            'ids' => ['foo'],
+                            'groups' => ['bar'],
+                        ],
                     ],
                 ],
             ]
         );
 
         self::assertInstanceOf(ProjectionistAutoBootListener::class, $container->get(ProjectionistAutoBootListener::class));
-    }
-
-    public function testProjectionistAutoRun(): void
-    {
-        $container = new ContainerBuilder();
-
-        $this->compileContainer(
-            $container,
-            [
-                'patchlevel_event_sourcing' => [
-                    'connection' => [
-                        'service' => 'doctrine.dbal.eventstore_connection',
-                    ],
-                    'projection' => [
-                        'auto_run' => true,
-                    ],
-                ],
-            ]
-        );
-
         self::assertInstanceOf(ProjectionistAutoRunListener::class, $container->get(ProjectionistAutoRunListener::class));
-    }
-
-    public function testProjectionistAutoTeardown(): void
-    {
-        $container = new ContainerBuilder();
-
-        $this->compileContainer(
-            $container,
-            [
-                'patchlevel_event_sourcing' => [
-                    'connection' => [
-                        'service' => 'doctrine.dbal.eventstore_connection',
-                    ],
-                    'projection' => [
-                        'auto_teardown' => true,
-                    ],
-                ],
-            ]
-        );
-
         self::assertInstanceOf(ProjectionistAutoTeardownListener::class, $container->get(ProjectionistAutoTeardownListener::class));
     }
 

@@ -34,7 +34,7 @@ final class ProjectionistAutoBootListener
                 $this->ids,
                 $this->groups,
             ),
-            $this->limit
+            $this->limit,
         );
     }
 }

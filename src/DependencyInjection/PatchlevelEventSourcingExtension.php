@@ -389,8 +389,8 @@ final class PatchlevelEventSourcingExtension extends Extension
             $container->register(ProjectionistAutoBootListener::class)
                 ->setArguments([
                     new Reference(Projectionist::class),
-                    $config['projection']['auto_boot']['ids'] ?? null,
-                    $config['projection']['auto_boot']['groups'] ?? null,
+                    $config['projection']['auto_boot']['ids'] ?: null,
+                    $config['projection']['auto_boot']['groups'] ?: null,
                     $config['projection']['auto_boot']['limit'],
                 ])
                 ->addTag('kernel.event_listener', ['priority' => 2]);
@@ -400,8 +400,8 @@ final class PatchlevelEventSourcingExtension extends Extension
             $container->register(ProjectionistAutoRunListener::class)
                 ->setArguments([
                     new Reference(Projectionist::class),
-                    $config['projection']['auto_run']['ids'] ?? null,
-                    $config['projection']['auto_run']['groups'] ?? null,
+                    $config['projection']['auto_run']['ids'] ?: null,
+                    $config['projection']['auto_run']['groups'] ?: null,
                     $config['projection']['auto_run']['limit'],
                 ])
                 ->addTag('kernel.event_listener', ['priority' => 0]);
@@ -414,8 +414,8 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(ProjectionistAutoTeardownListener::class)
             ->setArguments([
                 new Reference(Projectionist::class),
-                $config['projection']['auto_teardown']['ids'] ?? null,
-                $config['projection']['auto_teardown']['groups'] ?? null,
+                $config['projection']['auto_teardown']['ids'] ?: null,
+                $config['projection']['auto_teardown']['groups'] ?: null,
             ])
             ->addTag('kernel.event_listener', ['priority' => -2]);
     }
