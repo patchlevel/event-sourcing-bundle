@@ -31,7 +31,7 @@ final class ProjectionistAutoTeardownListener
             new ProjectionistCriteria(
                 $this->ids,
                 $this->groups,
-            )
+            ),
         );
     }
 }
