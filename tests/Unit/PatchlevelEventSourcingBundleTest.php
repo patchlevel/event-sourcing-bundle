@@ -42,6 +42,7 @@ use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
 use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
+use Patchlevel\EventSourcing\Repository\MessageDecorator\TraceStack;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaProvider;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaSubscriber;
@@ -749,6 +750,25 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertFalse($container->has(DoctrineSchemaProvider::class));
         self::assertFalse($container->has(DatabaseCreateCommand::class));
         self::assertFalse($container->has('event_sourcing.command.migration_diff'));
+    }
+
+    public function testTrace(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'trace' => true,
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(TraceStack::class, $container->get(TraceStack::class));
     }
 
     public function testFullBuild(): void

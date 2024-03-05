@@ -68,20 +68,25 @@ use Patchlevel\EventSourcing\Projection\Projection\Store\DoctrineStore;
 use Patchlevel\EventSourcing\Projection\Projection\Store\ProjectionStore;
 use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
 use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
+use Patchlevel\EventSourcing\Projection\Projector\MetadataProjectorAccessorRepository;
+use Patchlevel\EventSourcing\Projection\Projector\ProjectorAccessorRepository;
 use Patchlevel\EventSourcing\Projection\Projector\ProjectorHelper;
+use Patchlevel\EventSourcing\Projection\Projector\TraceableProjectorAccessorRepository;
 use Patchlevel\EventSourcing\Projection\RetryStrategy\ClockBasedRetryStrategy;
 use Patchlevel\EventSourcing\Projection\RetryStrategy\RetryStrategy;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\ChainMessageDecorator;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\MessageDecorator;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\SplitStreamDecorator;
+use Patchlevel\EventSourcing\Repository\MessageDecorator\TraceDecorator;
+use Patchlevel\EventSourcing\Repository\MessageDecorator\TraceStack;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
-use Patchlevel\EventSourcing\Schema\ChainSchemaConfigurator;
+use Patchlevel\EventSourcing\Schema\ChainDoctrineSchemaConfigurator;
 use Patchlevel\EventSourcing\Schema\DoctrineMigrationSchemaProvider;
+use Patchlevel\EventSourcing\Schema\DoctrineSchemaConfigurator;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaDirector;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaProvider;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaSubscriber;
-use Patchlevel\EventSourcing\Schema\SchemaConfigurator;
 use Patchlevel\EventSourcing\Schema\SchemaDirector;
 use Patchlevel\EventSourcing\Serializer\DefaultEventSerializer;
 use Patchlevel\EventSourcing\Serializer\Encoder\Encoder;
@@ -103,10 +108,12 @@ use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoBootListener;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoRunListener;
 use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoTeardownListener;
+use Patchlevel\EventSourcingBundle\Listener\TraceListener;
 use Patchlevel\Hydrator\Hydrator;
 use Patchlevel\Hydrator\MetadataHydrator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ChildDefinition;
+use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
@@ -131,7 +138,8 @@ use function sprintf;
  *      events: list<string>,
  *      snapshot_stores: array<string, array{type: string, service: string}>,
  *      migration: array{path: string, namespace: string},
- *      clock: array{freeze: ?string, service: ?string}
+ *      clock: array{freeze: ?string, service: ?string},
+ *      trace: bool
  * }
  */
 final class PatchlevelEventSourcingExtension extends Extension
@@ -163,6 +171,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureClock($config, $container);
         $this->configureSchema($config, $container);
         $this->configureProjection($config, $container);
+        $this->configureTracing($config, $container);
 
         if (!class_exists(DependencyFactory::class) || $config['store']['merge_orm_schema'] !== false) {
             return;
@@ -372,13 +381,20 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->setAlias(ProjectionStore::class, DoctrineStore::class);
 
+        $container->register(MetadataProjectorAccessorRepository::class)
+            ->setArguments([
+                new TaggedIteratorArgument('event_sourcing.projector'),
+                new Reference(ProjectorMetadataFactory::class),
+            ]);
+
+        $container->setAlias(ProjectorAccessorRepository::class, MetadataProjectorAccessorRepository::class);
+
         $container->register(DefaultProjectionist::class)
             ->setArguments([
                 new Reference(Store::class),
                 new Reference(ProjectionStore::class),
-                new TaggedIteratorArgument('event_sourcing.projector'),
+                new Reference(ProjectorAccessorRepository::class),
                 new Reference(RetryStrategy::class),
-                new Reference(ProjectorMetadataFactory::class),
                 new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             ])
             ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
@@ -714,14 +730,14 @@ final class PatchlevelEventSourcingExtension extends Extension
     /** @param Config $config */
     private function configureSchema(array $config, ContainerBuilder $container): void
     {
-        $container->register(ChainSchemaConfigurator::class)
+        $container->register(ChainDoctrineSchemaConfigurator::class)
             ->setArguments([new TaggedIteratorArgument('event_sourcing.schema_configurator')]);
 
-        $container->setAlias(SchemaConfigurator::class, ChainSchemaConfigurator::class);
+        $container->setAlias(DoctrineSchemaConfigurator::class, ChainDoctrineSchemaConfigurator::class);
 
         if ($config['store']['merge_orm_schema']) {
             $container->register(DoctrineSchemaSubscriber::class)
-                ->setArguments([new Reference(SchemaConfigurator::class)])
+                ->setArguments([new Reference(DoctrineSchemaConfigurator::class)])
                 ->addTag('doctrine.event_subscriber');
 
             return;
@@ -730,7 +746,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(DoctrineSchemaDirector::class)
             ->setArguments([
                 new Reference('event_sourcing.dbal_connection'),
-                new Reference(SchemaConfigurator::class),
+                new Reference(DoctrineSchemaConfigurator::class),
             ]);
 
         $container->setAlias(DoctrineSchemaProvider::class, DoctrineSchemaDirector::class);
@@ -769,5 +785,58 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(SchemaDirector::class),
             ])
             ->addTag('console.command');
+    }
+
+    /** @param Config $config */
+    private function configureTracing(array $config, ContainerBuilder $container): void
+    {
+        if (!$config['trace']) {
+            return;
+        }
+
+        $container->register(TraceStack::class);
+
+        $container->register(TraceDecorator::class)
+            ->setArguments([
+                new Reference(TraceStack::class),
+            ])
+            ->addTag('event_sourcing.message_decorator');
+
+        $innerService = $container->getAlias(ProjectorAccessorRepository::class);
+
+        $container->register(TraceableProjectorAccessorRepository::class)
+            ->setArguments([
+                new Reference((string)$innerService),
+                new Reference(TraceStack::class),
+            ]);
+
+        $container->setAlias(ProjectorAccessorRepository::class, TraceableProjectorAccessorRepository::class);
+
+        $container->register(TraceListener::class)
+            ->setArguments([
+                new Reference(TraceStack::class),
+            ])
+            ->addTag('kernel.event_listener', [
+                'priority' => 100,
+                'event' => 'console.command',
+                'method' => 'onConsoleCommand',
+            ])
+            ->addTag('kernel.event_listener', [
+                'priority' => 100,
+                'event' => 'console.terminate',
+                'method' => 'onConsoleTerminate',
+            ])
+            ->addTag('kernel.event_listener', [
+                'priority' => 100,
+                'event' => 'kernel.request',
+                'method' => 'onRequest',
+            ])
+            ->addTag('kernel.event_listener', [
+                'priority' => 100,
+                'event' => 'kernel.response',
+                'method' => 'onResponse',
+            ]);
+
+        $container->addCompilerPass(new TraceCompilerPass(), PassConfig::TYPE_BEFORE_OPTIMIZATION, -100);
     }
 }

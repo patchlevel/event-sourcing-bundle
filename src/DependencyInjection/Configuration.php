@@ -138,7 +138,7 @@ final class Configuration implements ConfigurationInterface
                     ->end()
                 ->end()
             ->end()
-
+            ->booleanNode('trace')->defaultFalse()->end()
         ->end();
         // @codingStandardsIgnoreEnd
 
