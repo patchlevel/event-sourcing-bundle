@@ -113,7 +113,6 @@ use Patchlevel\Hydrator\Hydrator;
 use Patchlevel\Hydrator\MetadataHydrator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ChildDefinition;
-use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
@@ -836,7 +835,5 @@ final class PatchlevelEventSourcingExtension extends Extension
                 'event' => 'kernel.response',
                 'method' => 'onResponse',
             ]);
-
-        $container->addCompilerPass(new TraceCompilerPass(), PassConfig::TYPE_BEFORE_OPTIMIZATION, -100);
     }
 }
