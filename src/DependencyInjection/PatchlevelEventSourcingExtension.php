@@ -816,22 +816,22 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(TraceStack::class),
             ])
             ->addTag('kernel.event_listener', [
-                'priority' => 100,
+                'priority' => 0,
                 'event' => 'console.command',
                 'method' => 'onConsoleCommand',
             ])
             ->addTag('kernel.event_listener', [
-                'priority' => 100,
+                'priority' => 0,
                 'event' => 'console.terminate',
                 'method' => 'onConsoleTerminate',
             ])
             ->addTag('kernel.event_listener', [
-                'priority' => 100,
+                'priority' => 0,
                 'event' => 'kernel.request',
                 'method' => 'onRequest',
             ])
             ->addTag('kernel.event_listener', [
-                'priority' => 100,
+                'priority' => 0,
                 'event' => 'kernel.response',
                 'method' => 'onResponse',
             ]);

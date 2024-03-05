@@ -26,17 +26,16 @@ final class TraceHandlersLocator implements HandlersLocatorInterface
         $busName = $envelope->last(BusNameStamp::class)->getBusName();
 
         foreach ($this->parent->getHandlers($envelope) as $handler) {
-            $this->traceStack->add(new Trace(
+            $trace = new Trace(
                 $handler->getName(),
                 'symfony/messenger/' . $busName,
-            ));
+            );
+
+            $this->traceStack->add($trace);
 
             yield $handler;
 
-            $this->traceStack->remove(new Trace(
-                $handler->getName(),
-                'symfony/messenger/' . $busName,
-            ));
+            $this->traceStack->remove($trace);
         }
     }
 }
