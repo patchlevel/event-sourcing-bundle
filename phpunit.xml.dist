@@ -5,6 +5,7 @@
         colors="true"
         xsi:noNamespaceSchemaLocation="/vendor/phpunit/phpunit/phpunit.xsd"
         cacheDirectory=".phpunit.cache"
+        displayDetailsOnTestsThatTriggerWarnings="true"
 >
   <testsuites>
     <testsuite name="unit">

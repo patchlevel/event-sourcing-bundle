@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Patchlevel\EventSourcingBundle\DataCollector;
 
 use DateTimeImmutable;
+use Patchlevel\EventSourcing\Aggregate\AggregateHeader;
 use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
-use Patchlevel\EventSourcing\EventBus\Message;
+use Patchlevel\EventSourcing\Message\Message;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
 use Patchlevel\EventSourcing\Serializer\Encoder\Encoder;
@@ -56,16 +57,18 @@ final class EventSourcingCollector extends DataCollector
 
                 $serializedEvent = $this->eventSerializer->serialize($event, [Encoder::OPTION_PRETTY_PRINT => true]);
 
+                $aggregateHeader = $message->header(AggregateHeader::class);
+
                 return [
                     'event_class' => $event::class,
                     'event_name' => $serializedEvent->name,
                     'payload' => $serializedEvent->payload,
-                    'aggregate_name' => $message->aggregateName(),
-                    'aggregate_class' => $this->aggregateRootRegistry->aggregateClass($message->aggregateName()),
-                    'aggregate_id' => $message->aggregateId(),
-                    'playhead' => $message->playhead(),
-                    'recorded_on' => $message->recordedOn()->format(DateTimeImmutable::ATOM),
-                    'custom_headers' => $this->cloneVar($message->customHeaders()),
+                    'aggregate_name' => $aggregateHeader->aggregateName,
+                    'aggregate_class' => $this->aggregateRootRegistry->aggregateClass($aggregateHeader->aggregateName),
+                    'aggregate_id' => $aggregateHeader->aggregateId,
+                    'playhead' => $aggregateHeader->playhead,
+                    'recorded_on' => $aggregateHeader->recordedOn->format(DateTimeImmutable::ATOM),
+                    'headers' => $this->cloneVar($message->headers()),
                 ];
             },
             $this->messageListener->get(),
