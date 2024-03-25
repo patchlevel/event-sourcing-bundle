@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Patchlevel\EventSourcingBundle\DataCollector;
 
 use Patchlevel\EventSourcing\Attribute\Subscribe;
-use Patchlevel\EventSourcing\EventBus\Message;
+use Patchlevel\EventSourcing\Message\Message;
 
 final class MessageListener
 {

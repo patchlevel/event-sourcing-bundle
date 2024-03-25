@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\Listener;
 
-use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
-use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistCriteria;
+use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
+use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngineCriteria;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
-final class ProjectionistAutoTeardownListener
+final class SubscriptionAutoTeardownListener
 {
     /**
      * @param list<string>|null $ids
      * @param list<string>|null $groups
      */
     public function __construct(
-        private readonly Projectionist $projectionist,
+        private readonly SubscriptionEngine $engine,
         private readonly array|null $ids = null,
         private readonly array|null $groups = null,
     ) {
@@ -27,8 +27,8 @@ final class ProjectionistAutoTeardownListener
             return;
         }
 
-        $this->projectionist->teardown(
-            new ProjectionistCriteria(
+        $this->engine->teardown(
+            new SubscriptionEngineCriteria(
                 $this->ids,
                 $this->groups,
             ),

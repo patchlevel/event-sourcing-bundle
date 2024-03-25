@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Patchlevel\EventSourcingBundle\Tests\Unit\DataCollector;
 
 use DateTimeImmutable;
+use Patchlevel\EventSourcing\Aggregate\AggregateHeader;
 use Patchlevel\EventSourcing\Aggregate\CustomId;
-use Patchlevel\EventSourcing\EventBus\Message;
+use Patchlevel\EventSourcing\Message\Message;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
 use Patchlevel\EventSourcing\Serializer\Encoder\Encoder;
@@ -40,13 +41,16 @@ class EventSourcingCollectorTest extends TestCase
         $event = new ProfileCreated(new CustomId('1'));
 
         $message = Message::createWithHeaders($event, [
-            Message::HEADER_AGGREGATE_NAME => 'profile',
-            Message::HEADER_AGGREGATE_ID => '1',
-            Message::HEADER_PLAYHEAD => 1,
-            Message::HEADER_RECORDED_ON => new DateTimeImmutable('2022-07-07T18:55:50+02:00'),
+            new AggregateHeader(
+                'profile',
+                '1',
+                1,
+                new DateTimeImmutable('2022-07-07T18:55:50+02:00'),
+            )
         ]);
 
         $eventSerializer = $this->prophesize(EventSerializer::class);
+
         $eventSerializer->serialize($event, [
             Encoder::OPTION_PRETTY_PRINT => true
         ])->willReturn(new SerializedEvent('profile.created', '{}'));
@@ -80,6 +84,6 @@ class EventSourcingCollectorTest extends TestCase
         self::assertEquals(Profile::class, $message['aggregate_class']);
         self::assertEquals('1', $message['aggregate_id']);
         self::assertEquals('2022-07-07T18:55:50+02:00', $message['recorded_on']);
-        self::assertInstanceOf(Data::class, $message['custom_headers']);
+        self::assertInstanceOf(Data::class, $message['headers']);
     }
 }

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\Listener;
 
-use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
-use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistCriteria;
+use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
+use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngineCriteria;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
-final class ProjectionistAutoRunListener
+final class SubscriptionAutoBootListener
 {
     /**
      * @param list<string>|null $ids
@@ -16,7 +16,7 @@ final class ProjectionistAutoRunListener
      * @param positive-int|null $limit
      */
     public function __construct(
-        private readonly Projectionist $projectionist,
+        private readonly SubscriptionEngine $engine,
         private readonly array|null $ids = null,
         private readonly array|null $groups = null,
         private readonly int|null $limit = null,
@@ -29,8 +29,8 @@ final class ProjectionistAutoRunListener
             return;
         }
 
-        $this->projectionist->run(
-            new ProjectionistCriteria(
+        $this->engine->boot(
+            new SubscriptionEngineCriteria(
                 $this->ids,
                 $this->groups,
             ),

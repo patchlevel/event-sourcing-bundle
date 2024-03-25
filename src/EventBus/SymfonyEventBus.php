@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Patchlevel\EventSourcingBundle\EventBus;
 
 use Patchlevel\EventSourcing\EventBus\EventBus;
-use Patchlevel\EventSourcing\EventBus\Message;
+use Patchlevel\EventSourcing\Message\Message;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\DispatchAfterCurrentBusStamp;

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\Messenger;
 
-use Patchlevel\EventSourcing\Repository\MessageDecorator\Trace;
-use Patchlevel\EventSourcing\Repository\MessageDecorator\TraceStack;
+use Patchlevel\EventSourcing\Debug\Trace\Trace;
+use Patchlevel\EventSourcing\Debug\Trace\TraceStack;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Handler\HandlerDescriptor;
 use Symfony\Component\Messenger\Handler\HandlersLocatorInterface;
 use Symfony\Component\Messenger\Stamp\BusNameStamp;
 
-/** @experimental */
+/** @interal */
 final class TraceHandlersLocator implements HandlersLocatorInterface
 {
     public function __construct(

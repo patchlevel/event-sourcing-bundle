@@ -13,20 +13,20 @@ use Patchlevel\EventSourcing\Clock\SystemClock;
 use Patchlevel\EventSourcing\Console\Command\DatabaseCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\DatabaseDropCommand;
 use Patchlevel\EventSourcing\Console\Command\DebugCommand;
-use Patchlevel\EventSourcing\Console\Command\ProjectionBootCommand;
-use Patchlevel\EventSourcing\Console\Command\ProjectionReactivateCommand;
-use Patchlevel\EventSourcing\Console\Command\ProjectionRebuildCommand;
-use Patchlevel\EventSourcing\Console\Command\ProjectionRemoveCommand;
-use Patchlevel\EventSourcing\Console\Command\ProjectionRunCommand;
-use Patchlevel\EventSourcing\Console\Command\ProjectionStatusCommand;
-use Patchlevel\EventSourcing\Console\Command\ProjectionTeardownCommand;
 use Patchlevel\EventSourcing\Console\Command\SchemaCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\SchemaDropCommand;
 use Patchlevel\EventSourcing\Console\Command\SchemaUpdateCommand;
 use Patchlevel\EventSourcing\Console\Command\ShowAggregateCommand;
 use Patchlevel\EventSourcing\Console\Command\ShowCommand;
+use Patchlevel\EventSourcing\Console\Command\SubscriptionBootCommand;
+use Patchlevel\EventSourcing\Console\Command\SubscriptionReactivateCommand;
+use Patchlevel\EventSourcing\Console\Command\SubscriptionRemoveCommand;
+use Patchlevel\EventSourcing\Console\Command\SubscriptionRunCommand;
+use Patchlevel\EventSourcing\Console\Command\SubscriptionSetupCommand;
+use Patchlevel\EventSourcing\Console\Command\SubscriptionStatusCommand;
+use Patchlevel\EventSourcing\Console\Command\SubscriptionTeardownCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
-use Patchlevel\EventSourcing\EventBus\ChainEventBus;
+use Patchlevel\EventSourcing\Debug\Trace\TraceStack;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\ChainMessageDecorator;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\MessageDecorator;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\SplitStreamDecorator;
@@ -35,14 +35,8 @@ use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\Psr14EventBus;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
-use Patchlevel\EventSourcing\Outbox\EventBusPublisher;
-use Patchlevel\EventSourcing\Outbox\OutboxEventBus;
-use Patchlevel\EventSourcing\Outbox\OutboxPublisher;
-use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
-use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
-use Patchlevel\EventSourcing\Repository\MessageDecorator\TraceStack;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaProvider;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaSubscriber;
@@ -53,16 +47,20 @@ use Patchlevel\EventSourcing\Snapshot\DefaultSnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
 use Patchlevel\EventSourcing\Store\DoctrineDbalStore;
 use Patchlevel\EventSourcing\Store\Store;
+use Patchlevel\EventSourcing\Subscription\Engine\DefaultSubscriptionEngine;
+use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
-use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoBootListener;
-use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoRunListener;
-use Patchlevel\EventSourcingBundle\Listener\ProjectionistAutoTeardownListener;
+use Patchlevel\EventSourcingBundle\Listener\SubscriptionAutoBootListener;
+use Patchlevel\EventSourcingBundle\Listener\SubscriptionAutoRunListener;
+use Patchlevel\EventSourcingBundle\Listener\SubscriptionAutoSetupListener;
+use Patchlevel\EventSourcingBundle\Listener\SubscriptionAutoTeardownListener;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
-use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1;
-use Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor2;
+use Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener1;
+use Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener2;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Profile;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileCreated;
+use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileListener;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileProjector;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\SnapshotableProfile;
 use PHPUnit\Framework\TestCase;
@@ -72,7 +70,6 @@ use Psr\Clock\ClockInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
-use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -117,7 +114,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(DefaultRepositoryManager::class, $container->get(RepositoryManager::class));
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
         self::assertInstanceOf(SystemClock::class, $container->get('event_sourcing.clock'));
-        self::assertInstanceOf(DefaultProjectionist::class, $container->get(Projectionist::class));
+        self::assertInstanceOf(DefaultSubscriptionEngine::class, $container->get(SubscriptionEngine::class));
     }
 
     public function testConnectionService(): void
@@ -216,10 +213,10 @@ class PatchlevelEventSourcingBundleTest extends TestCase
     public function testProcessorListener(): void
     {
         $container = new ContainerBuilder();
-        $container->setDefinition(Processor1::class, new Definition(Processor1::class))
-            ->addTag('event_sourcing.processor', ['priority' => -64]);
-        $container->setDefinition(Processor2::class, new Definition(Processor2::class))
-            ->addTag('event_sourcing.processor');
+        $container->setDefinition(Listener1::class, new Definition(Listener1::class))
+            ->addTag('event_sourcing.listener', ['priority' => -64]);
+        $container->setDefinition(Listener2::class, new Definition(Listener2::class))
+            ->addTag('event_sourcing.listener');
 
         $this->compileContainer(
             $container,
@@ -235,27 +232,26 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(DefaultEventBus::class, $container->get(EventBus::class));
         self::assertEquals(
             [
-                'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1' => [
+                'Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener1' => [
                     ['priority' => -64],
                 ],
-                'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor2' => [
+                'Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener2' => [
                     [],
                 ],
                 'Patchlevel\EventSourcingBundle\DataCollector\MessageListener' => [
                     []
                 ]
             ],
-            $container->findTaggedServiceIds('event_sourcing.processor')
+            $container->findTaggedServiceIds('event_sourcing.listener')
         );
     }
-
 
     public function testAutoconfigureProcessorListener(): void
     {
         $container = new ContainerBuilder();
-        $container->setDefinition(Processor1::class, new Definition(Processor1::class))
+        $container->setDefinition(Listener1::class, new Definition(Listener1::class))
             ->setAutoconfigured(true);
-        $container->setDefinition(Processor2::class, new Definition(Processor1::class))
+        $container->setDefinition(Listener2::class, new Definition(Listener1::class))
             ->setAutoconfigured(false);
 
         $this->compileContainer(
@@ -272,7 +268,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(DefaultEventBus::class, $container->get(EventBus::class));
         self::assertEquals(
             [
-                'Patchlevel\EventSourcingBundle\Tests\Fixtures\Processor1' => [
+                'Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener1' => [
                     [
                         'priority' => 0,
                     ],
@@ -281,79 +277,8 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     []
                 ]
             ],
-            $container->findTaggedServiceIds('event_sourcing.processor')
+            $container->findTaggedServiceIds('event_sourcing.listener')
         );
-    }
-
-    public function testOutbox(): void
-    {
-        $container = new ContainerBuilder();
-
-        $this->compileContainer(
-            $container,
-            [
-                'patchlevel_event_sourcing' => [
-                    'connection' => [
-                        'service' => 'doctrine.dbal.eventstore_connection',
-                    ],
-                    'outbox' => [],
-                ],
-            ]
-        );
-
-        self::assertInstanceOf(OutboxEventBus::class, $container->get(EventBus::class));
-        self::assertInstanceOf(EventBusPublisher::class, $container->get(OutboxPublisher::class));
-    }
-
-    public function testOutboxParallel(): void
-    {
-        $container = new ContainerBuilder();
-        $publisher = $this->prophesize(OutboxPublisher::class)->reveal();
-
-        $container->set('my_publisher', $publisher);
-
-        $this->compileContainer(
-            $container,
-            [
-                'patchlevel_event_sourcing' => [
-                    'connection' => [
-                        'service' => 'doctrine.dbal.eventstore_connection',
-                    ],
-                    'outbox' => [
-                        'parallel' => true,
-                        'publisher' => 'my_publisher',
-                    ],
-                ],
-            ]
-        );
-
-        self::assertInstanceOf(ChainEventBus::class, $container->get(EventBus::class));
-        self::assertEquals($publisher, $container->get(OutboxPublisher::class));
-    }
-
-    public function testOutboxParallelWithoutPublisher(): void
-    {
-        $this->expectException(InvalidConfigurationException::class);
-
-        $container = new ContainerBuilder();
-        $publisher = $this->prophesize(OutboxPublisher::class)->reveal();
-
-        $this->compileContainer(
-            $container,
-            [
-                'patchlevel_event_sourcing' => [
-                    'connection' => [
-                        'service' => 'doctrine.dbal.eventstore_connection',
-                    ],
-                    'outbox' => [
-                        'parallel' => true,
-                    ],
-                ],
-            ]
-        );
-
-        self::assertInstanceOf(ChainEventBus::class, $container->get(EventBus::class));
-        self::assertEquals($publisher, $container->get(OutboxPublisher::class));
     }
 
     public function testSnapshotStore(): void
@@ -549,13 +474,13 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(DatabaseCreateCommand::class, $container->get(DatabaseCreateCommand::class));
         self::assertInstanceOf(DatabaseDropCommand::class, $container->get(DatabaseDropCommand::class));
         self::assertInstanceOf(DebugCommand::class, $container->get(DebugCommand::class));
-        self::assertInstanceOf(ProjectionBootCommand::class, $container->get(ProjectionBootCommand::class));
-        self::assertInstanceOf(ProjectionReactivateCommand::class, $container->get(ProjectionReactivateCommand::class));
-        self::assertInstanceOf(ProjectionRebuildCommand::class, $container->get(ProjectionRebuildCommand::class));
-        self::assertInstanceOf(ProjectionRemoveCommand::class, $container->get(ProjectionRemoveCommand::class));
-        self::assertInstanceOf(ProjectionRunCommand::class, $container->get(ProjectionRunCommand::class));
-        self::assertInstanceOf(ProjectionStatusCommand::class, $container->get(ProjectionStatusCommand::class));
-        self::assertInstanceOf(ProjectionTeardownCommand::class, $container->get(ProjectionTeardownCommand::class));
+        self::assertInstanceOf(SubscriptionBootCommand::class, $container->get(SubscriptionBootCommand::class));
+        self::assertInstanceOf(SubscriptionReactivateCommand::class, $container->get(SubscriptionReactivateCommand::class));
+        self::assertInstanceOf(SubscriptionRemoveCommand::class, $container->get(SubscriptionRemoveCommand::class));
+        self::assertInstanceOf(SubscriptionRunCommand::class, $container->get(SubscriptionRunCommand::class));
+        self::assertInstanceOf(SubscriptionSetupCommand::class, $container->get(SubscriptionSetupCommand::class));
+        self::assertInstanceOf(SubscriptionStatusCommand::class, $container->get(SubscriptionStatusCommand::class));
+        self::assertInstanceOf(SubscriptionTeardownCommand::class, $container->get(SubscriptionTeardownCommand::class));
         self::assertInstanceOf(SchemaCreateCommand::class, $container->get(SchemaCreateCommand::class));
         self::assertInstanceOf(SchemaUpdateCommand::class, $container->get(SchemaUpdateCommand::class));
         self::assertInstanceOf(SchemaDropCommand::class, $container->get(SchemaDropCommand::class));
@@ -671,7 +596,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(SplitStreamDecorator::class, $container->get(SplitStreamDecorator::class));
     }
 
-    public function testProjectionistAutoListener(): void
+    public function testSubscriptionAutoListener(): void
     {
         $container = new ContainerBuilder();
 
@@ -682,7 +607,12 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     'connection' => [
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
-                    'projection' => [
+                    'subscription' => [
+                        'auto_setup' => [
+                            'ids' => ['foo'],
+                            'groups' => ['bar'],
+                            'skip_booting' => true,
+                        ],
                         'auto_boot' => [
                             'ids' => ['foo'],
                             'groups' => ['bar'],
@@ -702,15 +632,16 @@ class PatchlevelEventSourcingBundleTest extends TestCase
             ]
         );
 
-        self::assertInstanceOf(ProjectionistAutoBootListener::class, $container->get(ProjectionistAutoBootListener::class));
-        self::assertInstanceOf(ProjectionistAutoRunListener::class, $container->get(ProjectionistAutoRunListener::class));
-        self::assertInstanceOf(ProjectionistAutoTeardownListener::class, $container->get(ProjectionistAutoTeardownListener::class));
+        self::assertInstanceOf(SubscriptionAutoSetupListener::class, $container->get(SubscriptionAutoSetupListener::class));
+        self::assertInstanceOf(SubscriptionAutoBootListener::class, $container->get(SubscriptionAutoBootListener::class));
+        self::assertInstanceOf(SubscriptionAutoRunListener::class, $container->get(SubscriptionAutoRunListener::class));
+        self::assertInstanceOf(SubscriptionAutoTeardownListener::class, $container->get(SubscriptionAutoTeardownListener::class));
     }
 
-    public function testAutoconfigureProjector(): void
+    public function testAutoconfigureListener(): void
     {
         $container = new ContainerBuilder();
-        $container->setDefinition(ProfileProjector::class, new Definition(ProfileProjector::class))
+        $container->setDefinition(ProfileListener::class, new Definition(ProfileListener::class))
             ->setAutoconfigured(true);
 
         $this->compileContainer(
@@ -724,7 +655,7 @@ class PatchlevelEventSourcingBundleTest extends TestCase
             ]
         );
 
-        self::assertTrue($container->getDefinition(ProfileProjector::class)->hasTag('event_sourcing.projector'));
+        self::assertTrue($container->getDefinition(ProfileListener::class)->hasTag('event_sourcing.listener'));
     }
 
     public function testSchemaMerge(): void

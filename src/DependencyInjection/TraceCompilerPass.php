@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\DependencyInjection;
 
-use Patchlevel\EventSourcing\Repository\MessageDecorator\TraceStack;
+use Patchlevel\EventSourcing\Debug\Trace\TraceStack;
 use Patchlevel\EventSourcingBundle\Messenger\TraceHandlersLocator;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Messenger\Handler\HandlersLocator;
 
-/** @experimental */
+/** @interal */
 final class TraceCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void

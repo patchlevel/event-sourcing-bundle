@@ -3,11 +3,11 @@
 namespace Patchlevel\EventSourcingBundle\Tests\Fixtures;
 
 use Patchlevel\EventSourcing\Attribute\Subscribe;
-use Patchlevel\EventSourcing\EventBus\Message;
-use Patchlevel\EventSourcingBundle\Attribute\AsProcessor;
+use Patchlevel\EventSourcing\Message\Message;
+use Patchlevel\EventSourcingBundle\Attribute\AsListener;
 
-#[AsProcessor]
-class Processor2
+#[AsListener]
+class Listener2
 {
     #[Subscribe(ProfileCreated::class)]
     public function __invoke(Message $message): void
