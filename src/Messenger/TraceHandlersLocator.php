@@ -23,7 +23,13 @@ final class TraceHandlersLocator implements HandlersLocatorInterface
     /** @return iterable<int, HandlerDescriptor> */
     public function getHandlers(Envelope $envelope): iterable
     {
-        $busName = $envelope->last(BusNameStamp::class)->getBusName();
+        $stamp = $envelope->last(BusNameStamp::class);
+
+        if (!$stamp) {
+            return $this->parent->getHandlers($envelope);
+        }
+
+        $busName = $stamp->getBusName();
 
         foreach ($this->parent->getHandlers($envelope) as $handler) {
             $trace = new Trace(

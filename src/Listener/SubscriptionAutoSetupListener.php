@@ -13,7 +13,6 @@ final class SubscriptionAutoSetupListener
     /**
      * @param list<string>|null $ids
      * @param list<string>|null $groups
-     * @param positive-int|null $limit
      */
     public function __construct(
         private readonly SubscriptionEngine $engine,

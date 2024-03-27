@@ -30,7 +30,7 @@ use function array_map;
  *     aggregate_id: string,
  *     playhead: int,
  *     recorded_on: string,
- *     custom_headers: Data
+ *     headers: Data
  * }
  * @psalm-type DataType = array{
  *    messages: list<MessageType>,
