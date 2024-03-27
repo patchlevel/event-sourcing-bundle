@@ -61,7 +61,9 @@ use Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener2;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Profile;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileCreated;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileListener;
+use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileProcessor;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileProjector;
+use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileSubscriber;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\SnapshotableProfile;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -636,6 +638,35 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(SubscriptionAutoBootListener::class, $container->get(SubscriptionAutoBootListener::class));
         self::assertInstanceOf(SubscriptionAutoRunListener::class, $container->get(SubscriptionAutoRunListener::class));
         self::assertInstanceOf(SubscriptionAutoTeardownListener::class, $container->get(SubscriptionAutoTeardownListener::class));
+    }
+
+    public function testAutoconfigureSubscriber(): void
+    {
+        $container = new ContainerBuilder();
+
+        $container->setDefinition(ProfileSubscriber::class, new Definition(ProfileSubscriber::class))
+            ->setAutoconfigured(true);
+
+        $container->setDefinition(ProfileProcessor::class, new Definition(ProfileProcessor::class))
+            ->setAutoconfigured(true);
+
+        $container->setDefinition(ProfileProjector::class, new Definition(ProfileProjector::class))
+            ->setAutoconfigured(true);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                ],
+            ]
+        );
+
+        self::assertTrue($container->getDefinition(ProfileSubscriber::class)->hasTag('event_sourcing.subscriber'));
+        self::assertTrue($container->getDefinition(ProfileProcessor::class)->hasTag('event_sourcing.subscriber'));
+        self::assertTrue($container->getDefinition(ProfileProjector::class)->hasTag('event_sourcing.subscriber'));
     }
 
     public function testAutoconfigureListener(): void

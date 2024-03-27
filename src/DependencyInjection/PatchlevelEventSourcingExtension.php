@@ -15,6 +15,8 @@ use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
 use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
 use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
+use Patchlevel\EventSourcing\Attribute\Processor;
+use Patchlevel\EventSourcing\Attribute\Projector;
 use Patchlevel\EventSourcing\Attribute\Subscriber;
 use Patchlevel\EventSourcing\Clock\FrozenClock;
 use Patchlevel\EventSourcing\Clock\SystemClock;
@@ -279,12 +281,16 @@ final class PatchlevelEventSourcingExtension extends Extension
     /** @param Config $config */
     private function configureSubscription(array $config, ContainerBuilder $container): void
     {
-        $container->registerAttributeForAutoconfiguration(
-            Subscriber::class,
-            static function (ChildDefinition $definition): void {
-                $definition->addTag('event_sourcing.subscriber');
-            },
-        );
+        $attributes = [Subscriber::class, Processor::class, Projector::class];
+
+        foreach ($attributes as $attribute) {
+            $container->registerAttributeForAutoconfiguration(
+                $attribute,
+                static function (ChildDefinition $definition): void {
+                    $definition->addTag('event_sourcing.subscriber');
+                },
+            );
+        }
 
         $container->register(AttributeSubscriberMetadataFactory::class);
         $container->setAlias(SubscriberMetadataFactory::class, AttributeSubscriberMetadataFactory::class);
