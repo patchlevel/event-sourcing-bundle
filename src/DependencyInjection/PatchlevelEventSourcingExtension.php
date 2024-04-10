@@ -42,8 +42,8 @@ use Patchlevel\EventSourcing\Cryptography\Cipher\CipherKeyFactory;
 use Patchlevel\EventSourcing\Cryptography\Cipher\OpensslCipher;
 use Patchlevel\EventSourcing\Cryptography\Cipher\OpensslCipherKeyFactory;
 use Patchlevel\EventSourcing\Cryptography\CryptographicHydrator;
-use Patchlevel\EventSourcing\Cryptography\DefaultEventPayloadCryptographer;
 use Patchlevel\EventSourcing\Cryptography\EventPayloadCryptographer;
+use Patchlevel\EventSourcing\Cryptography\SnapshotPayloadCryptographer;
 use Patchlevel\EventSourcing\Cryptography\Store\CipherKeyStore;
 use Patchlevel\EventSourcing\Cryptography\Store\DoctrineCipherKeyStore;
 use Patchlevel\EventSourcing\Debug\Trace\TraceableSubscriberAccessorRepository;
@@ -393,7 +393,6 @@ final class PatchlevelEventSourcingExtension extends Extension
     private function configureHydrator(ContainerBuilder $container): void
     {
         $container->register(MetadataHydrator::class);
-
         $container->setAlias(Hydrator::class, MetadataHydrator::class);
     }
 
@@ -465,6 +464,8 @@ final class PatchlevelEventSourcingExtension extends Extension
     /** @param Config $config */
     private function configureSnapshots(array $config, ContainerBuilder $container): void
     {
+        $container->setAlias('event_sourcing.snapshot_hydrator', Hydrator::class);
+
         $adapters = [];
 
         foreach ($config['snapshot_stores'] as $name => $definition) {
@@ -489,7 +490,11 @@ final class PatchlevelEventSourcingExtension extends Extension
         }
 
         $container->register(DefaultSnapshotStore::class)
-            ->setArguments([$adapters]);
+            ->setArguments([
+                $adapters,
+                new Reference('event_sourcing.snapshot_hydrator'),
+                new Reference(AggregateRootMetadataFactory::class),
+            ]);
 
         $container->setAlias(SnapshotStore::class, DefaultSnapshotStore::class);
     }
@@ -774,7 +779,8 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(OpensslCipher::class);
         $container->setAlias(Cipher::class, OpensslCipher::class);
 
-        $container->register(DefaultEventPayloadCryptographer::class)
+        // event payload
+        $container->register(EventPayloadCryptographer::class)
             ->setArguments([
                 new Reference(EventMetadataFactory::class),
                 new Reference(CipherKeyStore::class),
@@ -782,17 +788,38 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(Cipher::class),
             ]);
 
-        $container->register(EventPayloadCryptographer::class, DefaultEventPayloadCryptographer::class);
-
+        $container->register('event_sourcing.event_payload_cryptographer', EventPayloadCryptographer::class);
         $innerService = $container->getAlias('event_sourcing.event_hydrator');
 
-        $container->register(CryptographicHydrator::class)
+        $container->register('event_sourcing.event_cryptographer_hydrator')
+            ->setClass(CryptographicHydrator::class)
             ->setArguments([
                 new Reference((string)$innerService),
-                new Reference(EventPayloadCryptographer::class),
+                new Reference('event_sourcing.event_payload_cryptographer'),
             ]);
 
-        $container->setAlias('event_sourcing.event_hydrator', CryptographicHydrator::class);
+        $container->setAlias('event_sourcing.event_hydrator', 'event_sourcing.event_cryptographer_hydrator');
+
+        // snapshot
+        $container->register(SnapshotPayloadCryptographer::class)
+            ->setArguments([
+                new Reference(AggregateRootMetadataFactory::class),
+                new Reference(CipherKeyStore::class),
+                new Reference(CipherKeyFactory::class),
+                new Reference(Cipher::class),
+            ]);
+
+        $container->register('event_sourcing.snapshot_payload_cryptographer', SnapshotPayloadCryptographer::class);
+        $innerService = $container->getAlias('event_sourcing.snapshot_hydrator');
+
+        $container->register('event_sourcing.snapshot_cryptographer_hydrator')
+            ->setClass(CryptographicHydrator::class)
+            ->setArguments([
+                new Reference((string)$innerService),
+                new Reference('event_sourcing.snapshot_payload_cryptographer'),
+            ]);
+
+        $container->setAlias('event_sourcing.snapshot_hydrator', 'event_sourcing.snapshot_cryptographer_hydrator');
     }
 
     /** @param Config $config */
