@@ -65,6 +65,8 @@ use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileProcessor;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileProjector;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileSubscriber;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\SnapshotableProfile;
+use Patchlevel\Hydrator\Cryptography\PayloadCryptographer;
+use Patchlevel\Hydrator\Cryptography\PersonalDataPayloadCryptographer;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Psr\Cache\CacheItemPoolInterface;
@@ -332,7 +334,8 @@ class PatchlevelEventSourcingBundleTest extends TestCase
             ]
         );
 
-        self::assertInstanceOf(Psr6SnapshotAdapter::class, $container->get('event_sourcing.snapshot_store.adapter.default'));
+        self::assertInstanceOf(Psr6SnapshotAdapter::class,
+            $container->get('event_sourcing.snapshot_store.adapter.default'));
     }
 
     public function testPsr16SnapshotAdapter(): void
@@ -359,7 +362,8 @@ class PatchlevelEventSourcingBundleTest extends TestCase
             ]
         );
 
-        self::assertInstanceOf(Psr16SnapshotAdapter::class, $container->get('event_sourcing.snapshot_store.adapter.default'));
+        self::assertInstanceOf(Psr16SnapshotAdapter::class,
+            $container->get('event_sourcing.snapshot_store.adapter.default'));
     }
 
     public function testCustomSnapshotAdapter(): void
@@ -477,7 +481,8 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(DatabaseDropCommand::class, $container->get(DatabaseDropCommand::class));
         self::assertInstanceOf(DebugCommand::class, $container->get(DebugCommand::class));
         self::assertInstanceOf(SubscriptionBootCommand::class, $container->get(SubscriptionBootCommand::class));
-        self::assertInstanceOf(SubscriptionReactivateCommand::class, $container->get(SubscriptionReactivateCommand::class));
+        self::assertInstanceOf(SubscriptionReactivateCommand::class,
+            $container->get(SubscriptionReactivateCommand::class));
         self::assertInstanceOf(SubscriptionRemoveCommand::class, $container->get(SubscriptionRemoveCommand::class));
         self::assertInstanceOf(SubscriptionRunCommand::class, $container->get(SubscriptionRunCommand::class));
         self::assertInstanceOf(SubscriptionSetupCommand::class, $container->get(SubscriptionSetupCommand::class));
@@ -634,10 +639,13 @@ class PatchlevelEventSourcingBundleTest extends TestCase
             ]
         );
 
-        self::assertInstanceOf(SubscriptionAutoSetupListener::class, $container->get(SubscriptionAutoSetupListener::class));
-        self::assertInstanceOf(SubscriptionAutoBootListener::class, $container->get(SubscriptionAutoBootListener::class));
+        self::assertInstanceOf(SubscriptionAutoSetupListener::class,
+            $container->get(SubscriptionAutoSetupListener::class));
+        self::assertInstanceOf(SubscriptionAutoBootListener::class,
+            $container->get(SubscriptionAutoBootListener::class));
         self::assertInstanceOf(SubscriptionAutoRunListener::class, $container->get(SubscriptionAutoRunListener::class));
-        self::assertInstanceOf(SubscriptionAutoTeardownListener::class, $container->get(SubscriptionAutoTeardownListener::class));
+        self::assertInstanceOf(SubscriptionAutoTeardownListener::class,
+            $container->get(SubscriptionAutoTeardownListener::class));
     }
 
     public function testAutoconfigureSubscriber(): void
@@ -714,6 +722,30 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertFalse($container->has('event_sourcing.command.migration_diff'));
     }
 
+    public function testCryptography(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'debug' => [
+                        'trace' => true,
+                    ],
+                    'cryptography' => [
+                        'algorithm' => 'aes256',
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(PersonalDataPayloadCryptographer::class, $container->get(PayloadCryptographer::class));
+    }
+
     public function testTrace(): void
     {
         $container = new ContainerBuilder();
@@ -725,7 +757,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     'connection' => [
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
-                    'trace' => true,
+                    'debug' => [
+                        'trace' => true,
+                    ],
                 ],
             ]
         );
@@ -735,7 +769,10 @@ class PatchlevelEventSourcingBundleTest extends TestCase
 
     public function testFullBuild(): void
     {
+        $psrClock = $this->prophesize(ClockInterface::class)->reveal();
+
         $container = new ContainerBuilder();
+        $container->set('clock', $psrClock);
 
         $this->compileContainer(
             $container,
@@ -745,6 +782,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
                     'store' => [
+                    ],
+                    'clock' => [
+                        'service' => 'clock',
                     ],
                     'event_bus' => [
                         'type' => 'default',
@@ -759,6 +799,12 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                             'type' => 'psr6',
                             'service' => 'cache.default',
                         ],
+                    ],
+                    'cryptography' => [
+                        'algorithm' => 'aes256',
+                    ],
+                    'debug' => [
+                        'trace' => true,
                     ],
                 ],
             ]

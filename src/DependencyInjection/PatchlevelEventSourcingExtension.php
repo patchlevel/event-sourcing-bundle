@@ -37,6 +37,7 @@ use Patchlevel\EventSourcing\Console\Command\SubscriptionStatusCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionTeardownCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
 use Patchlevel\EventSourcing\Console\DoctrineHelper;
+use Patchlevel\EventSourcing\Cryptography\DoctrineCipherKeyStore;
 use Patchlevel\EventSourcing\Debug\Trace\TraceableSubscriberAccessorRepository;
 use Patchlevel\EventSourcing\Debug\Trace\TraceDecorator;
 use Patchlevel\EventSourcing\Debug\Trace\TraceStack;
@@ -105,7 +106,16 @@ use Patchlevel\EventSourcingBundle\Listener\SubscriptionAutoRunListener;
 use Patchlevel\EventSourcingBundle\Listener\SubscriptionAutoSetupListener;
 use Patchlevel\EventSourcingBundle\Listener\SubscriptionAutoTeardownListener;
 use Patchlevel\EventSourcingBundle\Listener\TraceListener;
+use Patchlevel\Hydrator\Cryptography\Cipher\Cipher;
+use Patchlevel\Hydrator\Cryptography\Cipher\CipherKeyFactory;
+use Patchlevel\Hydrator\Cryptography\Cipher\OpensslCipher;
+use Patchlevel\Hydrator\Cryptography\Cipher\OpensslCipherKeyFactory;
+use Patchlevel\Hydrator\Cryptography\PayloadCryptographer;
+use Patchlevel\Hydrator\Cryptography\PersonalDataPayloadCryptographer;
+use Patchlevel\Hydrator\Cryptography\Store\CipherKeyStore;
 use Patchlevel\Hydrator\Hydrator;
+use Patchlevel\Hydrator\Metadata\AttributeMetadataFactory;
+use Patchlevel\Hydrator\Metadata\MetadataFactory;
 use Patchlevel\Hydrator\MetadataHydrator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ChildDefinition;
@@ -133,8 +143,9 @@ use function sprintf;
  *      events: list<string>,
  *      snapshot_stores: array<string, array{type: string, service: string}>,
  *      migration: array{path: string, namespace: string},
+ *      cryptography: array{enabled: bool, algorithm: string},
  *      clock: array{freeze: ?string, service: ?string},
- *      trace: bool
+ *      debug: array{trace: bool}
  * }
  */
 final class PatchlevelEventSourcingExtension extends Extension
@@ -165,12 +176,8 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureClock($config, $container);
         $this->configureSchema($config, $container);
         $this->configureSubscription($config, $container);
-        $this->configureTracing($config, $container);
-
-        if (!class_exists(DependencyFactory::class) || $config['store']['merge_orm_schema'] !== false) {
-            return;
-        }
-
+        $this->configureCryptography($config, $container);
+        $this->configureDebugging($config, $container);
         $this->configureMigration($config, $container);
     }
 
@@ -312,7 +319,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->setArguments([
                 new Reference('event_sourcing.dbal_connection'),
             ])
-            ->addTag('event_sourcing.schema_configurator');
+            ->addTag('event_sourcing.doctrine_schema_configurator');
 
         $container->setAlias(SubscriptionStore::class, DoctrineSubscriptionStore::class);
 
@@ -384,7 +391,17 @@ final class PatchlevelEventSourcingExtension extends Extension
 
     private function configureHydrator(ContainerBuilder $container): void
     {
-        $container->register(MetadataHydrator::class);
+        $container->register(AttributeMetadataFactory::class);
+        $container->setAlias(MetadataFactory::class, AttributeMetadataFactory::class);
+
+        $container->register(MetadataHydrator::class)
+            ->setArguments([
+                new Reference(MetadataFactory::class),
+                new Reference(
+                    PayloadCryptographer::class,
+                    ContainerInterface::IGNORE_ON_INVALID_REFERENCE,
+                ),
+            ]);
 
         $container->setAlias(Hydrator::class, MetadataHydrator::class);
     }
@@ -449,7 +466,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(HeadersSerializer::class),
                 $config['store']['options']['table_name'] ?? 'eventstore',
             ])
-            ->addTag('event_sourcing.schema_configurator');
+            ->addTag('event_sourcing.doctrine_schema_configurator');
 
         $container->setAlias(Store::class, DoctrineDbalStore::class);
     }
@@ -481,7 +498,11 @@ final class PatchlevelEventSourcingExtension extends Extension
         }
 
         $container->register(DefaultSnapshotStore::class)
-            ->setArguments([$adapters]);
+            ->setArguments([
+                $adapters,
+                new Reference(Hydrator::class),
+                new Reference(AggregateRootMetadataFactory::class),
+            ]);
 
         $container->setAlias(SnapshotStore::class, DefaultSnapshotStore::class);
     }
@@ -596,6 +617,10 @@ final class PatchlevelEventSourcingExtension extends Extension
     /** @param Config $config */
     private function configureMigration(array $config, ContainerBuilder $container): void
     {
+        if (!class_exists(DependencyFactory::class) || $config['store']['merge_orm_schema'] !== false) {
+            return;
+        }
+
         $container->register('event_sourcing.migration.configuration', ConfigurationArray::class)
             ->setArguments([
                 [
@@ -683,7 +708,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     private function configureSchema(array $config, ContainerBuilder $container): void
     {
         $container->register(ChainDoctrineSchemaConfigurator::class)
-            ->setArguments([new TaggedIteratorArgument('event_sourcing.schema_configurator')]);
+            ->setArguments([new TaggedIteratorArgument('event_sourcing.doctrine_schema_configurator')]);
 
         $container->setAlias(DoctrineSchemaConfigurator::class, ChainDoctrineSchemaConfigurator::class);
 
@@ -740,9 +765,42 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /** @param Config $config */
-    private function configureTracing(array $config, ContainerBuilder $container): void
+    private function configureCryptography(array $config, ContainerBuilder $container): void
     {
-        if (!$config['trace']) {
+        if (!$config['cryptography']['enabled']) {
+            return;
+        }
+
+        $container->register(OpensslCipherKeyFactory::class)
+            ->setArguments([
+                $config['cryptography']['algorithm'],
+            ]);
+        $container->setAlias(CipherKeyFactory::class, OpensslCipherKeyFactory::class);
+
+        $container->register(DoctrineCipherKeyStore::class)
+            ->setArguments([
+                new Reference('event_sourcing.dbal_connection'),
+            ])
+            ->addTag('event_sourcing.doctrine_schema_configurator');
+        $container->setAlias(CipherKeyStore::class, DoctrineCipherKeyStore::class);
+
+        $container->register(OpensslCipher::class);
+        $container->setAlias(Cipher::class, OpensslCipher::class);
+
+        $container->register(PersonalDataPayloadCryptographer::class)
+            ->setArguments([
+                new Reference(CipherKeyStore::class),
+                new Reference(CipherKeyFactory::class),
+                new Reference(Cipher::class),
+            ]);
+
+        $container->setAlias(PayloadCryptographer::class, PersonalDataPayloadCryptographer::class);
+    }
+
+    /** @param Config $config */
+    private function configureDebugging(array $config, ContainerBuilder $container): void
+    {
+        if (!$config['debug']['trace']) {
             return;
         }
 

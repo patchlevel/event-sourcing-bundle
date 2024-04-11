@@ -35,6 +35,7 @@ final class Configuration implements ConfigurationInterface
             ->end()
 
             ->arrayNode('event_bus')
+                ->canBeEnabled()
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->enumNode('type')
@@ -135,7 +136,21 @@ final class Configuration implements ConfigurationInterface
                     ->end()
                 ->end()
             ->end()
-            ->booleanNode('trace')->defaultFalse()->end()
+
+            ->arrayNode('cryptography')
+                ->canBeEnabled()
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->scalarNode('algorithm')->defaultValue('aes256')->end()
+                ->end()
+            ->end()
+
+            ->arrayNode('debug')
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->booleanNode('trace')->defaultFalse()->end()
+                ->end()
+            ->end()
         ->end();
         // @codingStandardsIgnoreEnd
 
