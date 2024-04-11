@@ -65,6 +65,8 @@ use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileProcessor;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileProjector;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileSubscriber;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\SnapshotableProfile;
+use Patchlevel\Hydrator\Cryptography\PayloadCryptographer;
+use Patchlevel\Hydrator\Cryptography\PersonalDataPayloadCryptographer;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Psr\Cache\CacheItemPoolInterface;
@@ -720,6 +722,30 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertFalse($container->has('event_sourcing.command.migration_diff'));
     }
 
+    public function testCryptography(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'debug' => [
+                        'trace' => true,
+                    ],
+                    'cryptography' => [
+                        'algorithm' => 'aes256',
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(PersonalDataPayloadCryptographer::class, $container->get(PayloadCryptographer::class));
+    }
+
     public function testTrace(): void
     {
         $container = new ContainerBuilder();
@@ -743,7 +769,10 @@ class PatchlevelEventSourcingBundleTest extends TestCase
 
     public function testFullBuild(): void
     {
+        $psrClock = $this->prophesize(ClockInterface::class)->reveal();
+
         $container = new ContainerBuilder();
+        $container->set('clock', $psrClock);
 
         $this->compileContainer(
             $container,
@@ -753,6 +782,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
                     'store' => [
+                    ],
+                    'clock' => [
+                        'service' => 'clock',
                     ],
                     'event_bus' => [
                         'type' => 'default',
@@ -767,6 +799,12 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                             'type' => 'psr6',
                             'service' => 'cache.default',
                         ],
+                    ],
+                    'cryptography' => [
+                        'algorithm' => 'aes256',
+                    ],
+                    'debug' => [
+                        'trace' => true,
                     ],
                 ],
             ]

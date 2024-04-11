@@ -37,15 +37,7 @@ use Patchlevel\EventSourcing\Console\Command\SubscriptionStatusCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionTeardownCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
 use Patchlevel\EventSourcing\Console\DoctrineHelper;
-use Patchlevel\EventSourcing\Cryptography\Cipher\Cipher;
-use Patchlevel\EventSourcing\Cryptography\Cipher\CipherKeyFactory;
-use Patchlevel\EventSourcing\Cryptography\Cipher\OpensslCipher;
-use Patchlevel\EventSourcing\Cryptography\Cipher\OpensslCipherKeyFactory;
-use Patchlevel\EventSourcing\Cryptography\CryptographicHydrator;
-use Patchlevel\EventSourcing\Cryptography\EventPayloadCryptographer;
-use Patchlevel\EventSourcing\Cryptography\SnapshotPayloadCryptographer;
-use Patchlevel\EventSourcing\Cryptography\Store\CipherKeyStore;
-use Patchlevel\EventSourcing\Cryptography\Store\DoctrineCipherKeyStore;
+use Patchlevel\EventSourcing\Cryptography\DoctrineCipherKeyStore;
 use Patchlevel\EventSourcing\Debug\Trace\TraceableSubscriberAccessorRepository;
 use Patchlevel\EventSourcing\Debug\Trace\TraceDecorator;
 use Patchlevel\EventSourcing\Debug\Trace\TraceStack;
@@ -114,7 +106,16 @@ use Patchlevel\EventSourcingBundle\Listener\SubscriptionAutoRunListener;
 use Patchlevel\EventSourcingBundle\Listener\SubscriptionAutoSetupListener;
 use Patchlevel\EventSourcingBundle\Listener\SubscriptionAutoTeardownListener;
 use Patchlevel\EventSourcingBundle\Listener\TraceListener;
+use Patchlevel\Hydrator\Cryptography\Cipher\Cipher;
+use Patchlevel\Hydrator\Cryptography\Cipher\CipherKeyFactory;
+use Patchlevel\Hydrator\Cryptography\Cipher\OpensslCipher;
+use Patchlevel\Hydrator\Cryptography\Cipher\OpensslCipherKeyFactory;
+use Patchlevel\Hydrator\Cryptography\PayloadCryptographer;
+use Patchlevel\Hydrator\Cryptography\PersonalDataPayloadCryptographer;
+use Patchlevel\Hydrator\Cryptography\Store\CipherKeyStore;
 use Patchlevel\Hydrator\Hydrator;
+use Patchlevel\Hydrator\Metadata\AttributeMetadataFactory;
+use Patchlevel\Hydrator\Metadata\MetadataFactory;
 use Patchlevel\Hydrator\MetadataHydrator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ChildDefinition;
@@ -183,8 +184,6 @@ final class PatchlevelEventSourcingExtension extends Extension
     /** @param Config $config */
     private function configureSerializer(array $config, ContainerBuilder $container): void
     {
-        $container->setAlias('event_sourcing.event_hydrator', Hydrator::class);
-
         $container->register(AttributeEventRegistryFactory::class);
 
         $container->register(EventRegistry::class)
@@ -200,7 +199,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(DefaultEventSerializer::class)
             ->setArguments([
                 new Reference(EventRegistry::class),
-                new Reference('event_sourcing.event_hydrator'),
+                new Reference(Hydrator::class),
                 new Reference(Encoder::class),
                 new Reference(Upcaster::class),
             ]);
@@ -392,7 +391,18 @@ final class PatchlevelEventSourcingExtension extends Extension
 
     private function configureHydrator(ContainerBuilder $container): void
     {
-        $container->register(MetadataHydrator::class);
+        $container->register(AttributeMetadataFactory::class);
+        $container->setAlias(MetadataFactory::class, AttributeMetadataFactory::class);
+
+        $container->register(MetadataHydrator::class)
+            ->setArguments([
+                new Reference(MetadataFactory::class),
+                new Reference(
+                    PayloadCryptographer::class,
+                    ContainerInterface::IGNORE_ON_INVALID_REFERENCE,
+                ),
+            ]);
+
         $container->setAlias(Hydrator::class, MetadataHydrator::class);
     }
 
@@ -464,8 +474,6 @@ final class PatchlevelEventSourcingExtension extends Extension
     /** @param Config $config */
     private function configureSnapshots(array $config, ContainerBuilder $container): void
     {
-        $container->setAlias('event_sourcing.snapshot_hydrator', Hydrator::class);
-
         $adapters = [];
 
         foreach ($config['snapshot_stores'] as $name => $definition) {
@@ -492,7 +500,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(DefaultSnapshotStore::class)
             ->setArguments([
                 $adapters,
-                new Reference('event_sourcing.snapshot_hydrator'),
+                new Reference(Hydrator::class),
                 new Reference(AggregateRootMetadataFactory::class),
             ]);
 
@@ -779,47 +787,14 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(OpensslCipher::class);
         $container->setAlias(Cipher::class, OpensslCipher::class);
 
-        // event payload
-        $container->register(EventPayloadCryptographer::class)
+        $container->register(PersonalDataPayloadCryptographer::class)
             ->setArguments([
-                new Reference(EventMetadataFactory::class),
                 new Reference(CipherKeyStore::class),
                 new Reference(CipherKeyFactory::class),
                 new Reference(Cipher::class),
             ]);
 
-        $container->register('event_sourcing.event_payload_cryptographer', EventPayloadCryptographer::class);
-        $innerService = $container->getAlias('event_sourcing.event_hydrator');
-
-        $container->register('event_sourcing.event_cryptographer_hydrator')
-            ->setClass(CryptographicHydrator::class)
-            ->setArguments([
-                new Reference((string)$innerService),
-                new Reference('event_sourcing.event_payload_cryptographer'),
-            ]);
-
-        $container->setAlias('event_sourcing.event_hydrator', 'event_sourcing.event_cryptographer_hydrator');
-
-        // snapshot
-        $container->register(SnapshotPayloadCryptographer::class)
-            ->setArguments([
-                new Reference(AggregateRootMetadataFactory::class),
-                new Reference(CipherKeyStore::class),
-                new Reference(CipherKeyFactory::class),
-                new Reference(Cipher::class),
-            ]);
-
-        $container->register('event_sourcing.snapshot_payload_cryptographer', SnapshotPayloadCryptographer::class);
-        $innerService = $container->getAlias('event_sourcing.snapshot_hydrator');
-
-        $container->register('event_sourcing.snapshot_cryptographer_hydrator')
-            ->setClass(CryptographicHydrator::class)
-            ->setArguments([
-                new Reference((string)$innerService),
-                new Reference('event_sourcing.snapshot_payload_cryptographer'),
-            ]);
-
-        $container->setAlias('event_sourcing.snapshot_hydrator', 'event_sourcing.snapshot_cryptographer_hydrator');
+        $container->setAlias(PayloadCryptographer::class, PersonalDataPayloadCryptographer::class);
     }
 
     /** @param Config $config */

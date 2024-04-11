@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3842a74936613d70c6053c73a9045ed6",
+    "content-hash": "b612e10c49c0e89ed8efa598bf112c0b",
     "packages": [
         {
             "name": "brick/math",
@@ -411,22 +411,22 @@
         },
         {
             "name": "patchlevel/event-sourcing",
-            "version": "3.0.0-rc10",
+            "version": "3.0.0-rc11",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "6279164c33d77661876c796ff4b3209b65693ec0"
+                "reference": "07c4a522e44c7e014b6ae66bd50de41fde00a3b0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/6279164c33d77661876c796ff4b3209b65693ec0",
-                "reference": "6279164c33d77661876c796ff4b3209b65693ec0",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/07c4a522e44c7e014b6ae66bd50de41fde00a3b0",
+                "reference": "07c4a522e44c7e014b6ae66bd50de41fde00a3b0",
                 "shasum": ""
             },
             "require": {
                 "doctrine/dbal": "^3.8.1|^4.0.0",
                 "doctrine/migrations": "^3.3.2",
-                "patchlevel/hydrator": "^1.2.0",
+                "patchlevel/hydrator": "^1.3.1",
                 "patchlevel/worker": "^1.2.0",
                 "php": "~8.1.0 || ~8.2.0 || ~8.3.0",
                 "psr/cache": "^2.0.0|^3.0.0",
@@ -488,25 +488,26 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
-                "source": "https://github.com/patchlevel/event-sourcing/tree/3.0.0-rc10"
+                "source": "https://github.com/patchlevel/event-sourcing/tree/3.0.0-rc11"
             },
-            "time": "2024-04-09T23:39:35+00:00"
+            "time": "2024-04-11T11:32:03+00:00"
         },
         {
             "name": "patchlevel/hydrator",
-            "version": "1.2.0",
+            "version": "1.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/hydrator.git",
-                "reference": "c9f1166513c55c9e659925dcbdfc693ac57ecae4"
+                "reference": "2797c421e4b601a3b1fc6ad1ed3e11ddfaddbba8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/hydrator/zipball/c9f1166513c55c9e659925dcbdfc693ac57ecae4",
-                "reference": "c9f1166513c55c9e659925dcbdfc693ac57ecae4",
+                "url": "https://api.github.com/repos/patchlevel/hydrator/zipball/2797c421e4b601a3b1fc6ad1ed3e11ddfaddbba8",
+                "reference": "2797c421e4b601a3b1fc6ad1ed3e11ddfaddbba8",
                 "shasum": ""
             },
             "require": {
+                "ext-openssl": "*",
                 "php": "~8.1.0 || ~8.2.0  || ~8.3.0"
             },
             "require-dev": {
@@ -517,7 +518,7 @@
                 "phpspec/prophecy-phpunit": "^2.1.0",
                 "phpstan/phpstan": "^1.10.49",
                 "phpunit/phpunit": "^10.5.2",
-                "psalm/plugin-phpunit": "^0.18.4",
+                "psalm/plugin-phpunit": "^0.19.0",
                 "psr/cache": "^2.0.0|^3.0.0",
                 "psr/simple-cache": "^2.0.0|^3.0.0",
                 "roave/infection-static-analysis-plugin": "^1.34.0",
@@ -552,9 +553,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/hydrator/issues",
-                "source": "https://github.com/patchlevel/hydrator/tree/1.2.0"
+                "source": "https://github.com/patchlevel/hydrator/tree/1.3.1"
             },
-            "time": "2024-02-26T08:32:12+00:00"
+            "time": "2024-04-11T10:31:49+00:00"
         },
         {
             "name": "patchlevel/worker",
