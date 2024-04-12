@@ -47,6 +47,7 @@ use Patchlevel\EventSourcing\Snapshot\DefaultSnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
 use Patchlevel\EventSourcing\Store\DoctrineDbalStore;
 use Patchlevel\EventSourcing\Store\Store;
+use Patchlevel\EventSourcing\Subscription\Engine\CatchUpSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\DefaultSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
@@ -647,6 +648,32 @@ class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(SubscriptionAutoTeardownListener::class,
             $container->get(SubscriptionAutoTeardownListener::class));
     }
+
+
+    public function testCatchUpSubscriptionEngine(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'subscription' => [
+                        'catch_up' => [
+                            'limit' => 10,
+                        ],
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(CatchUpSubscriptionEngine::class,
+            $container->get(SubscriptionEngine::class));
+    }
+
 
     public function testAutoconfigureSubscriber(): void
     {

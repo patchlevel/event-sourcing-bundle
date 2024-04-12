@@ -96,6 +96,14 @@ final class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
 
+                    ->arrayNode('catch_up')
+                        ->canBeEnabled()
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->integerNode('limit')->defaultNull()->end()
+                        ->end()
+                    ->end()
+
                     ->arrayNode('auto_setup')
                         ->canBeEnabled()
                         ->addDefaultsIfNotSet()
