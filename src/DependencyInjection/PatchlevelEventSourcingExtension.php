@@ -87,6 +87,7 @@ use Patchlevel\EventSourcing\Snapshot\DefaultSnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
 use Patchlevel\EventSourcing\Store\DoctrineDbalStore;
 use Patchlevel\EventSourcing\Store\Store;
+use Patchlevel\EventSourcing\Subscription\Engine\CatchUpSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\DefaultSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\RetryStrategy\ClockBasedRetryStrategy;
@@ -132,6 +133,7 @@ use function sprintf;
  *      event_bus: array{type: string, service: string},
  *      subscription: array{
  *          retry_strategy: array{base_delay: int, delay_factor: int, max_attempts: int},
+ *          catch_up: array{enabled: bool, limit: positive-int|null},
  *          auto_setup: array{enabled: bool, ids: list<string>, groups: list<string>, skip_booting: bool},
  *          auto_boot: array{enabled: bool, ids: list<string>, groups: list<string>, limit: positive-int|null},
  *          auto_run: array{enabled: bool, ids: list<string>, groups: list<string>, limit: positive-int|null},
@@ -342,6 +344,16 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
 
         $container->setAlias(SubscriptionEngine::class, DefaultSubscriptionEngine::class);
+
+        if ($config['subscription']['catch_up']['enabled']) {
+            $container->register(CatchUpSubscriptionEngine::class)
+                ->setArguments([
+                    new Reference(DefaultSubscriptionEngine::class),
+                    $config['subscription']['catch_up']['limit'],
+                ]);
+
+            $container->setAlias(SubscriptionEngine::class, CatchUpSubscriptionEngine::class);
+        }
 
         if ($config['subscription']['auto_setup']['enabled']) {
             $container->register(SubscriptionAutoSetupListener::class)
