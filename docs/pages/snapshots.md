@@ -48,13 +48,13 @@ Finally, you have to tell the aggregate that it should use this snapshot store.
 ```php
 namespace App\Domain\Profile;
 
-use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
+use Patchlevel\EventSourcing\Aggregate\BasicAggregateRoot;
 use Patchlevel\EventSourcing\Attribute\Aggregate;
 use Patchlevel\EventSourcing\Attribute\Snapshot;
 
 #[Aggregate(name: 'profile')]
 #[Snapshot('default')]
-final class Profile extends AggregateRoot
+final class Profile extends BasicAggregateRoot
 {
     // ...
 }
@@ -73,13 +73,13 @@ This minimizes the write operations to the cache, which improves performance.
 ```php
 namespace App\Domain\Profile;
 
-use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
+use Patchlevel\EventSourcing\Aggregate\BasicAggregateRoot;
 use Patchlevel\EventSourcing\Attribute\Aggregate;
 use Patchlevel\EventSourcing\Attribute\Snapshot;
 
 #[Aggregate(name: 'profile')]
 #[Snapshot('default', batch: 1000)]
-final class Profile extends AggregateRoot
+final class Profile extends BasicAggregateRoot
 {
     // ...
 }

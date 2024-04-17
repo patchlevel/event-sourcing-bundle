@@ -23,7 +23,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\VarDumper\Cloner\Data;
 
-class EventSourcingCollectorTest extends TestCase
+final class EventSourcingCollectorTest extends TestCase
 {
     use ProphecyTrait;
 

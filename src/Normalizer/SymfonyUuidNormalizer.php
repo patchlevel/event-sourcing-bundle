@@ -12,7 +12,7 @@ use Symfony\Component\Uid\Uuid;
 use function is_string;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class SymfonyUuidNormalizer implements Normalizer
+final class SymfonyUuidNormalizer implements Normalizer
 {
     public function normalize(mixed $value): string|null
     {
