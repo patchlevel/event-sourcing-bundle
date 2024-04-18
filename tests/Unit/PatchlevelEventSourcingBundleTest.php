@@ -52,10 +52,10 @@ use Patchlevel\EventSourcing\Subscription\Engine\DefaultSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
-use Patchlevel\EventSourcingBundle\Listener\SubscriptionAutoBootListener;
-use Patchlevel\EventSourcingBundle\Listener\SubscriptionAutoRunListener;
-use Patchlevel\EventSourcingBundle\Listener\SubscriptionAutoSetupListener;
-use Patchlevel\EventSourcingBundle\Listener\SubscriptionAutoTeardownListener;
+use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionBootListener;
+use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRunListener;
+use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionSetupListener;
+use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionTeardownListener;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener1;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener2;
@@ -604,7 +604,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(SplitStreamDecorator::class, $container->get(SplitStreamDecorator::class));
     }
 
-    public function testSubscriptionAutoListener(): void
+    public function testRequestListener(): void
     {
         $container = new ContainerBuilder();
 
@@ -616,37 +616,41 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
                     'subscription' => [
-                        'auto_setup' => [
-                            'ids' => ['foo'],
-                            'groups' => ['bar'],
-                            'skip_booting' => true,
-                        ],
-                        'auto_boot' => [
-                            'ids' => ['foo'],
-                            'groups' => ['bar'],
-                            'limit' => 10,
-                        ],
-                        'auto_run' => [
-                            'ids' => ['foo'],
-                            'groups' => ['bar'],
-                            'limit' => 10,
-                        ],
-                        'auto_teardown' => [
-                            'ids' => ['foo'],
-                            'groups' => ['bar'],
+                        'request_listener' => [
+                            'ids' => ['a'],
+                            'groups' => ['b'],
+                            'setup' => [
+                                'ids' => ['foo'],
+                                'groups' => ['bar'],
+                                'skip_booting' => true,
+                            ],
+                            'boot' => [
+                                'ids' => ['foo'],
+                                'groups' => ['bar'],
+                                'limit' => 10,
+                            ],
+                            'run' => [
+                                'ids' => ['foo'],
+                                'groups' => ['bar'],
+                                'limit' => 10,
+                            ],
+                            'teardown' => [
+                                'ids' => ['foo'],
+                                'groups' => ['bar'],
+                            ],
                         ],
                     ],
                 ],
             ]
         );
 
-        self::assertInstanceOf(SubscriptionAutoSetupListener::class,
-            $container->get(SubscriptionAutoSetupListener::class));
-        self::assertInstanceOf(SubscriptionAutoBootListener::class,
-            $container->get(SubscriptionAutoBootListener::class));
-        self::assertInstanceOf(SubscriptionAutoRunListener::class, $container->get(SubscriptionAutoRunListener::class));
-        self::assertInstanceOf(SubscriptionAutoTeardownListener::class,
-            $container->get(SubscriptionAutoTeardownListener::class));
+        self::assertInstanceOf(SubscriptionSetupListener::class,
+            $container->get(SubscriptionSetupListener::class));
+        self::assertInstanceOf(SubscriptionBootListener::class,
+            $container->get(SubscriptionBootListener::class));
+        self::assertInstanceOf(SubscriptionRunListener::class, $container->get(SubscriptionRunListener::class));
+        self::assertInstanceOf(SubscriptionTeardownListener::class,
+            $container->get(SubscriptionTeardownListener::class));
     }
 
 

@@ -7,6 +7,32 @@ namespace Patchlevel\EventSourcingBundle\DependencyInjection;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
+/**
+ * @psalm-type Config = array{
+ *      event_bus: array{type: string, service: string},
+ *      subscription: array{
+ *          retry_strategy: array{base_delay: int, delay_factor: int, max_attempts: int},
+ *          catch_up: array{enabled: bool, limit: positive-int|null},
+ *          request_listener: array{
+ *              ids: list<string>,
+ *              groups: list<string>,
+ *              setup: array{enabled: bool, event: string, priority: int, ids: list<string>, groups: list<string>, skip_booting: bool},
+ *              boot: array{enabled: bool, event: string, priority: int, ids: list<string>, groups: list<string>, limit: positive-int|null},
+ *              run: array{enabled: bool, event: string, priority: int, ids: list<string>, groups: list<string>, limit: positive-int|null},
+ *              teardown: array{enabled: bool, event: string, priority: int, ids: list<string>, groups: list<string>}
+ *          }
+ *      },
+ *      connection: ?array{service: ?string, url: ?string},
+ *      store: array{merge_orm_schema: bool, options: array<string, mixed>},
+ *      aggregates: list<string>,
+ *      events: list<string>,
+ *      snapshot_stores: array<string, array{type: string, service: string}>,
+ *      migration: array{path: string, namespace: string},
+ *      cryptography: array{enabled: bool, algorithm: string},
+ *      clock: array{freeze: ?string, service: ?string},
+ *      debug: array{trace: bool}
+ * }
+ */
 final class Configuration implements ConfigurationInterface
 {
     /**
@@ -104,42 +130,54 @@ final class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
 
-                    ->arrayNode('auto_setup')
-                        ->canBeEnabled()
+                    ->arrayNode('request_listener')
                         ->addDefaultsIfNotSet()
                         ->children()
                             ->arrayNode('ids')->scalarPrototype()->end()->end()
                             ->arrayNode('groups')->scalarPrototype()->end()->end()
-                            ->booleanNode('skip_booting')->defaultFalse()->end()
-                        ->end()
-                    ->end()
-
-                    ->arrayNode('auto_boot')
-                        ->canBeEnabled()
-                        ->addDefaultsIfNotSet()
-                        ->children()
-                            ->arrayNode('ids')->scalarPrototype()->end()->end()
-                            ->arrayNode('groups')->scalarPrototype()->end()->end()
-                            ->integerNode('limit')->defaultNull()->end()
-                        ->end()
-                    ->end()
-
-                    ->arrayNode('auto_run')
-                        ->canBeEnabled()
-                        ->addDefaultsIfNotSet()
-                        ->children()
-                            ->arrayNode('ids')->scalarPrototype()->end()->end()
-                            ->arrayNode('groups')->scalarPrototype()->end()->end()
-                            ->integerNode('limit')->defaultNull()->end()
-                        ->end()
-                    ->end()
-
-                    ->arrayNode('auto_teardown')
-                        ->canBeEnabled()
-                        ->addDefaultsIfNotSet()
-                        ->children()
-                            ->arrayNode('ids')->scalarPrototype()->end()->end()
-                            ->arrayNode('groups')->scalarPrototype()->end()->end()
+                            ->arrayNode('setup')
+                                ->canBeEnabled()
+                                ->addDefaultsIfNotSet()
+                                ->children()
+                                    ->enumNode('event')->values(['request', 'response', 'terminate'])->defaultValue('terminate')->end()
+                                    ->integerNode('priority')->defaultValue(4)->end()
+                                    ->arrayNode('ids')->scalarPrototype()->end()->end()
+                                    ->arrayNode('groups')->scalarPrototype()->end()->end()
+                                    ->booleanNode('skip_booting')->defaultFalse()->end()
+                                ->end()
+                            ->end()
+                            ->arrayNode('boot')
+                                ->canBeEnabled()
+                                ->addDefaultsIfNotSet()
+                                ->children()
+                                    ->enumNode('event')->values(['request', 'response', 'terminate'])->defaultValue('terminate')->end()
+                                    ->integerNode('priority')->defaultValue(2)->end()
+                                    ->arrayNode('ids')->scalarPrototype()->end()->end()
+                                    ->arrayNode('groups')->scalarPrototype()->end()->end()
+                                    ->integerNode('limit')->defaultNull()->end()
+                                ->end()
+                            ->end()
+                            ->arrayNode('run')
+                                ->canBeEnabled()
+                                ->addDefaultsIfNotSet()
+                                ->children()
+                                    ->enumNode('event')->values(['request', 'response', 'terminate'])->defaultValue('terminate')->end()
+                                    ->integerNode('priority')->defaultValue(0)->end()
+                                    ->arrayNode('ids')->scalarPrototype()->end()->end()
+                                    ->arrayNode('groups')->scalarPrototype()->end()->end()
+                                    ->integerNode('limit')->defaultNull()->end()
+                                ->end()
+                            ->end()
+                            ->arrayNode('teardown')
+                                ->canBeEnabled()
+                                ->addDefaultsIfNotSet()
+                                ->children()
+                                    ->enumNode('event')->values(['request', 'response', 'terminate'])->defaultValue('terminate')->end()
+                                    ->integerNode('priority')->defaultValue(-2)->end()
+                                    ->arrayNode('ids')->scalarPrototype()->end()->end()
+                                    ->arrayNode('groups')->scalarPrototype()->end()->end()
+                                ->end()
+                            ->end()
                         ->end()
                     ->end()
                 ->end()
