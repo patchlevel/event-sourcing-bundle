@@ -20,12 +20,12 @@ You can access the specific repositories using the `RepositoryManager`.
 use Patchlevel\EventSourcing\Aggregate\CustomId;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 
-final class HotelController
+final class DoStuffAction
 {    
-    public function doStuffAction(RepositoryManager $repositoryManager): Response
+    public function __invoke(RepositoryManager $repositoryManager, HotelId $hotelId): Response
     {
         $hotelRepository = $repositoryManager->get(Hotel::class);
-        $hotel = $hotelRepository->load(CostomerId::fromString('1'));
+        $hotel = $hotelRepository->load($hotelId);
         
         $hotel->doStuff();
         
@@ -62,17 +62,17 @@ class HotelRepository
     
     public function load(HotelId $id): Hotel 
     {
-        return $this->repository->load($id->toString());
+        return $this->repository->load($id);
     }
     
     public function save(Hotel $hotel): void 
     {
-        return $this->repository->save($hotel);
+        $this->repository->save($hotel);
     }
     
     public function has(HotelId $id): bool 
     {
-        return $this->repository->has($id->toString());
+        return $this->repository->has($id);
     }
 }
 ```

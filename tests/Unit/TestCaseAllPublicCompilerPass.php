@@ -7,7 +7,7 @@ namespace Patchlevel\EventSourcingBundle\Tests\Unit;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
-class TestCaseAllPublicCompilerPass implements CompilerPassInterface
+final class TestCaseAllPublicCompilerPass implements CompilerPassInterface
 {
     private const SERVICE_PREFIX = 'event_sourcing.';
     private const NAMESPACE_PREFIX = 'Patchlevel\\';

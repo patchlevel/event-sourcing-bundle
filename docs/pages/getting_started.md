@@ -190,12 +190,12 @@ use Patchlevel\EventSourcing\Attribute\Teardown;
 use Patchlevel\EventSourcing\Attribute\Subscribe;
 use Patchlevel\EventSourcing\Attribute\Projector;
 use Patchlevel\EventSourcing\EventBus\Message;
-use Patchlevel\EventSourcing\Projection\Projector\ProjectorUtil;
+use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberUtil;
 
 #[Projector('hotel')]
 final class HotelProjection
 {
-    use ProjectorUtil;
+    use SubscriberUtil;
 
     private Connection $db;
 
@@ -209,66 +209,66 @@ final class HotelProjection
      */
     public function getHotels(): array 
     {
-        return $this->db->fetchAllAssociative("SELECT id, name, guests FROM ${this->table()};");
+        return $this->db->fetchAllAssociative("SELECT id, name, guests FROM {$this->table()};");
     }
 
     #[Subscribe(HotelCreated::class)]
-    public function handleHotelCreated(Message $message): void
+    public function handleHotelCreated(HotelCreated $event): void
     {
         $this->db->insert(
             $this->table(), 
             [
-                'id' => $message->aggregateId(), 
-                'name' => $message->event()->hotelName,
+                'id' => $event->id->toString(), 
+                'name' => $event->hotelName,
                 'guests' => 0
             ]
         );
     }
     
     #[Subscribe(GuestIsCheckedIn::class)]
-    public function handleGuestIsCheckedIn(Message $message): void
+    public function handleGuestIsCheckedIn(Uuid $hotelId): void
     {
         $this->db->executeStatement(
-            "UPDATE ${this->table()} SET guests = guests + 1 WHERE id = ?;",
-            [$message->aggregateId()]
+            "UPDATE {$this->table()} SET guests = guests + 1 WHERE id = ?;",
+            [$hotelId->toString()]
         );
     }
     
     #[Subscribe(GuestIsCheckedOut::class)]
-    public function handleGuestIsCheckedOut(Message $message): void
+    public function handleGuestIsCheckedOut(Uuid $hotelId): void
     {
         $this->db->executeStatement(
-            "UPDATE ${this->table()} SET guests = guests - 1 WHERE id = ?;",
-            [$message->aggregateId()]
+            "UPDATE {$this->table()} SET guests = guests - 1 WHERE id = ?;",
+            [$hotelId->toString()]
         );
     }
     
     #[Setup]
     public function create(): void
     {
-        $this->db->executeStatement("CREATE TABLE IF NOT EXISTS ${this->table()} (id VARCHAR PRIMARY KEY, name VARCHAR, guests INTEGER);");
+        $this->db->executeStatement("CREATE TABLE IF NOT EXISTS {$this->table()} (id VARCHAR PRIMARY KEY, name VARCHAR, guests INTEGER);");
     }
 
     #[Teardown]
     public function drop(): void
     {
-        $this->db->executeStatement("DROP TABLE IF EXISTS ${this->table()};");
+        $this->db->executeStatement("DROP TABLE IF EXISTS {$this->table()};");
     }
     
     private function table(): string 
     {
-        return 'projection_' . $this->projectorId();
+        return 'projection_' . $this->subscriberId();
     }
 }
 ```
 
 !!! warning
 
-    autoconfigure need to be enabled, otherwise you need add the `event_sourcing.projector` tag.
+    autoconfigure need to be enabled, otherwise you need add the `event_sourcing.subscriber` tag.
 
 !!! note
 
-    You can find out more about projections [here](projection.md).
+    You can find out more about projections [here](subscription.md).
 
 ## Processor
 
@@ -278,13 +278,14 @@ In our example we also want to send an email to the head office as soon as a gue
 namespace App\Domain\Hotel\Listener;
 
 use App\Domain\Hotel\Event\GuestIsCheckedIn;
+use Patchlevel\EventSourcing\Attribute\Processor;
 use Patchlevel\EventSourcing\EventBus\Message;
 use Patchlevel\EventSourcing\EventBus\Subscriber;
 use Patchlevel\EventSourcingBundle\Attribute\AsListener;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 
-#[AsListener]
+#[Processor('send_check_in_email')]
 final class SendCheckInEmailListener
 {
     private function __construct(
@@ -294,10 +295,8 @@ final class SendCheckInEmailListener
     }
 
     #[Subscribe(GuestIsCheckedIn::class)]
-    public function onGuestIsCheckedIn(Message $message): void
+    public function onGuestIsCheckedIn(GuestIsCheckedIn $event): void
     {
-        $event = $message->event();
-        
         $email = (new Email())
             ->from('noreply@patchlevel.de')
             ->to('hq@patchlevel.de')
@@ -311,11 +310,11 @@ final class SendCheckInEmailListener
 
 !!! warning
 
-    autoconfigure need to be enabled, otherwise you need add the `event_sourcing.processor` tag.
+    autoconfigure need to be enabled, otherwise you need add the `event_sourcing.subscriber` tag.
 
 !!! note
 
-    You can find out more about processor [here](processor.md).
+    You can find out more about processor [here](subscription.md).
 
 ## Database setup
 
@@ -324,7 +323,7 @@ So that we can actually write the data to a database, we need the associated sch
 ```bash
 bin/console event-sourcing:database:create
 bin/console event-sourcing:schema:create
-bin/console event-sourcing:projection:boot
+bin/console event-sourcing:subscription:create
 ```
 
 !!! note
@@ -380,29 +379,27 @@ final class HotelController
         $hotel = Hotel::create($id, $hotelName);
         $this->hotelRepository->save($hotel);
 
-        return new JsonResponse(['id' => $id->jsonSerialize()]);
+        return new JsonResponse(['id' => $id->toString()]);
     }
 
-    #[Route("/{hotel}/check-in", methods:["POST"])]
-    public function checkInAction(string $hotel, Request $request): JsonResponse
+    #[Route("/{hotelId}/check-in", methods:["POST"])]
+    public function checkInAction(Uuid $hotelId, Request $request): JsonResponse
     {
-        $id = Uuid::fromString($hotel);
         $guestName = $request->request->get('name'); // need validation!
 
-        $hotel = $this->hotelRepository->load((string)$id);
+        $hotel = $this->hotelRepository->load($hotelId);
         $hotel->checkIn($guestName);
         $this->hotelRepository->save($hotel);
 
         return new JsonResponse();
     }
 
-    #[Route("/{hotel}/check-out", methods:["POST"])]
-    public function checkOutAction(string $hotel, Request $request): JsonResponse
+    #[Route("/{hotelId}/check-out", methods:["POST"])]
+    public function checkOutAction(Uuid $hotelId, Request $request): JsonResponse
     {
-        $id = Uuid::fromString($hotel);
         $guestName = $request->request->get('name'); // need validation!
 
-        $hotel = $this->hotelRepository->load((string)$id);
+        $hotel = $this->hotelRepository->load($hotelId);
         $hotel->checkOut($guestName);
         $this->hotelRepository->save($hotel);
 
@@ -410,7 +407,3 @@ final class HotelController
     }
 }
 ```
-
-!!! note
-
-    You can also use a [command bus](event_bus.md).

@@ -107,6 +107,7 @@ use Patchlevel\EventSourcingBundle\Listener\SubscriptionAutoRunListener;
 use Patchlevel\EventSourcingBundle\Listener\SubscriptionAutoSetupListener;
 use Patchlevel\EventSourcingBundle\Listener\SubscriptionAutoTeardownListener;
 use Patchlevel\EventSourcingBundle\Listener\TraceListener;
+use Patchlevel\EventSourcingBundle\ValueResolver\AggregateRootIdValueResolver;
 use Patchlevel\Hydrator\Cryptography\Cipher\Cipher;
 use Patchlevel\Hydrator\Cryptography\Cipher\CipherKeyFactory;
 use Patchlevel\Hydrator\Cryptography\Cipher\OpensslCipher;
@@ -181,6 +182,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureCryptography($config, $container);
         $this->configureDebugging($config, $container);
         $this->configureMigration($config, $container);
+        $this->configureValueResolver($container);
     }
 
     /** @param Config $config */
@@ -858,5 +860,11 @@ final class PatchlevelEventSourcingExtension extends Extension
                 'event' => 'kernel.response',
                 'method' => 'onResponse',
             ]);
+    }
+
+    private function configureValueResolver(ContainerBuilder $container): void
+    {
+        $container->register(AggregateRootIdValueResolver::class)
+            ->addTag('controller.argument_value_resolver', ['priority' => 200]);
     }
 }

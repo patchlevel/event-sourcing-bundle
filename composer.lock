@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5eda5199f9acfa45cf652d50c5e42b1b",
+    "content-hash": "65cf22edbf4cda05539a3fe13abf9f61",
     "packages": [
         {
             "name": "brick/math",
@@ -5667,12 +5667,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "581b11097cf4ba8ed29a685645966a7eb8ea632e"
+                "reference": "5a4b95f36e44b3e55eb3b53a1108ac0fc8e28b37"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/581b11097cf4ba8ed29a685645966a7eb8ea632e",
-                "reference": "581b11097cf4ba8ed29a685645966a7eb8ea632e",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/5a4b95f36e44b3e55eb3b53a1108ac0fc8e28b37",
+                "reference": "5a4b95f36e44b3e55eb3b53a1108ac0fc8e28b37",
                 "shasum": ""
             },
             "conflict": {
@@ -6252,7 +6252,7 @@
                 "thinkcmf/thinkcmf": "<=5.1.7",
                 "thorsten/phpmyfaq": "<3.2.2",
                 "tikiwiki/tiki-manager": "<=17.1",
-                "timber/timber": "<=1.23|==1.24|==2",
+                "timber/timber": "<1.23.1|>=1.24,<1.24.1|>=2,<2.1",
                 "tinymce/tinymce": "<7",
                 "tinymighty/wiki-seo": "<1.2.2",
                 "titon/framework": "<9.9.99",
@@ -6407,7 +6407,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-04-17T11:04:37+00:00"
+            "time": "2024-04-18T09:04:30+00:00"
         },
         {
             "name": "sanmai/later",

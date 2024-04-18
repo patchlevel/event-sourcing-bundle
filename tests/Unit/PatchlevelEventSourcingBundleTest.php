@@ -79,7 +79,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\Messenger\MessageBusInterface;
 
-class PatchlevelEventSourcingBundleTest extends TestCase
+final class PatchlevelEventSourcingBundleTest extends TestCase
 {
     use ProphecyTrait;
 
