@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d7c0dc4da4de676aab30cef8e212c184",
+    "content-hash": "5eda5199f9acfa45cf652d50c5e42b1b",
     "packages": [
         {
             "name": "brick/math",
@@ -411,16 +411,16 @@
         },
         {
             "name": "patchlevel/event-sourcing",
-            "version": "3.0.0-rc12",
+            "version": "3.0.0-rc13",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "d0d6e4ba436ce687f136a6f4a200b608aeb6d5a3"
+                "reference": "f26e664d22e2c69436858c527708d0229014e0fb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/d0d6e4ba436ce687f136a6f4a200b608aeb6d5a3",
-                "reference": "d0d6e4ba436ce687f136a6f4a200b608aeb6d5a3",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/f26e664d22e2c69436858c527708d0229014e0fb",
+                "reference": "f26e664d22e2c69436858c527708d0229014e0fb",
                 "shasum": ""
             },
             "require": {
@@ -450,7 +450,7 @@
                 "phpspec/prophecy-phpunit": "^2.1.0",
                 "phpstan/phpstan": "^1.10.49",
                 "phpunit/phpunit": "^10.5.2",
-                "psalm/plugin-phpunit": "^0.18.4",
+                "psalm/plugin-phpunit": "^0.19.0",
                 "roave/infection-static-analysis-plugin": "^1.34.0",
                 "symfony/messenger": "^5.4.31|^6.4.0|^7.0.1",
                 "symfony/var-dumper": "^5.4.29|^6.4.0|^7.0.0",
@@ -488,9 +488,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
-                "source": "https://github.com/patchlevel/event-sourcing/tree/3.0.0-rc12"
+                "source": "https://github.com/patchlevel/event-sourcing/tree/3.0.0-rc13"
             },
-            "time": "2024-04-15T10:51:51+00:00"
+            "time": "2024-04-18T08:11:41+00:00"
         },
         {
             "name": "patchlevel/hydrator",
