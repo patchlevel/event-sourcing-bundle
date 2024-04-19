@@ -5667,12 +5667,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "5a4b95f36e44b3e55eb3b53a1108ac0fc8e28b37"
+                "reference": "16afe68c1b79917b4e8d8222a39ca4db31b63377"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/5a4b95f36e44b3e55eb3b53a1108ac0fc8e28b37",
-                "reference": "5a4b95f36e44b3e55eb3b53a1108ac0fc8e28b37",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/16afe68c1b79917b4e8d8222a39ca4db31b63377",
+                "reference": "16afe68c1b79917b4e8d8222a39ca4db31b63377",
                 "shasum": ""
             },
             "conflict": {
@@ -6252,7 +6252,7 @@
                 "thinkcmf/thinkcmf": "<=5.1.7",
                 "thorsten/phpmyfaq": "<3.2.2",
                 "tikiwiki/tiki-manager": "<=17.1",
-                "timber/timber": "<1.23.1|>=1.24,<1.24.1|>=2,<2.1",
+                "timber/timber": ">=0.16.6,<1.23.1|>=1.24,<1.24.1|>=2,<2.1",
                 "tinymce/tinymce": "<7",
                 "tinymighty/wiki-seo": "<1.2.2",
                 "titon/framework": "<9.9.99",
@@ -6407,7 +6407,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-04-18T09:04:30+00:00"
+            "time": "2024-04-18T17:04:22+00:00"
         },
         {
             "name": "sanmai/later",
@@ -8645,16 +8645,16 @@
         },
         {
             "name": "twig/twig",
-            "version": "v3.9.2",
+            "version": "v3.9.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/twigphp/Twig.git",
-                "reference": "856cb5a6cfd6f3e4dc1f6c9a8f54e259503f7cf3"
+                "reference": "a842d75fed59cdbcbd3a3ad7fb9eb768fc350d58"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/twigphp/Twig/zipball/856cb5a6cfd6f3e4dc1f6c9a8f54e259503f7cf3",
-                "reference": "856cb5a6cfd6f3e4dc1f6c9a8f54e259503f7cf3",
+                "url": "https://api.github.com/repos/twigphp/Twig/zipball/a842d75fed59cdbcbd3a3ad7fb9eb768fc350d58",
+                "reference": "a842d75fed59cdbcbd3a3ad7fb9eb768fc350d58",
                 "shasum": ""
             },
             "require": {
@@ -8708,7 +8708,7 @@
             ],
             "support": {
                 "issues": "https://github.com/twigphp/Twig/issues",
-                "source": "https://github.com/twigphp/Twig/tree/v3.9.2"
+                "source": "https://github.com/twigphp/Twig/tree/v3.9.3"
             },
             "funding": [
                 {
@@ -8720,7 +8720,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-04-17T14:16:25+00:00"
+            "time": "2024-04-18T11:59:33+00:00"
         },
         {
             "name": "vimeo/psalm",
