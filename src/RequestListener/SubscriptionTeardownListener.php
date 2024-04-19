@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Patchlevel\EventSourcingBundle\Listener;
+namespace Patchlevel\EventSourcingBundle\RequestListener;
 
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngineCriteria;
-use Symfony\Component\HttpKernel\Event\TerminateEvent;
+use Symfony\Component\HttpKernel\Event\KernelEvent;
 
-final class SubscriptionAutoTeardownListener
+final class SubscriptionTeardownListener
 {
     /**
      * @param list<string>|null $ids
@@ -21,7 +21,7 @@ final class SubscriptionAutoTeardownListener
     ) {
     }
 
-    public function __invoke(TerminateEvent $event): void
+    public function __invoke(KernelEvent $event): void
     {
         if (!$event->isMainRequest()) {
             return;

@@ -102,11 +102,11 @@ use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
 use Patchlevel\EventSourcingBundle\DataCollector\MessageListener;
 use Patchlevel\EventSourcingBundle\Doctrine\DbalConnectionFactory;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
-use Patchlevel\EventSourcingBundle\Listener\SubscriptionAutoBootListener;
-use Patchlevel\EventSourcingBundle\Listener\SubscriptionAutoRunListener;
-use Patchlevel\EventSourcingBundle\Listener\SubscriptionAutoSetupListener;
-use Patchlevel\EventSourcingBundle\Listener\SubscriptionAutoTeardownListener;
-use Patchlevel\EventSourcingBundle\Listener\TraceListener;
+use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionBootListener;
+use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRunListener;
+use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionSetupListener;
+use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionTeardownListener;
+use Patchlevel\EventSourcingBundle\RequestListener\TraceListener;
 use Patchlevel\EventSourcingBundle\ValueResolver\AggregateRootIdValueResolver;
 use Patchlevel\Hydrator\Cryptography\Cipher\Cipher;
 use Patchlevel\Hydrator\Cryptography\Cipher\CipherKeyFactory;
@@ -129,28 +129,7 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use function class_exists;
 use function sprintf;
 
-/**
- * @psalm-type Config = array{
- *      event_bus: array{type: string, service: string},
- *      subscription: array{
- *          retry_strategy: array{base_delay: int, delay_factor: int, max_attempts: int},
- *          catch_up: array{enabled: bool, limit: positive-int|null},
- *          auto_setup: array{enabled: bool, ids: list<string>, groups: list<string>, skip_booting: bool},
- *          auto_boot: array{enabled: bool, ids: list<string>, groups: list<string>, limit: positive-int|null},
- *          auto_run: array{enabled: bool, ids: list<string>, groups: list<string>, limit: positive-int|null},
- *          auto_teardown: array{enabled: bool, ids: list<string>, groups: list<string>}
- *      },
- *      connection: ?array{service: ?string, url: ?string},
- *      store: array{merge_orm_schema: bool, options: array<string, mixed>},
- *      aggregates: list<string>,
- *      events: list<string>,
- *      snapshot_stores: array<string, array{type: string, service: string}>,
- *      migration: array{path: string, namespace: string},
- *      cryptography: array{enabled: bool, algorithm: string},
- *      clock: array{freeze: ?string, service: ?string},
- *      debug: array{trace: bool}
- * }
- */
+/** @psalm-import-type Config from Configuration */
 final class PatchlevelEventSourcingExtension extends Extension
 {
     /** @param array<array-key, mixed> $configs */
@@ -357,50 +336,64 @@ final class PatchlevelEventSourcingExtension extends Extension
             $container->setAlias(SubscriptionEngine::class, CatchUpSubscriptionEngine::class);
         }
 
-        if ($config['subscription']['auto_setup']['enabled']) {
-            $container->register(SubscriptionAutoSetupListener::class)
+        $listenerConfig = $config['subscription']['request_listener'];
+
+        if ($listenerConfig['setup']['enabled']) {
+            $container->register(SubscriptionSetupListener::class)
                 ->setArguments([
                     new Reference(SubscriptionEngine::class),
-                    $config['subscription']['auto_setup']['ids'] ?: null,
-                    $config['subscription']['auto_setup']['groups'] ?: null,
-                    $config['subscription']['auto_setup']['skip_booting'],
+                    $listenerConfig['setup']['ids'] ?: $listenerConfig['ids'] ?: null,
+                    $listenerConfig['setup']['groups'] ?: $listenerConfig['groups'] ?: null,
+                    $listenerConfig['setup']['skip_booting'],
                 ])
-                ->addTag('kernel.event_listener', ['priority' => 2]);
+                ->addTag('kernel.event_listener', [
+                    'event' => 'kernel.' . $listenerConfig['setup']['event'],
+                    'priority' => $listenerConfig['setup']['priority'],
+                ]);
         }
 
-        if ($config['subscription']['auto_boot']['enabled']) {
-            $container->register(SubscriptionAutoBootListener::class)
+        if ($listenerConfig['boot']['enabled']) {
+            $container->register(SubscriptionBootListener::class)
                 ->setArguments([
                     new Reference(SubscriptionEngine::class),
-                    $config['subscription']['auto_boot']['ids'] ?: null,
-                    $config['subscription']['auto_boot']['groups'] ?: null,
-                    $config['subscription']['auto_boot']['limit'],
+                    $listenerConfig['boot']['ids'] ?: $listenerConfig['ids'] ?: null,
+                    $listenerConfig['boot']['groups'] ?: $listenerConfig['groups'] ?: null,
+                    $listenerConfig['boot']['limit'],
                 ])
-                ->addTag('kernel.event_listener', ['priority' => 2]);
+                ->addTag('kernel.event_listener', [
+                    'event' => 'kernel.' . $listenerConfig['boot']['event'],
+                    'priority' => $listenerConfig['boot']['priority'],
+                ]);
         }
 
-        if ($config['subscription']['auto_run']['enabled']) {
-            $container->register(SubscriptionAutoRunListener::class)
+        if ($listenerConfig['run']['enabled']) {
+            $container->register(SubscriptionRunListener::class)
                 ->setArguments([
                     new Reference(SubscriptionEngine::class),
-                    $config['subscription']['auto_run']['ids'] ?: null,
-                    $config['subscription']['auto_run']['groups'] ?: null,
-                    $config['subscription']['auto_run']['limit'],
+                    $listenerConfig['run']['ids'] ?: $listenerConfig['ids'] ?: null,
+                    $listenerConfig['run']['groups'] ?: $listenerConfig['groups'] ?: null,
+                    $listenerConfig['run']['limit'],
                 ])
-                ->addTag('kernel.event_listener', ['priority' => 0]);
+                ->addTag('kernel.event_listener', [
+                    'event' => 'kernel.' . $listenerConfig['run']['event'],
+                    'priority' => $listenerConfig['run']['priority'],
+                ]);
         }
 
-        if (!$config['subscription']['auto_teardown']['enabled']) {
+        if (!$listenerConfig['teardown']['enabled']) {
             return;
         }
 
-        $container->register(SubscriptionAutoTeardownListener::class)
+        $container->register(SubscriptionTeardownListener::class)
             ->setArguments([
                 new Reference(SubscriptionEngine::class),
-                $config['subscription']['auto_teardown']['ids'] ?: null,
-                $config['subscription']['auto_teardown']['groups'] ?: null,
+                $listenerConfig['teardown']['ids'] ?: $listenerConfig['ids'] ?: null,
+                $listenerConfig['teardown']['groups'] ?: $listenerConfig['groups'] ?: null,
             ])
-            ->addTag('kernel.event_listener', ['priority' => -2]);
+            ->addTag('kernel.event_listener', [
+                'event' => 'kernel.' . $listenerConfig['teardown']['event'],
+                'priority' => $listenerConfig['teardown']['priority'],
+            ]);
     }
 
     private function configureHydrator(ContainerBuilder $container): void

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Patchlevel\EventSourcingBundle\Listener;
+namespace Patchlevel\EventSourcingBundle\RequestListener;
 
 use Patchlevel\EventSourcing\Debug\Trace\Trace;
 use Patchlevel\EventSourcing\Debug\Trace\TraceStack;
