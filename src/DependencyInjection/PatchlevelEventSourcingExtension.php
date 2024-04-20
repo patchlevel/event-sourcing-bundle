@@ -103,6 +103,7 @@ use Patchlevel\EventSourcingBundle\DataCollector\MessageListener;
 use Patchlevel\EventSourcingBundle\Doctrine\DbalConnectionFactory;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionBootListener;
+use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRebuildByChangeListener;
 use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRunListener;
 use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionSetupListener;
 use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionTeardownListener;
@@ -380,19 +381,33 @@ final class PatchlevelEventSourcingExtension extends Extension
                 ]);
         }
 
-        if (!$listenerConfig['teardown']['enabled']) {
+        if ($listenerConfig['teardown']['enabled']) {
+            $container->register(SubscriptionTeardownListener::class)
+                ->setArguments([
+                    new Reference(SubscriptionEngine::class),
+                    $listenerConfig['teardown']['ids'] ?: $listenerConfig['ids'] ?: null,
+                    $listenerConfig['teardown']['groups'] ?: $listenerConfig['groups'] ?: null,
+                ])
+                ->addTag('kernel.event_listener', [
+                    'event' => 'kernel.' . $listenerConfig['teardown']['event'],
+                    'priority' => $listenerConfig['teardown']['priority'],
+                ]);
+        }
+
+        if (!$listenerConfig['rebuild_by_change']['enabled']) {
             return;
         }
 
-        $container->register(SubscriptionTeardownListener::class)
+        $container->register(SubscriptionRebuildByChangeListener::class)
             ->setArguments([
                 new Reference(SubscriptionEngine::class),
-                $listenerConfig['teardown']['ids'] ?: $listenerConfig['ids'] ?: null,
-                $listenerConfig['teardown']['groups'] ?: $listenerConfig['groups'] ?: null,
+                new TaggedIteratorArgument('event_sourcing.subscriber'),
+                new Reference('cache.app'),
+                new Reference(SubscriberMetadataFactory::class),
             ])
             ->addTag('kernel.event_listener', [
-                'event' => 'kernel.' . $listenerConfig['teardown']['event'],
-                'priority' => $listenerConfig['teardown']['priority'],
+                'event' => 'kernel.' . $listenerConfig['rebuild_by_change']['event'],
+                'priority' => $listenerConfig['rebuild_by_change']['priority'],
             ]);
     }
 
