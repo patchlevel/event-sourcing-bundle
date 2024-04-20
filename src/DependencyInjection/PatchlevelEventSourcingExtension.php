@@ -90,6 +90,7 @@ use Patchlevel\EventSourcing\Store\Store;
 use Patchlevel\EventSourcing\Subscription\Engine\CatchUpSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\DefaultSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
+use Patchlevel\EventSourcing\Subscription\Engine\ThrowOnErrorSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\RetryStrategy\ClockBasedRetryStrategy;
 use Patchlevel\EventSourcing\Subscription\RetryStrategy\RetryStrategy;
 use Patchlevel\EventSourcing\Subscription\Store\DoctrineSubscriptionStore;
@@ -327,14 +328,21 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->setAlias(SubscriptionEngine::class, DefaultSubscriptionEngine::class);
 
+        if ($config['subscription']['throw_on_error']['enabled']) {
+            $container->register(ThrowOnErrorSubscriptionEngine::class)
+                ->setDecoratedService(SubscriptionEngine::class)
+                ->setArguments([
+                    new Reference('.inner'),
+                ]);
+        }
+
         if ($config['subscription']['catch_up']['enabled']) {
             $container->register(CatchUpSubscriptionEngine::class)
+                ->setDecoratedService(SubscriptionEngine::class)
                 ->setArguments([
-                    new Reference(DefaultSubscriptionEngine::class),
+                    new Reference('.inner'),
                     $config['subscription']['catch_up']['limit'],
                 ]);
-
-            $container->setAlias(SubscriptionEngine::class, CatchUpSubscriptionEngine::class);
         }
 
         $listenerConfig = $config['subscription']['request_listener'];
@@ -834,15 +842,12 @@ final class PatchlevelEventSourcingExtension extends Extension
             ])
             ->addTag('event_sourcing.message_decorator');
 
-        $innerService = $container->getAlias(SubscriberAccessorRepository::class);
-
         $container->register(TraceableSubscriberAccessorRepository::class)
+            ->setDecoratedService(SubscriberAccessorRepository::class)
             ->setArguments([
-                new Reference((string)$innerService),
+                new Reference('.inner'),
                 new Reference(TraceStack::class),
             ]);
-
-        $container->setAlias(SubscriberAccessorRepository::class, TraceableSubscriberAccessorRepository::class);
 
         $container->register(TraceListener::class)
             ->setArguments([

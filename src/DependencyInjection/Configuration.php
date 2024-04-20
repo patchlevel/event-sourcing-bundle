@@ -13,6 +13,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  *      subscription: array{
  *          retry_strategy: array{base_delay: int, delay_factor: int, max_attempts: int},
  *          catch_up: array{enabled: bool, limit: positive-int|null},
+ *          throw_on_error: array{enabled: bool},
  *          request_listener: array{
  *              ids: list<string>,
  *              groups: list<string>,
@@ -130,6 +131,10 @@ final class Configuration implements ConfigurationInterface
                         ->children()
                             ->integerNode('limit')->defaultNull()->end()
                         ->end()
+                    ->end()
+
+                    ->arrayNode('throw_on_error')
+                        ->canBeEnabled()
                     ->end()
 
                     ->arrayNode('request_listener')

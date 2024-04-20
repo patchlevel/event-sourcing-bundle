@@ -840,6 +840,12 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                     'debug' => [
                         'trace' => true,
                     ],
+                    'subscription' => [
+                        'catch_up' => [
+                            'limit' => 10,
+                        ],
+                        'throw_on_error' => true,
+                    ]
                 ],
             ]
         );
