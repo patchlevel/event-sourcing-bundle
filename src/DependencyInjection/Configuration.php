@@ -19,7 +19,8 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  *              setup: array{enabled: bool, event: string, priority: int, ids: list<string>, groups: list<string>, skip_booting: bool},
  *              boot: array{enabled: bool, event: string, priority: int, ids: list<string>, groups: list<string>, limit: positive-int|null},
  *              run: array{enabled: bool, event: string, priority: int, ids: list<string>, groups: list<string>, limit: positive-int|null},
- *              teardown: array{enabled: bool, event: string, priority: int, ids: list<string>, groups: list<string>}
+ *              teardown: array{enabled: bool, event: string, priority: int, ids: list<string>, groups: list<string>},
+ *              rebuild_by_change: array{enabled: bool, event: string, priority: int, ids: list<string>, groups: list<string>}
  *          }
  *      },
  *      connection: ?array{service: ?string, url: ?string},
@@ -175,6 +176,16 @@ final class Configuration implements ConfigurationInterface
                                 ->children()
                                     ->enumNode('event')->values(['request', 'response', 'terminate'])->defaultValue('terminate')->end()
                                     ->integerNode('priority')->defaultValue(-2)->end()
+                                    ->arrayNode('ids')->scalarPrototype()->end()->end()
+                                    ->arrayNode('groups')->scalarPrototype()->end()->end()
+                                ->end()
+                            ->end()
+                            ->arrayNode('rebuild_by_change')
+                                ->canBeEnabled()
+                                ->addDefaultsIfNotSet()
+                                ->children()
+                                    ->enumNode('event')->values(['request', 'response', 'terminate'])->defaultValue('request')->end()
+                                    ->integerNode('priority')->defaultValue(6)->end()
                                     ->arrayNode('ids')->scalarPrototype()->end()->end()
                                     ->arrayNode('groups')->scalarPrototype()->end()->end()
                                 ->end()
