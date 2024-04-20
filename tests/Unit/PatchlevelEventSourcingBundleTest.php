@@ -813,6 +813,9 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
                     'store' => [
+                        'options' => [
+                            'table_name' => 'event_store',
+                        ],
                     ],
                     'clock' => [
                         'service' => 'clock',
