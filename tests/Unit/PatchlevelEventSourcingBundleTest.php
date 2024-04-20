@@ -767,6 +767,9 @@ class PatchlevelEventSourcingBundleTest extends TestCase
                     'store' => [
                         'type' => 'multi_table',
                         'schema_manager' => 'my_schema_manager',
+                        'options' => [
+                            'table_name' => 'event_store',
+                        ]
                     ],
                     'event_bus' => [
                         'type' => 'symfony',
