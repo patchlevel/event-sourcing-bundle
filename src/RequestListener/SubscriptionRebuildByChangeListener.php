@@ -33,6 +33,7 @@ final class SubscriptionRebuildByChangeListener
         }
 
         $toRemove = [];
+        $itemsToSave = [];
 
         foreach ($this->subscribers as $subscriber) {
             $metadata = $this->metadataFactory->metadata($subscriber::class);
@@ -59,9 +60,9 @@ final class SubscriptionRebuildByChangeListener
             }
 
             $item->set($currentModified);
-            $this->cache->save($item);
 
             $toRemove[] = $metadata->id;
+            $itemsToSave[] = $item;
         }
 
         $criteria = new SubscriptionEngineCriteria($toRemove);
@@ -69,6 +70,10 @@ final class SubscriptionRebuildByChangeListener
         $this->subscriptionEngine->remove($criteria);
         $this->subscriptionEngine->setup($criteria);
         $this->subscriptionEngine->boot($criteria);
+
+        foreach ($itemsToSave as $item) {
+            $this->cache->save($item);
+        }
     }
 
     private function getLastModifiedTime(object $subscriber): int|null
