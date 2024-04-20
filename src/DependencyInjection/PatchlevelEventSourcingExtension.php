@@ -471,7 +471,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference('event_sourcing.dbal_connection'),
                 new Reference(EventSerializer::class),
                 new Reference(HeadersSerializer::class),
-                $config['store']['options']['table_name'] ?? 'eventstore',
+                $config['store']['options'],
             ])
             ->addTag('event_sourcing.doctrine_schema_configurator');
 

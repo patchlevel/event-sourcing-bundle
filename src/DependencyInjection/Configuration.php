@@ -57,6 +57,7 @@ final class Configuration implements ConfigurationInterface
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->booleanNode('merge_orm_schema')->defaultFalse()->end()
+                    ->arrayNode('options')->variablePrototype()->end()->end()
                 ->end()
             ->end()
 
