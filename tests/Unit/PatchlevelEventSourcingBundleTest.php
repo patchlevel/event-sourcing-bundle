@@ -27,6 +27,7 @@ use Patchlevel\EventSourcing\Console\Command\SubscriptionStatusCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionTeardownCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
 use Patchlevel\EventSourcing\Debug\Trace\TraceStack;
+use Patchlevel\EventSourcing\EventBus\ChainEventBus;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\ChainMessageDecorator;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\MessageDecorator;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\SplitStreamDecorator;
@@ -50,18 +51,14 @@ use Patchlevel\EventSourcing\Store\Store;
 use Patchlevel\EventSourcing\Subscription\Engine\CatchUpSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\DefaultSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
+use Patchlevel\EventSourcing\Subscription\Repository\RunSubscriptionEngineRepositoryManager;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
-use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionBootListener;
-use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRunListener;
-use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionSetupListener;
-use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionTeardownListener;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener1;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener2;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Profile;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileCreated;
-use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileListener;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileProcessor;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileProjector;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileSubscriber;
@@ -114,12 +111,13 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertInstanceOf(Connection::class, $container->get('event_sourcing.dbal_connection'));
         self::assertInstanceOf(DoctrineDbalStore::class, $container->get(Store::class));
-        self::assertInstanceOf(DefaultEventBus::class, $container->get(EventBus::class));
         self::assertInstanceOf(AggregateRootRegistry::class, $container->get(AggregateRootRegistry::class));
         self::assertInstanceOf(DefaultRepositoryManager::class, $container->get(RepositoryManager::class));
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
         self::assertInstanceOf(SystemClock::class, $container->get('event_sourcing.clock'));
         self::assertInstanceOf(DefaultSubscriptionEngine::class, $container->get(SubscriptionEngine::class));
+
+        self::assertFalse($container->has(EventBus::class));
     }
 
     public function testConnectionService(): void
@@ -215,7 +213,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertEquals($eventBus, $container->get(EventBus::class));
     }
 
-    public function testProcessorListener(): void
+    public function testListener(): void
     {
         $container = new ContainerBuilder();
         $container->setDefinition(Listener1::class, new Definition(Listener1::class))
@@ -230,6 +228,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                     'connection' => [
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
+                    'event_bus' => true,
                 ],
             ]
         );
@@ -251,7 +250,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         );
     }
 
-    public function testAutoconfigureProcessorListener(): void
+    public function testAutoconfigureListener(): void
     {
         $container = new ContainerBuilder();
         $container->setDefinition(Listener1::class, new Definition(Listener1::class))
@@ -266,6 +265,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                     'connection' => [
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
+                    'event_bus' => true
                 ],
             ]
         );
@@ -604,7 +604,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(SplitStreamDecorator::class, $container->get(SplitStreamDecorator::class));
     }
 
-    public function testRequestListener(): void
+    public function testRunSubscriptionEngineRepositoryManager(): void
     {
         $container = new ContainerBuilder();
 
@@ -616,43 +616,19 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
                     'subscription' => [
-                        'request_listener' => [
+                        'run_after_aggregate_save' => [
                             'ids' => ['a'],
                             'groups' => ['b'],
-                            'setup' => [
-                                'ids' => ['foo'],
-                                'groups' => ['bar'],
-                                'skip_booting' => true,
-                            ],
-                            'boot' => [
-                                'ids' => ['foo'],
-                                'groups' => ['bar'],
-                                'limit' => 10,
-                            ],
-                            'run' => [
-                                'ids' => ['foo'],
-                                'groups' => ['bar'],
-                                'limit' => 10,
-                            ],
-                            'teardown' => [
-                                'ids' => ['foo'],
-                                'groups' => ['bar'],
-                            ],
+                            'limit' => 10,
                         ],
                     ],
                 ],
             ]
         );
 
-        self::assertInstanceOf(SubscriptionSetupListener::class,
-            $container->get(SubscriptionSetupListener::class));
-        self::assertInstanceOf(SubscriptionBootListener::class,
-            $container->get(SubscriptionBootListener::class));
-        self::assertInstanceOf(SubscriptionRunListener::class, $container->get(SubscriptionRunListener::class));
-        self::assertInstanceOf(SubscriptionTeardownListener::class,
-            $container->get(SubscriptionTeardownListener::class));
+        self::assertInstanceOf(RunSubscriptionEngineRepositoryManager::class,
+            $container->get(RepositoryManager::class));
     }
-
 
     public function testCatchUpSubscriptionEngine(): void
     {
@@ -706,26 +682,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertTrue($container->getDefinition(ProfileSubscriber::class)->hasTag('event_sourcing.subscriber'));
         self::assertTrue($container->getDefinition(ProfileProcessor::class)->hasTag('event_sourcing.subscriber'));
         self::assertTrue($container->getDefinition(ProfileProjector::class)->hasTag('event_sourcing.subscriber'));
-    }
-
-    public function testAutoconfigureListener(): void
-    {
-        $container = new ContainerBuilder();
-        $container->setDefinition(ProfileListener::class, new Definition(ProfileListener::class))
-            ->setAutoconfigured(true);
-
-        $this->compileContainer(
-            $container,
-            [
-                'patchlevel_event_sourcing' => [
-                    'connection' => [
-                        'service' => 'doctrine.dbal.eventstore_connection',
-                    ],
-                ],
-            ]
-        );
-
-        self::assertTrue($container->getDefinition(ProfileListener::class)->hasTag('event_sourcing.listener'));
     }
 
     public function testSchemaMerge(): void

@@ -91,6 +91,7 @@ use Patchlevel\EventSourcing\Subscription\Engine\CatchUpSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\DefaultSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\ThrowOnErrorSubscriptionEngine;
+use Patchlevel\EventSourcing\Subscription\Repository\RunSubscriptionEngineRepositoryManager;
 use Patchlevel\EventSourcing\Subscription\RetryStrategy\ClockBasedRetryStrategy;
 use Patchlevel\EventSourcing\Subscription\RetryStrategy\RetryStrategy;
 use Patchlevel\EventSourcing\Subscription\Store\DoctrineSubscriptionStore;
@@ -103,11 +104,7 @@ use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
 use Patchlevel\EventSourcingBundle\DataCollector\MessageListener;
 use Patchlevel\EventSourcingBundle\Doctrine\DbalConnectionFactory;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
-use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionBootListener;
-use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRebuildByChangeListener;
-use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRunListener;
-use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionSetupListener;
-use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionTeardownListener;
+use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRebuildAfterFileChangeListener;
 use Patchlevel\EventSourcingBundle\RequestListener\TraceListener;
 use Patchlevel\EventSourcingBundle\ValueResolver\AggregateRootIdValueResolver;
 use Patchlevel\Hydrator\Cryptography\Cipher\Cipher;
@@ -211,6 +208,10 @@ final class PatchlevelEventSourcingExtension extends Extension
     /** @param Config $config */
     private function configureEventBus(array $config, ContainerBuilder $container): void
     {
+        if (!$config['event_bus']['enabled']) {
+            return;
+        }
+
         $container->registerAttributeForAutoconfiguration(
             AsListener::class,
             static function (ChildDefinition $definition, AsListener $attribute): void {
@@ -345,68 +346,23 @@ final class PatchlevelEventSourcingExtension extends Extension
                 ]);
         }
 
-        $listenerConfig = $config['subscription']['request_listener'];
-
-        if ($listenerConfig['setup']['enabled']) {
-            $container->register(SubscriptionSetupListener::class)
+        if ($config['subscription']['run_after_aggregate_save']['enabled']) {
+            $container->register(RunSubscriptionEngineRepositoryManager::class)
+                ->setDecoratedService(RepositoryManager::class)
                 ->setArguments([
+                    new Reference('.inner'),
                     new Reference(SubscriptionEngine::class),
-                    $listenerConfig['setup']['ids'] ?: $listenerConfig['ids'] ?: null,
-                    $listenerConfig['setup']['groups'] ?: $listenerConfig['groups'] ?: null,
-                    $listenerConfig['setup']['skip_booting'],
-                ])
-                ->addTag('kernel.event_listener', [
-                    'event' => 'kernel.' . $listenerConfig['setup']['event'],
-                    'priority' => $listenerConfig['setup']['priority'],
+                    $config['subscription']['run_after_aggregate_save']['ids'] ?: null,
+                    $config['subscription']['run_after_aggregate_save']['groups'] ?: null,
+                    $config['subscription']['run_after_aggregate_save']['limit'],
                 ]);
         }
 
-        if ($listenerConfig['boot']['enabled']) {
-            $container->register(SubscriptionBootListener::class)
-                ->setArguments([
-                    new Reference(SubscriptionEngine::class),
-                    $listenerConfig['boot']['ids'] ?: $listenerConfig['ids'] ?: null,
-                    $listenerConfig['boot']['groups'] ?: $listenerConfig['groups'] ?: null,
-                    $listenerConfig['boot']['limit'],
-                ])
-                ->addTag('kernel.event_listener', [
-                    'event' => 'kernel.' . $listenerConfig['boot']['event'],
-                    'priority' => $listenerConfig['boot']['priority'],
-                ]);
-        }
-
-        if ($listenerConfig['run']['enabled']) {
-            $container->register(SubscriptionRunListener::class)
-                ->setArguments([
-                    new Reference(SubscriptionEngine::class),
-                    $listenerConfig['run']['ids'] ?: $listenerConfig['ids'] ?: null,
-                    $listenerConfig['run']['groups'] ?: $listenerConfig['groups'] ?: null,
-                    $listenerConfig['run']['limit'],
-                ])
-                ->addTag('kernel.event_listener', [
-                    'event' => 'kernel.' . $listenerConfig['run']['event'],
-                    'priority' => $listenerConfig['run']['priority'],
-                ]);
-        }
-
-        if ($listenerConfig['teardown']['enabled']) {
-            $container->register(SubscriptionTeardownListener::class)
-                ->setArguments([
-                    new Reference(SubscriptionEngine::class),
-                    $listenerConfig['teardown']['ids'] ?: $listenerConfig['ids'] ?: null,
-                    $listenerConfig['teardown']['groups'] ?: $listenerConfig['groups'] ?: null,
-                ])
-                ->addTag('kernel.event_listener', [
-                    'event' => 'kernel.' . $listenerConfig['teardown']['event'],
-                    'priority' => $listenerConfig['teardown']['priority'],
-                ]);
-        }
-
-        if (!$listenerConfig['rebuild_by_change']['enabled']) {
+        if (!$config['subscription']['rebuild_after_file_change']) {
             return;
         }
 
-        $container->register(SubscriptionRebuildByChangeListener::class)
+        $container->register(SubscriptionRebuildAfterFileChangeListener::class)
             ->setArguments([
                 new Reference(SubscriptionEngine::class),
                 new TaggedIteratorArgument('event_sourcing.subscriber'),
@@ -414,8 +370,14 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(SubscriberMetadataFactory::class),
             ])
             ->addTag('kernel.event_listener', [
-                'event' => 'kernel.' . $listenerConfig['rebuild_by_change']['event'],
-                'priority' => $listenerConfig['rebuild_by_change']['priority'],
+                'event' => 'kernel.request',
+                'priority' => 200,
+                'method' => 'onKernelRequest',
+            ])
+            ->addTag('kernel.event_listener', [
+                'priority' => 200,
+                'event' => 'console.command',
+                'method' => 'onConsoleCommand',
             ]);
     }
 
@@ -553,7 +515,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->setArguments([
                 new Reference(AggregateRootRegistry::class),
                 new Reference(Store::class),
-                new Reference(EventBus::class),
+                new Reference(EventBus::class, ContainerInterface::NULL_ON_INVALID_REFERENCE),
                 new Reference(SnapshotStore::class),
                 new Reference(MessageDecorator::class),
                 new Reference('event_sourcing.clock'),

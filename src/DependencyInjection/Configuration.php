@@ -9,20 +9,18 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 /**
  * @psalm-type Config = array{
- *      event_bus: array{type: string, service: string},
+ *      event_bus: array{enabled: bool, type: string, service: string},
  *      subscription: array{
  *          retry_strategy: array{base_delay: int, delay_factor: int, max_attempts: int},
  *          catch_up: array{enabled: bool, limit: positive-int|null},
  *          throw_on_error: array{enabled: bool},
- *          request_listener: array{
+ *          run_after_aggregate_save: array{
+ *              enabled: bool,
  *              ids: list<string>,
  *              groups: list<string>,
- *              setup: array{enabled: bool, event: string, priority: int, ids: list<string>, groups: list<string>, skip_booting: bool},
- *              boot: array{enabled: bool, event: string, priority: int, ids: list<string>, groups: list<string>, limit: positive-int|null},
- *              run: array{enabled: bool, event: string, priority: int, ids: list<string>, groups: list<string>, limit: positive-int|null},
- *              teardown: array{enabled: bool, event: string, priority: int, ids: list<string>, groups: list<string>},
- *              rebuild_by_change: array{enabled: bool, event: string, priority: int, ids: list<string>, groups: list<string>}
- *          }
+ *              limit: positive-int|null
+ *          },
+ *          rebuild_after_file_change: bool
  *      },
  *      connection: ?array{service: ?string, url: ?string},
  *      store: array{merge_orm_schema: bool, options: array<string, mixed>},
@@ -137,66 +135,17 @@ final class Configuration implements ConfigurationInterface
                         ->canBeEnabled()
                     ->end()
 
-                    ->arrayNode('request_listener')
+                    ->arrayNode('run_after_aggregate_save')
+                        ->canBeEnabled()
                         ->addDefaultsIfNotSet()
                         ->children()
                             ->arrayNode('ids')->scalarPrototype()->end()->end()
                             ->arrayNode('groups')->scalarPrototype()->end()->end()
-                            ->arrayNode('setup')
-                                ->canBeEnabled()
-                                ->addDefaultsIfNotSet()
-                                ->children()
-                                    ->enumNode('event')->values(['request', 'response', 'terminate'])->defaultValue('terminate')->end()
-                                    ->integerNode('priority')->defaultValue(4)->end()
-                                    ->arrayNode('ids')->scalarPrototype()->end()->end()
-                                    ->arrayNode('groups')->scalarPrototype()->end()->end()
-                                    ->booleanNode('skip_booting')->defaultFalse()->end()
-                                ->end()
-                            ->end()
-                            ->arrayNode('boot')
-                                ->canBeEnabled()
-                                ->addDefaultsIfNotSet()
-                                ->children()
-                                    ->enumNode('event')->values(['request', 'response', 'terminate'])->defaultValue('terminate')->end()
-                                    ->integerNode('priority')->defaultValue(2)->end()
-                                    ->arrayNode('ids')->scalarPrototype()->end()->end()
-                                    ->arrayNode('groups')->scalarPrototype()->end()->end()
-                                    ->integerNode('limit')->defaultNull()->end()
-                                ->end()
-                            ->end()
-                            ->arrayNode('run')
-                                ->canBeEnabled()
-                                ->addDefaultsIfNotSet()
-                                ->children()
-                                    ->enumNode('event')->values(['request', 'response', 'terminate'])->defaultValue('terminate')->end()
-                                    ->integerNode('priority')->defaultValue(0)->end()
-                                    ->arrayNode('ids')->scalarPrototype()->end()->end()
-                                    ->arrayNode('groups')->scalarPrototype()->end()->end()
-                                    ->integerNode('limit')->defaultNull()->end()
-                                ->end()
-                            ->end()
-                            ->arrayNode('teardown')
-                                ->canBeEnabled()
-                                ->addDefaultsIfNotSet()
-                                ->children()
-                                    ->enumNode('event')->values(['request', 'response', 'terminate'])->defaultValue('terminate')->end()
-                                    ->integerNode('priority')->defaultValue(-2)->end()
-                                    ->arrayNode('ids')->scalarPrototype()->end()->end()
-                                    ->arrayNode('groups')->scalarPrototype()->end()->end()
-                                ->end()
-                            ->end()
-                            ->arrayNode('rebuild_by_change')
-                                ->canBeEnabled()
-                                ->addDefaultsIfNotSet()
-                                ->children()
-                                    ->enumNode('event')->values(['request', 'response', 'terminate'])->defaultValue('request')->end()
-                                    ->integerNode('priority')->defaultValue(6)->end()
-                                    ->arrayNode('ids')->scalarPrototype()->end()->end()
-                                    ->arrayNode('groups')->scalarPrototype()->end()->end()
-                                ->end()
-                            ->end()
+                            ->integerNode('limit')->defaultNull()->end()
                         ->end()
                     ->end()
+
+                    ->booleanNode('rebuild_after_file_change')->defaultFalse()->end()
                 ->end()
             ->end()
 
