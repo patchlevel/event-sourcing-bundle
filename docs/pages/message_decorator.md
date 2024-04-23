@@ -9,7 +9,7 @@ will also be persisted in the database and can be retrieved later on.
     You can find out more about message decorator in the library 
     [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/message_decorator/). 
     This documentation is limited to bundle integration.
-
+    
 ## Usage
 
 We want to add the header information which user was logged in when this event was generated.
@@ -22,22 +22,22 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 final class LoggedUserDecorator implements MessageDecorator
 {
     public function __construct(
-        private readonly TokenStorageInterface $tokenStorage
-    ) {}
+        private readonly TokenStorageInterface $tokenStorage,
+    ) {
+    }
 
     public function __invoke(Message $message): Message
     {
         $token = $this->tokenStorage->getToken();
-        
+
         if (!$token) {
-            return;
+            return $message;
         }
-        
+
         return $message->withCustomHeader('user', $token->getUserIdentifier());
     }
-} 
+}
 ```
-
 If you have the symfony default service setting with `autowire`and `autoconfigure` enabled,
 the message decorator is automatically recognized and registered at the `MessageDecorator` interface.
 Otherwise you have to define the message decorator in the symfony service file:

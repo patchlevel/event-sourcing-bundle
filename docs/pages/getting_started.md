@@ -9,7 +9,7 @@ For this example we use following package:
 
 ## Installation
 
-First of all, the bundle has to be installed and configured. 
+First of all, the bundle has to be installed and configured.
 If you haven't already done so, see the [installation introduction](installation.md).
 
 ## Define some events
@@ -30,13 +30,12 @@ final class HotelCreated
 {
     public function __construct(
         #[IdNormalizer]
-        public readonly Uuid $id, 
-        public readonly string $hotelName
+        public readonly Uuid $id,
+        public readonly string $hotelName,
     ) {
     }
 }
 ```
-
 A guest can check in by name:
 
 ```php
@@ -48,12 +47,11 @@ use Patchlevel\EventSourcing\Attribute\Event;
 final class GuestIsCheckedIn
 {
     public function __construct(
-        public readonly string $guestName
+        public readonly string $guestName,
     ) {
     }
 }
 ```
-
 And also check out again:
 
 ```php
@@ -65,33 +63,36 @@ use Patchlevel\EventSourcing\Attribute\Event;
 final class GuestIsCheckedOut
 {
     public function __construct(
-        public readonly string $guestName
+        public readonly string $guestName,
     ) {
     }
 }
 ```
-
 !!! note
 
     You can find out more about events [here](events.md).
-
+    
 ## Define aggregates
 
-Next we need to define the aggregate. So the hotel and how the hotel should behave. 
-We have also defined the `create`, `checkIn` and `checkOut` methods accordingly. 
+Next we need to define the aggregate. So the hotel and how the hotel should behave.
+We have also defined the `create`, `checkIn` and `checkOut` methods accordingly.
 These events are thrown here and the state of the hotel is also changed.
 
 ```php
 namespace App\Domain\Hotel;
 
-use App\Domain\Hotel\Event\HotelCreated;
 use App\Domain\Hotel\Event\GuestIsCheckedIn;
 use App\Domain\Hotel\Event\GuestIsCheckedOut;
+use App\Domain\Hotel\Event\HotelCreated;
 use Patchlevel\EventSourcing\Aggregate\BasicAggregateRoot;
 use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Attribute\Aggregate;
 use Patchlevel\EventSourcing\Attribute\Apply;
 use Patchlevel\EventSourcing\Attribute\Id;
+
+use function array_filter;
+use function array_values;
+use function in_array;
 
 #[Aggregate(name: 'hotel')]
 final class Hotel extends BasicAggregateRoot
@@ -99,10 +100,8 @@ final class Hotel extends BasicAggregateRoot
     #[Id]
     private Uuid $id;
     private string $name;
-    
-    /**
-     * @var list<string>
-     */
+
+    /** @var list<string> */
     private array $guests;
 
     public function name(): string
@@ -128,25 +127,25 @@ final class Hotel extends BasicAggregateRoot
         if (in_array($guestName, $this->guests, true)) {
             throw new GuestHasAlreadyCheckedIn($guestName);
         }
-    
+
         $this->recordThat(new GuestIsCheckedIn($guestName));
     }
-    
+
     public function checkOut(string $guestName): void
     {
         if (!in_array($guestName, $this->guests, true)) {
             throw new IsNotAGuest($guestName);
         }
-    
+
         $this->recordThat(new GuestIsCheckedOut($guestName));
     }
-    
+
     #[Apply]
     protected function applyHotelCreated(HotelCreated $event): void
     {
         $this->id = $event->id;
         $this->name = $event->hotelName;
-        $this->guests = [];      
+        $this->guests = [];
     }
 
     #[Apply]
@@ -154,42 +153,40 @@ final class Hotel extends BasicAggregateRoot
     {
         $this->guests[] = $event->guestName;
     }
-    
+
     #[Apply]
     protected function applyGuestIsCheckedOut(GuestIsCheckedOut $event): void
     {
         $this->guests = array_values(
             array_filter(
                 $this->guests,
-                fn($name) => $name !== $event->guestName
-            )
+                static fn ($name) => $name !== $event->guestName,
+            ),
         );
     }
 }
 ```
-
 !!! note
 
     You can find out more about aggregates [here](aggregate.md).
-
+    
 ## Define projections
 
-So that we can see all the hotels on our website 
-and also see how many guests are currently visiting the hotels, 
+So that we can see all the hotels on our website
+and also see how many guests are currently visiting the hotels,
 we need a projection for it.
 
 ```php
 namespace App\Projection;
 
-use App\Domain\Hotel\Event\HotelCreated;
 use App\Domain\Hotel\Event\GuestIsCheckedIn;
 use App\Domain\Hotel\Event\GuestIsCheckedOut;
+use App\Domain\Hotel\Event\HotelCreated;
 use Doctrine\DBAL\Connection;
-use Patchlevel\EventSourcing\Attribute\Setup;
-use Patchlevel\EventSourcing\Attribute\Teardown;
-use Patchlevel\EventSourcing\Attribute\Subscribe;
 use Patchlevel\EventSourcing\Attribute\Projector;
-use Patchlevel\EventSourcing\EventBus\Message;
+use Patchlevel\EventSourcing\Attribute\Setup;
+use Patchlevel\EventSourcing\Attribute\Subscribe;
+use Patchlevel\EventSourcing\Attribute\Teardown;
 use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberUtil;
 
 #[Projector('hotel')]
@@ -197,17 +194,12 @@ final class HotelProjection
 {
     use SubscriberUtil;
 
-    private Connection $db;
-
-    public function __construct(Connection $db)
+    public function __construct(private Connection $db)
     {
-        $this->db = $db;
     }
-    
-    /**
-     * @return list<array{id: string, name: string, guests: int}>
-     */
-    public function getHotels(): array 
+
+    /** @return list<array{id: string, name: string, guests: int}> */
+    public function getHotels(): array
     {
         return $this->db->fetchAllAssociative("SELECT id, name, guests FROM {$this->table()};");
     }
@@ -216,33 +208,33 @@ final class HotelProjection
     public function handleHotelCreated(HotelCreated $event): void
     {
         $this->db->insert(
-            $this->table(), 
+            $this->table(),
             [
-                'id' => $event->id->toString(), 
+                'id' => $event->id->toString(),
                 'name' => $event->hotelName,
-                'guests' => 0
-            ]
+                'guests' => 0,
+            ],
         );
     }
-    
+
     #[Subscribe(GuestIsCheckedIn::class)]
     public function handleGuestIsCheckedIn(Uuid $hotelId): void
     {
         $this->db->executeStatement(
             "UPDATE {$this->table()} SET guests = guests + 1 WHERE id = ?;",
-            [$hotelId->toString()]
+            [$hotelId->toString()],
         );
     }
-    
+
     #[Subscribe(GuestIsCheckedOut::class)]
     public function handleGuestIsCheckedOut(Uuid $hotelId): void
     {
         $this->db->executeStatement(
             "UPDATE {$this->table()} SET guests = guests - 1 WHERE id = ?;",
-            [$hotelId->toString()]
+            [$hotelId->toString()],
         );
     }
-    
+
     #[Setup]
     public function create(): void
     {
@@ -254,22 +246,21 @@ final class HotelProjection
     {
         $this->db->executeStatement("DROP TABLE IF EXISTS {$this->table()};");
     }
-    
-    private function table(): string 
+
+    private function table(): string
     {
         return 'projection_' . $this->subscriberId();
     }
 }
 ```
-
 !!! warning
 
     autoconfigure need to be enabled, otherwise you need add the `event_sourcing.subscriber` tag.
-
+    
 !!! note
 
     You can find out more about projections [here](subscription.md).
-
+    
 ## Processor
 
 In our example we also want to send an email to the head office as soon as a guest is checked in.
@@ -279,19 +270,17 @@ namespace App\Domain\Hotel\Listener;
 
 use App\Domain\Hotel\Event\GuestIsCheckedIn;
 use Patchlevel\EventSourcing\Attribute\Processor;
-use Patchlevel\EventSourcing\EventBus\Message;
-use Patchlevel\EventSourcing\EventBus\Subscriber;
-use Patchlevel\EventSourcingBundle\Attribute\AsListener;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
+
+use function sprintf;
 
 #[Processor('send_check_in_email')]
 final class SendCheckInEmailListener
 {
     private function __construct(
-        private readonly MailerInterface $mailer
-    ) 
-    {
+        private readonly MailerInterface $mailer,
+    ) {
     }
 
     #[Subscribe(GuestIsCheckedIn::class)]
@@ -302,20 +291,19 @@ final class SendCheckInEmailListener
             ->to('hq@patchlevel.de')
             ->subject('Guest is checked in')
             ->text(sprintf('A new guest named "%s" is checked in', $event->guestName));
-            
+
         $this->mailer->send($email);
     }
 }
 ```
-
 !!! warning
 
     autoconfigure need to be enabled, otherwise you need add the `event_sourcing.subscriber` tag.
-
+    
 !!! note
 
     You can find out more about processor [here](subscription.md).
-
+    
 ## Database setup
 
 So that we can actually write the data to a database, we need the associated schema and databases.
@@ -325,11 +313,10 @@ bin/console event-sourcing:database:create
 bin/console event-sourcing:schema:create
 bin/console event-sourcing:subscription:create
 ```
-
 !!! note
 
     You can find out more about the database [here](store.md).
-
+    
 ### Usage
 
 We are now ready to use the Event Sourcing System. We can load, change and save aggregates.
@@ -352,25 +339,23 @@ final class HotelController
 {
     /** @var Repository<Hotel> */
     private Repository $hotelRepository;
-    private HotelProjection $hotelProjection;
 
     public function __construct(
         RepositoryManager $repositoryManager,
-        HotelProjection $hotelProjection
+        private HotelProjection $hotelProjection,
     ) {
         $this->hotelRepository = $repositoryManager->get(Hotel::class);
-        $this->hotelProjection = $hotelProjection;
     }
 
-    #[Route("/", methods:["GET"])]
+    #[Route('/', methods:['GET'])]
     public function listAction(): JsonResponse
     {
         return new JsonResponse(
-            $this->hotelProjection->getHotels()
+            $this->hotelProjection->getHotels(),
         );
     }
 
-    #[Route("/create", methods:["POST"])]
+    #[Route('/create', methods:['POST'])]
     public function createAction(Request $request): JsonResponse
     {
         $hotelName = $request->request->get('name'); // need validation!
@@ -382,7 +367,7 @@ final class HotelController
         return new JsonResponse(['id' => $id->toString()]);
     }
 
-    #[Route("/{hotelId}/check-in", methods:["POST"])]
+    #[Route('/{hotelId}/check-in', methods:['POST'])]
     public function checkInAction(Uuid $hotelId, Request $request): JsonResponse
     {
         $guestName = $request->request->get('name'); // need validation!
@@ -394,7 +379,7 @@ final class HotelController
         return new JsonResponse();
     }
 
-    #[Route("/{hotelId}/check-out", methods:["POST"])]
+    #[Route('/{hotelId}/check-out', methods:['POST'])]
     public function checkOutAction(Uuid $hotelId, Request $request): JsonResponse
     {
         $guestName = $request->request->get('name'); // need validation!
