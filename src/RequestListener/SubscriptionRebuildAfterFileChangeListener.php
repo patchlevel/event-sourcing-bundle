@@ -11,11 +11,12 @@ use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngineCriteria;
 use Patchlevel\EventSourcing\Subscription\RunMode;
 use Psr\Cache\CacheItemPoolInterface;
 use ReflectionClass;
-use Symfony\Component\HttpKernel\Event\KernelEvent;
+use Symfony\Component\Console\Event\ConsoleCommandEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 
 use function filemtime;
 
-final class SubscriptionRebuildByChangeListener
+final class SubscriptionRebuildAfterFileChangeListener
 {
     /** @param iterable<object> $subscribers */
     public function __construct(
@@ -26,12 +27,22 @@ final class SubscriptionRebuildByChangeListener
     ) {
     }
 
-    public function __invoke(KernelEvent $event): void
+    public function onKernelRequest(RequestEvent $event): void
     {
         if (!$event->isMainRequest()) {
             return;
         }
 
+        $this->run();
+    }
+
+    public function onConsoleCommand(ConsoleCommandEvent $event): void
+    {
+        $this->run();
+    }
+
+    private function run(): void
+    {
         $toRemove = [];
         $itemsToSave = [];
 
