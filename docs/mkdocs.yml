@@ -83,17 +83,10 @@ nav:
   - Introduction: index.md
   - Installation: installation.md
   - Getting Started: getting_started.md
-  - Basics:
-    - Aggregate: aggregate.md
-    - Events: events.md
-    - Repository: repository.md
-    - Store: store.md
-    - Subscription: subscription.md
-    - Event Bus:  event_bus.md
-  - Advanced:
-    - Normalizer: normalizer.md
-    - Snapshots: snapshots.md
-    - Upcasting: upcasting.md
-    - Message Decorator: message_decorator.md
-    - Time / Clock: clock.md
-    - CLI: cli.md
+  - Configuration: configuration.md
+  - Usage: usage.md
+  - Links:
+    - Library Documentation: https://patchlevel.github.io/event-sourcing-docs/latest/
+    - Admin Bundle: https://github.com/patchlevel/event-sourcing-admin-bundle
+    - Psalm Plugin: https://github.com/patchlevel/event-sourcing-psalm-plugin
+    - Hydrator: https://github.com/patchlevel/hydrator

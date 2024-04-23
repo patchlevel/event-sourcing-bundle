@@ -1,25 +1,23 @@
 # Getting Started
 
-In our little getting started example, we manage hotels. We keep the example small, so we can only create hotels and let
-guests check in and check out.
+In our little getting started example, we manage hotels.
+We keep the example small, so we can only create hotels and let guests check in and check out.
 
-For this example we use following package:
+For this example we use [symfony/mailer](https://symfony.com/doc/current/mailer.html).
 
-* [symfony/mailer](https://symfony.com/doc/current/mailer.html)
+!!! info
 
-## Installation
-
-First of all, the bundle has to be installed and configured.
-If you haven't already done so, see the [installation introduction](installation.md).
-
+    First of all, the bundle has to be installed and configured.
+    If you haven't already done so, see the [installation introduction](installation.md).
+    
 ## Define some events
 
 First we define the events that happen in our system.
 
-A hotel can be created with a `name`:
+A hotel can be created with a `name` and an `id`:
 
 ```php
-namespace App\Domain\Hotel\Event;
+namespace App\Hotel\Domain\Event;
 
 use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Attribute\Event;
@@ -36,10 +34,10 @@ final class HotelCreated
     }
 }
 ```
-A guest can check in by name:
+A guest can check in by `name`:
 
 ```php
-namespace App\Domain\Hotel\Event;
+namespace App\Hotel\Domain\Event;
 
 use Patchlevel\EventSourcing\Attribute\Event;
 
@@ -55,7 +53,7 @@ final class GuestIsCheckedIn
 And also check out again:
 
 ```php
-namespace App\Domain\Hotel\Event;
+namespace App\Hotel\Domain\Event;
 
 use Patchlevel\EventSourcing\Attribute\Event;
 
@@ -70,20 +68,22 @@ final class GuestIsCheckedOut
 ```
 !!! note
 
-    You can find out more about events [here](events.md).
+    You can find out more about events in the [library](https://patchlevel.github.io/event-sourcing-docs/latest/events/).
     
 ## Define aggregates
 
-Next we need to define the aggregate. So the hotel and how the hotel should behave.
-We have also defined the `create`, `checkIn` and `checkOut` methods accordingly.
-These events are thrown here and the state of the hotel is also changed.
+Next we need to define the hotel aggregate.
+How you can interact with it, which events happen and what the business rules are.
+For this we create the methods `create`, `checkIn` and `checkOut`.
+In these methods the business checks are made and the events are recorded.
+Last but not least, we need the associated apply methods to change the state.
 
 ```php
-namespace App\Domain\Hotel;
+namespace App\Hotel\Domain;
 
-use App\Domain\Hotel\Event\GuestIsCheckedIn;
-use App\Domain\Hotel\Event\GuestIsCheckedOut;
-use App\Domain\Hotel\Event\HotelCreated;
+use App\Hotel\Domain\Event\GuestIsCheckedIn;
+use App\Hotel\Domain\Event\GuestIsCheckedOut;
+use App\Hotel\Domain\Event\HotelCreated;
 use Patchlevel\EventSourcing\Aggregate\BasicAggregateRoot;
 use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Attribute\Aggregate;
@@ -168,20 +168,20 @@ final class Hotel extends BasicAggregateRoot
 ```
 !!! note
 
-    You can find out more about aggregates [here](aggregate.md).
+    You can find out more about aggregates in the [library](https://patchlevel.github.io/event-sourcing-docs/latest/aggregate/).
     
 ## Define projections
 
-So that we can see all the hotels on our website
-and also see how many guests are currently visiting the hotels,
-we need a projection for it.
+So that we can see all the hotels on our website and also see how many guests are currently visiting the hotels,
+we need a projection for it. To create a projection we need a projector.
+Each projector is then responsible for a specific projection.
 
 ```php
-namespace App\Projection;
+namespace App\Hotel\Infrastructure\Projection;
 
-use App\Domain\Hotel\Event\GuestIsCheckedIn;
-use App\Domain\Hotel\Event\GuestIsCheckedOut;
-use App\Domain\Hotel\Event\HotelCreated;
+use App\Hotel\Domain\Event\GuestIsCheckedIn;
+use App\Hotel\Domain\Event\GuestIsCheckedOut;
+use App\Hotel\Domain\Event\HotelCreated;
 use Doctrine\DBAL\Connection;
 use Patchlevel\EventSourcing\Attribute\Projector;
 use Patchlevel\EventSourcing\Attribute\Setup;
@@ -259,23 +259,23 @@ final class HotelProjection
     
 !!! note
 
-    You can find out more about projections [here](subscription.md).
+    You can find out more about projections in the [library](https://patchlevel.github.io/event-sourcing-docs/latest/subscription/).
     
 ## Processor
 
 In our example we also want to send an email to the head office as soon as a guest is checked in.
 
 ```php
-namespace App\Domain\Hotel\Listener;
+namespace App\Hotel\Application\Processor;
 
-use App\Domain\Hotel\Event\GuestIsCheckedIn;
+use App\Hotel\Domain\Event\GuestIsCheckedIn;
 use Patchlevel\EventSourcing\Attribute\Processor;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 
 use function sprintf;
 
-#[Processor('send_check_in_email')]
+#[Processor('admin_emails')]
 final class SendCheckInEmailListener
 {
     private function __construct(
@@ -302,7 +302,7 @@ final class SendCheckInEmailListener
     
 !!! note
 
-    You can find out more about processor [here](subscription.md).
+    You can find out more about processor in the [library](https://patchlevel.github.io/event-sourcing-docs/latest/subscription/)
     
 ## Database setup
 
@@ -311,21 +311,21 @@ So that we can actually write the data to a database, we need the associated sch
 ```bash
 bin/console event-sourcing:database:create
 bin/console event-sourcing:schema:create
-bin/console event-sourcing:subscription:create
+bin/console event-sourcing:subscription:setup
 ```
 !!! note
 
-    You can find out more about the database [here](store.md).
+    You can find out more about the cli in the [library](https://patchlevel.github.io/event-sourcing-docs/latest/cli/).
     
 ### Usage
 
 We are now ready to use the Event Sourcing System. We can load, change and save aggregates.
 
 ```php
-namespace App\Controller;
+namespace App\Hotel\Infrastructure\Controller;
 
-use App\Domain\Hotel\Hotel;
-use App\Projection\HotelProjection;
+use App\Hotel\Domain\Hotel;
+use App\Hotel\Infrastructure\Projection\HotelProjection;
 use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Repository\Repository;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
@@ -392,3 +392,17 @@ final class HotelController
     }
 }
 ```
+## Result
+
+!!! success
+
+    We have successfully implemented and used event sourcing.
+    
+    Feel free to browse further in the documentation for more detailed information. 
+    If there are still open questions, create a ticket on Github and we will try to help you.
+    
+!!! note
+
+    This documentation is limited to the bundle integration.
+    You should also read the [library documentation](https://patchlevel.github.io/event-sourcing-docs/latest/).
+    

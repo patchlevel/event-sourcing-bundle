@@ -26,35 +26,36 @@ return [
     PatchlevelEventSourcingBundle::class => ['all' => true],
 ];
 ```
-If you don't have `config/bundles.php` then you need to add the bundle in the kernel:
-
-```php
-use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
-
-class AppKernel extends Kernel
-{
-    public function registerBundles(): void
-    {
-        $bundles = [
-            new PatchlevelEventSourcingBundle(),
-        ];
-    }
-}
-```
 ## Configuration file
 
-Now you have to add a minimal configuration file here `config/packages/patchlevel_event_sourcing.yaml`.
+Now you have to add following recommended configuration file here `config/packages/patchlevel_event_sourcing.yaml`.
 
 ```yaml
 patchlevel_event_sourcing:
     aggregates: '%kernel.project_dir%/src'
     events: '%kernel.project_dir%/src'
     connection:
-        url: '%env(EVENTSTORE_URL)%'
+      url: '%env(EVENTSTORE_URL)%'
+
+when@dev:
+  patchlevel_event_sourcing:
+    subscription:
+      catch_up: true
+      throw_on_error: true
+      run_after_aggregate_save: true
+      rebuild_after_file_change: true
+      auto_setup: true
+
+when@test:
+  patchlevel_event_sourcing:
+    subscription:
+      catch_up: true
+      throw_on_error: true
+      run_after_aggregate_save: true
 ```
 ## Dotenv
 
-Finally we have to fill the ENV variable with a connection url.
+Finally, we have to fill the ENV variable with a connection url.
 
 ```dotenv
 EVENTSTORE_URL=mysql://user:secret@localhost/app
@@ -63,4 +64,7 @@ EVENTSTORE_URL=mysql://user:secret@localhost/app
 
     You can find out more about what a connection url looks like [here](https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html#connecting-using-a-url).
     
-Now you can go back to [getting started](getting_started.md).
+!!! success
+
+    You have successfully installed the bundle. Now you can start with the [quickstart](./getting_started.md) to get a feeling for the bundle.
+    
