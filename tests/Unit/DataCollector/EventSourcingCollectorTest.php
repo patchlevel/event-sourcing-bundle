@@ -14,7 +14,7 @@ use Patchlevel\EventSourcing\Serializer\Encoder\Encoder;
 use Patchlevel\EventSourcing\Serializer\EventSerializer;
 use Patchlevel\EventSourcing\Serializer\SerializedEvent;
 use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
-use Patchlevel\EventSourcingBundle\DataCollector\MessageListener;
+use Patchlevel\EventSourcingBundle\DataCollector\MessageCollectorEventBus;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Profile;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileCreated;
 use PHPUnit\Framework\TestCase;
@@ -29,7 +29,7 @@ final class EventSourcingCollectorTest extends TestCase
 
     public function testCollectData(): void
     {
-        $messageListener = new MessageListener();
+        $eventBus = new MessageCollectorEventBus();
         $eventRegistry = new EventRegistry([
             'profile.created' => ProfileCreated::class,
         ]);
@@ -56,13 +56,12 @@ final class EventSourcingCollectorTest extends TestCase
         ])->willReturn(new SerializedEvent('profile.created', '{}'));
 
         $collector = new EventSourcingCollector(
-            $messageListener,
+            $eventBus,
             $aggregateRootRegistry,
             $eventRegistry,
-            $eventSerializer->reveal()
         );
 
-        $messageListener($message);
+        $eventBus->dispatch($message);
 
         $collector->collect(
             new Request(),
@@ -80,10 +79,9 @@ final class EventSourcingCollectorTest extends TestCase
 
         self::assertEquals(ProfileCreated::class, $message['event_class']);
         self::assertEquals('profile.created', $message['event_name']);
-        self::assertEquals('{}', $message['payload']);
-        self::assertEquals(Profile::class, $message['aggregate_class']);
-        self::assertEquals('1', $message['aggregate_id']);
-        self::assertEquals('2022-07-07T18:55:50+02:00', $message['recorded_on']);
-        self::assertInstanceOf(Data::class, $message['headers']);
+        self::assertInstanceOf(Data::class, $message['event']);
+        self::assertIsArray($message['headers']);
+        self::assertCount(1, $message['headers']);
+        self::assertInstanceOf(Data::class, $message['headers'][0]);
     }
 }

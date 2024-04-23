@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\DataCollector;
 
-use DateTimeImmutable;
-use Patchlevel\EventSourcing\Aggregate\AggregateHeader;
 use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
 use Patchlevel\EventSourcing\Message\Message;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
-use Patchlevel\EventSourcing\Serializer\Encoder\Encoder;
-use Patchlevel\EventSourcing\Serializer\EventSerializer;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\DataCollector\DataCollector;
@@ -24,13 +20,8 @@ use function array_map;
  * @psalm-type MessageType = array{
  *     event_class: class-string,
  *     event_name: string,
- *     payload: string,
- *     aggregate_name: string,
- *     aggregate_class: class-string<AggregateRoot>,
- *     aggregate_id: string,
- *     playhead: int,
- *     recorded_on: string,
- *     headers: Data
+ *     event: Data,
+ *     headers: list<Data>
  * }
  * @psalm-type DataType = array{
  *    messages: list<MessageType>,
@@ -42,10 +33,9 @@ use function array_map;
 final class EventSourcingCollector extends DataCollector
 {
     public function __construct(
-        private readonly MessageListener $messageListener,
+        private readonly MessageCollectorEventBus $messageCollectorEventBus,
         private readonly AggregateRootRegistry $aggregateRootRegistry,
         private readonly EventRegistry $eventRegistry,
-        private readonly EventSerializer $eventSerializer,
     ) {
     }
 
@@ -53,25 +43,17 @@ final class EventSourcingCollector extends DataCollector
     {
         $messages = array_map(
             function (Message $message) {
-                $event = $message->event();
-
-                $serializedEvent = $this->eventSerializer->serialize($event, [Encoder::OPTION_PRETTY_PRINT => true]);
-
-                $aggregateHeader = $message->header(AggregateHeader::class);
-
                 return [
-                    'event_class' => $event::class,
-                    'event_name' => $serializedEvent->name,
-                    'payload' => $serializedEvent->payload,
-                    'aggregate_name' => $aggregateHeader->aggregateName,
-                    'aggregate_class' => $this->aggregateRootRegistry->aggregateClass($aggregateHeader->aggregateName),
-                    'aggregate_id' => $aggregateHeader->aggregateId,
-                    'playhead' => $aggregateHeader->playhead,
-                    'recorded_on' => $aggregateHeader->recordedOn->format(DateTimeImmutable::ATOM),
-                    'headers' => $this->cloneVar($message->headers()),
+                    'event_class' => $message->event()::class,
+                    'event_name' => $this->eventRegistry->eventName($message->event()::class),
+                    'event' => $this->cloneVar($message->event()),
+                    'headers' => array_map(
+                        fn (object $header) => $this->cloneVar($header),
+                        $message->headers(),
+                    ),
                 ];
             },
-            $this->messageListener->get(),
+            $this->messageCollectorEventBus->get(),
         );
 
         $this->data = [

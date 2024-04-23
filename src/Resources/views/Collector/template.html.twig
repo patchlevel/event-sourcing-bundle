@@ -12,8 +12,14 @@
         <div class="sf-toolbar-info-piece">
             <b>Messages</b>
             <span class="sf-toolbar-status">{{ collector.messages|length }}</span>
+        </div>
+
+        <div class="sf-toolbar-info-piece">
             <b>Aggregates</b>
             <span class="sf-toolbar-status">{{ collector.aggregates|length }}</span>
+        </div>
+
+        <div class="sf-toolbar-info-piece">
             <b>Events</b>
             <span class="sf-toolbar-status">{{ collector.events|length }}</span>
         </div>
@@ -28,7 +34,9 @@
             {{ include('@PatchlevelEventSourcing/Collector/icon.svg') }}
         </span>
         <strong>Event Sourcing</strong>
-        <span class="count">{{ collector.messages|length }}</span>
+        {% if collector.messages|length > 0 %}
+            <span class="count">{{ collector.messages|length }}</span>
+        {% endif %}
     </span>
 {% endblock %}
 
@@ -50,6 +58,42 @@
 {% endblock %}
 
 {% block panel %}
+    <h2>Messages</h2>
+    {% for message in collector.messages %}
+        <table class="event-item">
+            <thead>
+            <tr>
+                <th>
+                    {{ message.event_name }}
+                </th>
+                <th style="text-align: right">
+                    {{ _.display_class(message.event_class) }}
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="text-bold">Event</td>
+                <td>
+                    {{ profiler_dump(message.event) }}
+                </td>
+            </tr>
+            <tr>
+                <td class="text-bold">Headers</td>
+                <td>
+                    {% for header in message.headers %}
+                        {{ profiler_dump(header) }}
+                    {% endfor %}
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    {% else %}
+        <div class="empty">
+            No messages published.
+        </div>
+    {% endfor %}
+
     <h2>Aggregates</h2>
     {% if collector.aggregates|length > 0 %}
         <table>
@@ -89,54 +133,6 @@
             No events were defined.
         </div>
     {% endif %}
-
-    <h2>Messages</h2>
-    {% for message in collector.messages %}
-        <table class="event-item">
-            <thead>
-            <tr>
-                <th>
-                    {{ message.event_name }}
-                </th>
-                <th style="text-align: right">
-                    {{ _.display_class(message.event_class) }}
-                </th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-                <td class="text-bold">Payload</td>
-                <td>
-                    <pre>{{ message.payload }}</pre>
-                </td>
-            </tr>
-            <tr>
-                <td class="text-bold">Aggregate Class</td>
-                <td>{{ _.display_class(message.aggregate_class) }}</td>
-            </tr>
-            <tr>
-                <td class="text-bold">Aggregate ID</td>
-                <td>{{ message.aggregate_id }}</td>
-            </tr>
-            <tr>
-                <td class="text-bold">Playhead</td>
-                <td>{{ message.playhead }}</td>
-            </tr>
-            <tr>
-                <td class="text-bold">Recorded on</td>
-                <td>{{ message.recorded_on }}</td>
-            </tr>
-            <tr>
-                <td class="text-bold">Custom Headers</td>
-                <td>{{ profiler_dump(message.custom_headers) }}</td>
-            </tr>
-            </tbody>
-        </table>
-    {% else %}
-        <div class="empty">
-            No messages published.
-        </div>
-    {% endfor %}
 {% endblock %}
 
 {% macro display_class(class) %}

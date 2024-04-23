@@ -242,9 +242,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                 'Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener2' => [
                     [],
                 ],
-                'Patchlevel\EventSourcingBundle\DataCollector\MessageListener' => [
-                    []
-                ]
             ],
             $container->findTaggedServiceIds('event_sourcing.listener')
         );
@@ -278,9 +275,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                         'priority' => 0,
                     ],
                 ],
-                'Patchlevel\EventSourcingBundle\DataCollector\MessageListener' => [
-                    []
-                ]
             ],
             $container->findTaggedServiceIds('event_sourcing.listener')
         );

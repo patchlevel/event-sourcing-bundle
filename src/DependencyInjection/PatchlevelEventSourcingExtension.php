@@ -101,7 +101,7 @@ use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberAccessorRepositor
 use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberHelper;
 use Patchlevel\EventSourcingBundle\Attribute\AsListener;
 use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
-use Patchlevel\EventSourcingBundle\DataCollector\MessageListener;
+use Patchlevel\EventSourcingBundle\DataCollector\MessageCollectorEventBus;
 use Patchlevel\EventSourcingBundle\Doctrine\DbalConnectionFactory;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRebuildAfterFileChangeListener;
@@ -660,16 +660,29 @@ final class PatchlevelEventSourcingExtension extends Extension
 
     private function configureProfiler(ContainerBuilder $container): void
     {
-        $container->register(MessageListener::class)
-            ->addTag('event_sourcing.listener')
+        if (
+            !$container->hasParameter('kernel.debug')
+            || $container->getParameter('kernel.debug') === false
+        ) {
+            return;
+        }
+
+        $eventBus = $container->register(MessageCollectorEventBus::class)
             ->addTag('kernel.reset', ['method' => 'clear']);
+
+        if ($container->hasAlias(EventBus::class)) {
+            $eventBus
+                ->setDecoratedService(EventBus::class)
+                ->setArguments([new Reference('.inner')]);
+        } else {
+            $container->setAlias(EventBus::class, MessageCollectorEventBus::class);
+        }
 
         $container->register(EventSourcingCollector::class)
             ->setArguments([
-                new Reference(MessageListener::class),
+                new Reference(MessageCollectorEventBus::class),
                 new Reference(AggregateRootRegistry::class),
                 new Reference(EventRegistry::class),
-                new Reference(EventSerializer::class),
             ])
             ->addTag('data_collector', ['template' => '@PatchlevelEventSourcing/Collector/template.html.twig']);
     }
