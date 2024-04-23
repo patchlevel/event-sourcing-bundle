@@ -18,7 +18,7 @@ Here, however, only the last events are loaded from the database and not all.
     You can find out more about snapshots in the library 
     [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/snapshots/). 
     This documentation is limited to bundle integration.
-
+    
 ## Using Symfony Cache
 
 You can use symfony cache to define the target of the snapshot store.
@@ -31,8 +31,7 @@ framework:
             event_sourcing.cache:
                 adapter: cache.adapter.redis
 ```
-
-After this, you need define the snapshot store. 
+After this, you need define the snapshot store.
 Symfony cache implement the psr6 interface, so we need choose this type
 and enter the id from the cache service.
 
@@ -42,7 +41,6 @@ patchlevel_event_sourcing:
         default:
             service: event_sourcing.cache
 ```
-
 Finally, you have to tell the aggregate that it should use this snapshot store.
 
 ```php
@@ -59,15 +57,14 @@ final class Profile extends BasicAggregateRoot
     // ...
 }
 ```
-
 !!! book
 
     You can find out more about the attributes [here](aggregate.md).
-
+    
 ## Batch
 
-So that not every write process also writes to the cache at the same time, 
-you can also say from how many events should be written to the snapshot store first. 
+So that not every write process also writes to the cache at the same time,
+you can also say from how many events should be written to the snapshot store first.
 This minimizes the write operations to the cache, which improves performance.
 
 ```php

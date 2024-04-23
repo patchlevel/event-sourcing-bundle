@@ -11,31 +11,29 @@ And each repository is only responsible for one aggregate.
     You can find out more about repository in the library 
     [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/repository/). 
     This documentation is limited to bundle integration.
-
+    
 ## Use repositories
 
 You can access the specific repositories using the `RepositoryManager`.
 
 ```php
-use Patchlevel\EventSourcing\Aggregate\CustomId;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 
 final class DoStuffAction
-{    
+{
     public function __invoke(RepositoryManager $repositoryManager, HotelId $hotelId): Response
     {
         $hotelRepository = $repositoryManager->get(Hotel::class);
         $hotel = $hotelRepository->load($hotelId);
-        
+
         $hotel->doStuff();
-        
+
         $hotelRepository->save($hotel);
-        
+
         // ...
     }
 }
 ```
-
 ## Custom Repositories
 
 In clean code you want to have explicit type hints for the repositories
@@ -50,27 +48,27 @@ This also gives you more type security.
 use Patchlevel\EventSourcing\Repository\Repository;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 
-class HotelRepository 
+class HotelRepository
 {
     /** @var Repository<Hotel>  */
     private Repository $repository;
 
-    public function __construct(RepositoryManager $repositoryManager) 
+    public function __construct(RepositoryManager $repositoryManager)
     {
         $this->repository = $repositoryManager->get(Hotel::class);
     }
-    
-    public function load(HotelId $id): Hotel 
+
+    public function load(HotelId $id): Hotel
     {
         return $this->repository->load($id);
     }
-    
-    public function save(Hotel $hotel): void 
+
+    public function save(Hotel $hotel): void
     {
         $this->repository->save($hotel);
     }
-    
-    public function has(HotelId $id): bool 
+
+    public function has(HotelId $id): bool
     {
         return $this->repository->has($id);
     }

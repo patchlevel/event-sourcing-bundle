@@ -40,3 +40,34 @@ test: phpunit                                                                   
 
 .PHONY: dev
 dev: static test                                                                ## run dev tools
+
+.PHONY: docs
+docs: mkdocs                                                                          ## run mkdocs
+	cd docs && python3 -m mkdocs serve
+
+.PHONY: mkdocs
+mkdocs:                                                                         ## run mkdocs
+	cd docs && pip3 install -r requirements.txt
+
+.PHONY: docs-extract-php
+docs-extract-php:
+	bin/docs-extract-php-code
+
+.PHONY: docs-inject-php
+docs-inject-php:
+	bin/docs-inject-php-code
+
+.PHONY: docs-format
+docs-format: docs-phpcs docs-inject-php
+
+.PHONY: docs-php-lint
+docs-php-lint: docs-extract-php
+	php -l docs_php/*.php
+
+.PHONY: docs-phpcs
+docs-phpcs: docs-extract-php
+	vendor/bin/phpcbf docs_php --exclude=SlevomatCodingStandard.TypeHints.DeclareStrictTypes || true
+
+.PHONY: docs-psalm
+docs-psalm: docs-extract-php
+	vendor/bin/psalm --config=psalm_docs.xml

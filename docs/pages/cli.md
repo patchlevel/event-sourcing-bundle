@@ -1,6 +1,6 @@
 # CLI
 
-The bundle also offers `cli commands` to create or delete `databases`. 
+The bundle also offers `cli commands` to create or delete `databases`.
 It is also possible to manage the `schema` and `projections`.
 
 ## Database commands
@@ -22,19 +22,6 @@ The database schema can also be created, updated and dropped.
 
     You can also register doctrine migration commands,
     see the [store](./store.md#Migration) documentation for this.
-
-## Projection commands
-
-The creation, deletion and rebuilding of the projections is also possible via the cli.
-
-* `event-sourcing:projection:create`
-* `event-sourcing:projection:drop`
-* `event-sourcing:projection:rebuild`
-
-!!! note
-
-    The [pipeline](./pipeline.md) will be used to rebuild the projection.
-
 
 ## Migration commands
 
