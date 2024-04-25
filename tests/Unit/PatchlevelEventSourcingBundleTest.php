@@ -19,6 +19,7 @@ use Patchlevel\EventSourcing\Console\Command\SchemaUpdateCommand;
 use Patchlevel\EventSourcing\Console\Command\ShowAggregateCommand;
 use Patchlevel\EventSourcing\Console\Command\ShowCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionBootCommand;
+use Patchlevel\EventSourcing\Console\Command\SubscriptionPauseCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionReactivateCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionRemoveCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionRunCommand;
@@ -476,6 +477,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(DatabaseDropCommand::class, $container->get(DatabaseDropCommand::class));
         self::assertInstanceOf(DebugCommand::class, $container->get(DebugCommand::class));
         self::assertInstanceOf(SubscriptionBootCommand::class, $container->get(SubscriptionBootCommand::class));
+        self::assertInstanceOf(SubscriptionPauseCommand::class, $container->get(SubscriptionPauseCommand::class));
         self::assertInstanceOf(SubscriptionReactivateCommand::class,
             $container->get(SubscriptionReactivateCommand::class));
         self::assertInstanceOf(SubscriptionRemoveCommand::class, $container->get(SubscriptionRemoveCommand::class));
