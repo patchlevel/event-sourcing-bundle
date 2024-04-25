@@ -20,6 +20,11 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  *              groups: list<string>,
  *              limit: positive-int|null
  *          },
+ *          auto_setup: array{
+ *               enabled: bool,
+ *               ids: list<string>,
+ *               groups: list<string>,
+ *           },
  *          rebuild_after_file_change: bool
  *      },
  *      connection: ?array{service: ?string, url: ?string},
@@ -142,6 +147,15 @@ final class Configuration implements ConfigurationInterface
                             ->arrayNode('ids')->scalarPrototype()->end()->end()
                             ->arrayNode('groups')->scalarPrototype()->end()->end()
                             ->integerNode('limit')->defaultNull()->end()
+                        ->end()
+                    ->end()
+
+                    ->arrayNode('auto_setup')
+                        ->canBeEnabled()
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->arrayNode('ids')->scalarPrototype()->end()->end()
+                            ->arrayNode('groups')->scalarPrototype()->end()->end()
                         ->end()
                     ->end()
 
