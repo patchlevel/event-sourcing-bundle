@@ -104,6 +104,7 @@ use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
 use Patchlevel\EventSourcingBundle\DataCollector\MessageCollectorEventBus;
 use Patchlevel\EventSourcingBundle\Doctrine\DbalConnectionFactory;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
+use Patchlevel\EventSourcingBundle\RequestListener\AutoSetupListener;
 use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRebuildAfterFileChangeListener;
 use Patchlevel\EventSourcingBundle\RequestListener\TraceListener;
 use Patchlevel\EventSourcingBundle\ValueResolver\AggregateRootIdValueResolver;
@@ -358,6 +359,25 @@ final class PatchlevelEventSourcingExtension extends Extension
                 ]);
         }
 
+        if ($config['subscription']['auto_setup']['enabled']) {
+            $container->register(AutoSetupListener::class)
+                ->setArguments([
+                    new Reference(SubscriptionEngine::class),
+                    $config['subscription']['auto_setup']['ids'] ?: null,
+                    $config['subscription']['auto_setup']['groups'] ?: null,
+                ])
+                ->addTag('kernel.event_listener', [
+                    'event' => 'kernel.request',
+                    'priority' => 200,
+                    'method' => 'onKernelRequest',
+                ])
+                ->addTag('kernel.event_listener', [
+                    'priority' => 200,
+                    'event' => 'console.command',
+                    'method' => 'onConsoleCommand',
+                ]);
+        }
+
         if (!$config['subscription']['rebuild_after_file_change']) {
             return;
         }
@@ -371,11 +391,11 @@ final class PatchlevelEventSourcingExtension extends Extension
             ])
             ->addTag('kernel.event_listener', [
                 'event' => 'kernel.request',
-                'priority' => 200,
+                'priority' => 100,
                 'method' => 'onKernelRequest',
             ])
             ->addTag('kernel.event_listener', [
-                'priority' => 200,
+                'priority' => 100,
                 'event' => 'console.command',
                 'method' => 'onConsoleCommand',
             ]);
