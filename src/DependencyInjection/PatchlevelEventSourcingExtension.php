@@ -29,6 +29,7 @@ use Patchlevel\EventSourcing\Console\Command\SchemaUpdateCommand;
 use Patchlevel\EventSourcing\Console\Command\ShowAggregateCommand;
 use Patchlevel\EventSourcing\Console\Command\ShowCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionBootCommand;
+use Patchlevel\EventSourcing\Console\Command\SubscriptionPauseCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionReactivateCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionRemoveCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionRunCommand;
@@ -614,6 +615,12 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->addTag('console.command');
 
         $container->register(SubscriptionStatusCommand::class)
+            ->setArguments([
+                new Reference(SubscriptionEngine::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(SubscriptionPauseCommand::class)
             ->setArguments([
                 new Reference(SubscriptionEngine::class),
             ])
