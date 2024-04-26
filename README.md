@@ -4,8 +4,8 @@
 
 # Event-Sourcing-Bundle
 
-A lightweight but also all-inclusive event sourcing bundle 
-with a focus on developer experience and based on doctrine dbal.
+An event sourcing bundle, complete with all the essential features,
+powered by the reliable Doctrine ecosystem and focused on developer experience.
 This bundle is a [symfony](https://symfony.com/) integration 
 for [event-sourcing](https://github.com/patchlevel/event-sourcing) library.
 
@@ -14,11 +14,14 @@ for [event-sourcing](https://github.com/patchlevel/event-sourcing) library.
 * Everything is included in the package for event sourcing
 * Based on [doctrine dbal](https://github.com/doctrine/dbal) and their ecosystem
 * Developer experience oriented and fully typed
-* [Snapshots](https://patchlevel.github.io/event-sourcing-bundle-docs/latest/installation/) system to quickly rebuild the aggregates
-* [Pipeline](https://patchlevel.github.io/event-sourcing-bundle-docs/latest/pipeline/) to build new [projections](https://patchlevel.github.io/event-sourcing-bundle-docs/latest/projection/) or to migrate events
-* [Scheme management](https://patchlevel.github.io/event-sourcing-bundle-docs/latest/store/) and [doctrine migration](https://patchlevel.github.io/event-sourcing-bundle-docs/latest/migration/) support
-* Dev [tools](https://patchlevel.github.io/event-sourcing-bundle-docs/latest/watch_server/) such as a realtime event watcher
-* Built in [cli commands](https://patchlevel.github.io/event-sourcing-bundle-docs/latest/cli/)
+* Automatic [snapshot](https://patchlevel.github.io/event-sourcing-docs/latest/snapshots/)-system to boost your performance
+* [Split](https://patchlevel.github.io/event-sourcing-docs/latest/split_stream/) big aggregates into multiple streams
+* Versioned and managed lifecycle of [subscriptions](https://patchlevel.github.io/event-sourcing-docs/latest/subscription/) like projections and processors
+* Safe usage of [Personal Data](https://patchlevel.github.io/event-sourcing-docs/latest/personal_data/) with crypto-shredding
+* Smooth [upcasting](https://patchlevel.github.io/event-sourcing-docs/latest/upcasting/) of old events
+* Simple setup with [scheme management](https://patchlevel.github.io/event-sourcing-docs/latest/store/) and [doctrine migration](https://patchlevel.github.io/event-sourcing-docs/latest/store/)
+* Built in [cli commands](https://patchlevel.github.io/event-sourcing-docs/latest/cli/) with [symfony](https://symfony.com/)
+* and much more...
 
 ## Installation
 
@@ -32,9 +35,13 @@ this [installation documentation](https://patchlevel.github.io/event-sourcing-bu
 
 ## Documentation
 
-* [Getting Started](https://patchlevel.github.io/event-sourcing-bundle-docs/latest/getting_started/)
-* [Documentation](https://patchlevel.github.io/event-sourcing-bundle-docs/latest/)
+* [Bundle Documentation](https://patchlevel.github.io/event-sourcing-bundle-docs/latest/)
+* [Library Documentation](https://patchlevel.github.io/event-sourcing-docs/latest)
 
 ## Integration
 
 * [Psalm](https://github.com/patchlevel/event-sourcing-psalm-plugin)
+
+## Sponsors
+
+[<img src="https://github.com/patchlevel/event-sourcing/assets/470138/d00b7459-23b7-431b-80b4-93cfc1b66216" alt="blackfire" width="200">](https://www.blackfire.io)
