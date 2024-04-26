@@ -58,7 +58,7 @@ when@test:
 Finally, we have to fill the ENV variable with a connection url.
 
 ```dotenv
-EVENTSTORE_URL=mysql://user:secret@localhost/app
+EVENTSTORE_URL=pdo-pgsql://user:secret@localhost/app
 ```
 !!! note
 
