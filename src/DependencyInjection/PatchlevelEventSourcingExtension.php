@@ -371,11 +371,6 @@ final class PatchlevelEventSourcingExtension extends Extension
                     'event' => 'kernel.request',
                     'priority' => 200,
                     'method' => 'onKernelRequest',
-                ])
-                ->addTag('kernel.event_listener', [
-                    'priority' => 200,
-                    'event' => 'console.command',
-                    'method' => 'onConsoleCommand',
                 ]);
         }
 
@@ -394,11 +389,6 @@ final class PatchlevelEventSourcingExtension extends Extension
                 'event' => 'kernel.request',
                 'priority' => 100,
                 'method' => 'onKernelRequest',
-            ])
-            ->addTag('kernel.event_listener', [
-                'priority' => 100,
-                'event' => 'console.command',
-                'method' => 'onConsoleCommand',
             ]);
     }
 

@@ -11,7 +11,6 @@ use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngineCriteria;
 use Patchlevel\EventSourcing\Subscription\RunMode;
 use Psr\Cache\CacheItemPoolInterface;
 use ReflectionClass;
-use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 
 use function filemtime;
@@ -33,16 +32,6 @@ final class SubscriptionRebuildAfterFileChangeListener
             return;
         }
 
-        $this->run();
-    }
-
-    public function onConsoleCommand(ConsoleCommandEvent $event): void
-    {
-        $this->run();
-    }
-
-    private function run(): void
-    {
         $toRemove = [];
         $itemsToSave = [];
 
