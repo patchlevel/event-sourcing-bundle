@@ -195,6 +195,10 @@ patchlevel_event_sourcing:
     subscription:
         auto_setup: true
 ```
+!!! note
+
+    This works only before each http requests and not if you use the console commands.
+    
 ### Rebuild After File Change
 
 If you want to rebuild the subscription engine after a file change, you can activate this option.
@@ -205,6 +209,10 @@ patchlevel_event_sourcing:
     subscription:
         rebuild_after_file_change: true
 ```
+!!! note
+
+    This works only before each http requests and not if you use the console commands.
+    
 ## Event Bus
 
 You can enable the event bus to listen for events and messages synchronously.
