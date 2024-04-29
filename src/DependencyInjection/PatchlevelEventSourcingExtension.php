@@ -15,6 +15,7 @@ use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
 use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
 use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
+use Doctrine\ORM\Tools\ToolEvents;
 use Patchlevel\EventSourcing\Attribute\Processor;
 use Patchlevel\EventSourcing\Attribute\Projector;
 use Patchlevel\EventSourcing\Attribute\Subscriber;
@@ -737,7 +738,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         if ($config['store']['merge_orm_schema']) {
             $container->register(DoctrineSchemaSubscriber::class)
                 ->setArguments([new Reference(DoctrineSchemaConfigurator::class)])
-                ->addTag('doctrine.event_subscriber');
+                ->addTag('doctrine.event_listener', ['event' => ToolEvents::postGenerateSchema]);
 
             return;
         }

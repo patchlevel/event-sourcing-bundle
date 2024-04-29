@@ -31,6 +31,7 @@
   "require-dev": {
     "ext-pdo_sqlite": "*",
     "doctrine/migrations": "^3.3.2",
+    "doctrine/orm": "^2.19.4|^3.1.2",
     "infection/infection": "^0.27.0",
     "league/commonmark": "^2.4",
     "patchlevel/coding-standard": "^1.3.0",
@@ -48,6 +49,9 @@
   "suggest": {
     "patchlevel/event-sourcing-admin-bundle": "for admin ui",
     "patchlevel/event-sourcing-psalm-plugin": "for psalm integration"
+  },
+  "conflict": {
+    "doctrine/doctrine-bundle": "<2.8"
   },
   "config": {
     "preferred-install": {
