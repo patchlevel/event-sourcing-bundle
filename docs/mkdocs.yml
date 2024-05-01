@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
 
 site_name: Event Sourcing Bundle
-site_url: https://patchlevel.github.io/event-sourcing-bundle-docs/
+site_url: https://event-sourcing-bundle.patchlevel.io/
 repo_url: https://github.com/patchlevel/event-sourcing-bundle
 repo_name: patchlevel/event-sourcing-bundle
 edit_uri: edit/2.0.x/docs/pages/
