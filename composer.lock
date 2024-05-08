@@ -6587,12 +6587,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "386924e51b2e98d13dcc88bb530807046edbda90"
+                "reference": "7e41e89915991a80d38f5cecb3ab3def0f4749b7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/386924e51b2e98d13dcc88bb530807046edbda90",
-                "reference": "386924e51b2e98d13dcc88bb530807046edbda90",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/7e41e89915991a80d38f5cecb3ab3def0f4749b7",
+                "reference": "7e41e89915991a80d38f5cecb3ab3def0f4749b7",
                 "shasum": ""
             },
             "conflict": {
@@ -6874,7 +6874,7 @@
                 "kelvinmo/simplexrd": "<3.1.1",
                 "kevinpapst/kimai2": "<1.16.7",
                 "khodakhah/nodcms": "<=3",
-                "kimai/kimai": "<2.13",
+                "kimai/kimai": "<2.16",
                 "kitodo/presentation": "<3.2.3|>=3.3,<3.3.4",
                 "klaviyo/magento2-extension": ">=1,<3",
                 "knplabs/knp-snappy": "<=1.4.2",
@@ -7370,7 +7370,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-05-06T15:04:21+00:00"
+            "time": "2024-05-07T20:04:15+00:00"
         },
         {
             "name": "sanmai/later",
