@@ -69,6 +69,7 @@ use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\ChainMessageDecorator;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\MessageDecorator;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\SplitStreamDecorator;
+use Patchlevel\EventSourcing\Repository\Repository;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 use Patchlevel\EventSourcing\Schema\ChainDoctrineSchemaConfigurator;
 use Patchlevel\EventSourcing\Schema\DoctrineMigrationSchemaProvider;
@@ -126,6 +127,7 @@ use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
@@ -542,6 +544,21 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
 
         $container->setAlias(RepositoryManager::class, DefaultRepositoryManager::class);
+
+        $aggregateRootRegistry = (new AttributeAggregateRootRegistryFactory())->create($config['aggregates']);
+
+        foreach ($aggregateRootRegistry->aggregateNames() as $aggregateName) {
+            $aggregateRepositoryName = $aggregateName . 'Repository';
+            $aggregateRepositoryId = 'eventsourcing.' . $aggregateName . '.repository';
+
+            $definition = new Definition(Repository::class);
+            $definition->setPublic(false);
+            $definition->setFactory([new Reference(RepositoryManager::class), 'get']);
+            $definition->setArgument(0, $aggregateRootRegistry->aggregateClass($aggregateName));
+
+            $container->setDefinition($aggregateRepositoryId, $definition);
+            $container->registerAliasForArgument($aggregateRepositoryId, Repository::class, $aggregateRepositoryName)->setPublic(false);
+        }
     }
 
     private function configureCommands(ContainerBuilder $container): void
