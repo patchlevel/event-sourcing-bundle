@@ -98,6 +98,7 @@ use Patchlevel\EventSourcing\Subscription\RetryStrategy\ClockBasedRetryStrategy;
 use Patchlevel\EventSourcing\Subscription\RetryStrategy\RetryStrategy;
 use Patchlevel\EventSourcing\Subscription\Store\DoctrineSubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\SubscriptionStore;
+use Patchlevel\EventSourcing\Subscription\Subscriber\ArgumentResolver\ArgumentResolver;
 use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorRepository;
 use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberAccessorRepository;
 use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberHelper;
@@ -312,10 +313,14 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->setAlias(SubscriptionStore::class, DoctrineSubscriptionStore::class);
 
+        $container->registerForAutoconfiguration(ArgumentResolver::class)
+            ->addTag('event_sourcing.argument_resolver');
+
         $container->register(MetadataSubscriberAccessorRepository::class)
             ->setArguments([
                 new TaggedIteratorArgument('event_sourcing.subscriber'),
                 new Reference(SubscriberMetadataFactory::class),
+                new TaggedIteratorArgument('event_sourcing.argument_resolver'),
             ]);
 
         $container->setAlias(SubscriberAccessorRepository::class, MetadataSubscriberAccessorRepository::class);
