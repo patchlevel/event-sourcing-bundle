@@ -29,9 +29,6 @@ use Patchlevel\EventSourcing\Console\Command\SubscriptionTeardownCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
 use Patchlevel\EventSourcing\Debug\Trace\TraceStack;
 use Patchlevel\EventSourcing\EventBus\ChainEventBus;
-use Patchlevel\EventSourcing\Repository\MessageDecorator\ChainMessageDecorator;
-use Patchlevel\EventSourcing\Repository\MessageDecorator\MessageDecorator;
-use Patchlevel\EventSourcing\Repository\MessageDecorator\SplitStreamDecorator;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\Psr14EventBus;
@@ -39,6 +36,9 @@ use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
+use Patchlevel\EventSourcing\Repository\MessageDecorator\ChainMessageDecorator;
+use Patchlevel\EventSourcing\Repository\MessageDecorator\MessageDecorator;
+use Patchlevel\EventSourcing\Repository\MessageDecorator\SplitStreamDecorator;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaProvider;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaSubscriber;
@@ -53,9 +53,11 @@ use Patchlevel\EventSourcing\Subscription\Engine\CatchUpSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\DefaultSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Repository\RunSubscriptionEngineRepositoryManager;
+use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorRepository;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
+use Patchlevel\EventSourcingBundle\Tests\Fixtures\DummyArgumentResolver;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener1;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener2;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Profile;
@@ -73,6 +75,7 @@ use Psr\Clock\ClockInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
+use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -678,6 +681,30 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertTrue($container->getDefinition(ProfileSubscriber::class)->hasTag('event_sourcing.subscriber'));
         self::assertTrue($container->getDefinition(ProfileProcessor::class)->hasTag('event_sourcing.subscriber'));
         self::assertTrue($container->getDefinition(ProfileProjector::class)->hasTag('event_sourcing.subscriber'));
+    }
+
+    public function testAutoconfigureArgumentResolver(): void
+    {
+        $container = new ContainerBuilder();
+
+        $container->setDefinition(DummyArgumentResolver::class, new Definition(DummyArgumentResolver::class))
+            ->setAutoconfigured(true)
+            ;
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                ],
+            ]
+        );
+
+        self::assertTrue($container->getDefinition(DummyArgumentResolver::class)->hasTag('event_sourcing.argument_resolver'));
+        self::assertInstanceOf(TaggedIteratorArgument::class, $container->getDefinition(MetadataSubscriberAccessorRepository::class)->getArgument(2));
+        self::assertEquals('event_sourcing.argument_resolver', $container->getDefinition(MetadataSubscriberAccessorRepository::class)->getArgument(2)->getTag());
     }
 
     public function testSchemaMerge(): void
