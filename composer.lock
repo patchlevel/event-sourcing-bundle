@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a4564c13ff5cc4011696e16eb27f82a0",
+    "content-hash": "4a939e387d3725ee125b971070de97a8",
     "packages": [
         {
             "name": "brick/math",
@@ -416,16 +416,16 @@
         },
         {
             "name": "patchlevel/event-sourcing",
-            "version": "3.0.0",
+            "version": "3.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "ccdfccc20051fb37c9e2b490bb102b6a86ce9a59"
+                "reference": "ea4ee7aacff666c31724ad7687be14e3ceaf2771"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/ccdfccc20051fb37c9e2b490bb102b6a86ce9a59",
-                "reference": "ccdfccc20051fb37c9e2b490bb102b6a86ce9a59",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/ea4ee7aacff666c31724ad7687be14e3ceaf2771",
+                "reference": "ea4ee7aacff666c31724ad7687be14e3ceaf2771",
                 "shasum": ""
             },
             "require": {
@@ -486,16 +486,16 @@
                 }
             ],
             "description": "A lightweight but also all-inclusive event sourcing library with a focus on developer experience",
-            "homepage": "https://github.com/patchlevel/event-sourcing",
+            "homepage": "https://event-sourcing.patchlevel.io",
             "keywords": [
                 "ddd",
                 "event-sourcing"
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
-                "source": "https://github.com/patchlevel/event-sourcing/tree/3.0.0"
+                "source": "https://github.com/patchlevel/event-sourcing/tree/3.1.0"
             },
-            "time": "2024-04-26T14:55:43+00:00"
+            "time": "2024-07-03T11:52:53+00:00"
         },
         {
             "name": "patchlevel/hydrator",
