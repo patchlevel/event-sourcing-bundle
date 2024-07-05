@@ -40,8 +40,8 @@ use Patchlevel\EventSourcing\Repository\MessageDecorator\ChainMessageDecorator;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\MessageDecorator;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\SplitStreamDecorator;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
+use Patchlevel\EventSourcing\Schema\DoctrineSchemaListener;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaProvider;
-use Patchlevel\EventSourcing\Schema\DoctrineSchemaSubscriber;
 use Patchlevel\EventSourcing\Schema\SchemaDirector;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr16SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr6SnapshotAdapter;
@@ -725,7 +725,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
             ]
         );
 
-        self::assertInstanceOf(DoctrineSchemaSubscriber::class, $container->get(DoctrineSchemaSubscriber::class));
+        self::assertInstanceOf(DoctrineSchemaListener::class, $container->get(DoctrineSchemaListener::class));
         self::assertFalse($container->has(SchemaDirector::class));
         self::assertFalse($container->has(DoctrineSchemaProvider::class));
         self::assertFalse($container->has(DatabaseCreateCommand::class));
