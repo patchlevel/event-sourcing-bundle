@@ -9,6 +9,7 @@ use Patchlevel\EventSourcing\Repository\Repository;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
@@ -17,7 +18,7 @@ final class RepositoryCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
-        $aggregateRootRegistry = $container->get(AggregateRootRegistry::class);
+        $aggregateRootRegistry = $container->get(AggregateRootRegistry::class, ContainerInterface::NULL_ON_INVALID_REFERENCE);
 
         if (!$aggregateRootRegistry instanceof AggregateRootRegistry) {
             return;
