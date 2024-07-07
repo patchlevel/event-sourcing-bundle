@@ -328,7 +328,6 @@ use App\Hotel\Domain\Hotel;
 use App\Hotel\Infrastructure\Projection\HotelProjection;
 use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Repository\Repository;
-use Patchlevel\EventSourcing\Repository\RepositoryManager;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
@@ -341,10 +340,8 @@ final class HotelController
     private Repository $hotelRepository;
 
     public function __construct(
-        RepositoryManager $repositoryManager,
         private HotelProjection $hotelProjection,
     ) {
-        $this->hotelRepository = $repositoryManager->get(Hotel::class);
     }
 
     #[Route('/', methods:['GET'])]
