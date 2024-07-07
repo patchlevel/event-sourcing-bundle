@@ -11,13 +11,14 @@ But we provide only examples for specific symfo
     
 ## Repository
 
-You can access the specific repositories using the `RepositoryManager`.
+You can access the specific repositories using the `RepositoryManager::get`. Or inject directly the right repository via 
+argument name injection. For our aggregate `Hotel` it would be `$hotelRepository`.
 
 ```php
 namespace App\Hotel\Infrastructure\Controller;
 
 use Patchlevel\EventSourcing\Aggregate\Uuid;
-use Patchlevel\EventSourcing\Repository\RepositoryManager;
+use Patchlevel\EventSourcing\Repository\Repository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 
@@ -25,14 +26,14 @@ use Symfony\Component\HttpKernel\Attribute\AsController;
 final class HotelController
 {
     public function __construct(
-        private readonly RepositoryManager $repositoryManager,
+        /** @var Repository<Hotel> */
+        private readonly Repository $hotelRepository,
     ) {
     }
 
     public function doStuffAction(Uuid $hotelId): Response
     {
-        $hotelRepository = $this->repositoryManager->get(Hotel::class);
-        $hotel = $hotelRepository->load($hotelId);
+        $hotel = $this->hotelRepository->load($hotelId);
 
         $hotel->doStuff();
 

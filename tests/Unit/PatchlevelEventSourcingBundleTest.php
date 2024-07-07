@@ -39,6 +39,7 @@ use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\ChainMessageDecorator;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\MessageDecorator;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\SplitStreamDecorator;
+use Patchlevel\EventSourcing\Repository\Repository;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaProvider;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaSubscriber;
@@ -835,6 +836,30 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(AggregateRootRegistry::class, $container->get(AggregateRootRegistry::class));
         self::assertInstanceOf(RepositoryManager::class, $container->get(RepositoryManager::class));
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
+    }
+    public function testNamedRepository(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'aggregates' => [__DIR__ . '/../Fixtures'],
+                ],
+            ]
+        );
+
+        $profileRepository = $container->get('event_sourcing.profile.repository');
+        self::assertInstanceOf(Repository::class, $profileRepository);
+
+        $namedArgumentProfileRepository = $container->get(Repository::class . ' $profileRepository');
+        self::assertInstanceOf(Repository::class, $namedArgumentProfileRepository);
+
+        self::assertSame($profileRepository, $namedArgumentProfileRepository);
     }
 
     private function compileContainer(ContainerBuilder $container, array $config): void
