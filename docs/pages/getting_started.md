@@ -336,11 +336,10 @@ use Symfony\Component\Routing\Annotation\Route;
 #[AsController]
 final class HotelController
 {
-    /** @var Repository<Hotel> */
-    private Repository $hotelRepository;
-
     public function __construct(
-        private HotelProjection $hotelProjection,
+        private readonly HotelProjection $hotelProjection,
+        /** @var Repository<Hotel> */
+        private readonly Repository $hotelRepository,
     ) {
     }
 
