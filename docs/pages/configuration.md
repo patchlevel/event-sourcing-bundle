@@ -55,6 +55,28 @@ patchlevel_event_sourcing:
 !!! tip
 
     If you want to learn more about events, read the [library documentation](https://patchlevel.github.io/event-sourcing-docs/latest/events/).
+
+## Custom Headers
+
+If you want to implement custom headers for your application, you must specify the
+paths to look for those headers.
+If you want you can use glob patterns to specify multiple paths.
+
+```yaml
+patchlevel_event_sourcing:
+  headers: '%kernel.project_dir%/src/*/Domain/Header'
+```
+Or use an array to specify multiple paths.
+
+```yaml
+patchlevel_event_sourcing:
+  events:
+    - '%kernel.project_dir%/src/Hotel/Domain/Header'
+    - '%kernel.project_dir%/src/Room/Domain/Header'
+```
+!!! tip
+
+    If you want to learn more about custom headers, read the [library documentation](https://event-sourcing.patchlevel.io/latest/message/#custom-headers).
     
 ## Connection
 
