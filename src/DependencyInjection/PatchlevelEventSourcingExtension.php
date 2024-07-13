@@ -196,7 +196,7 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->register(MessageHeaderRegistry::class)
             ->setFactory([new Reference(MessageHeaderRegistryFactory::class), 'create'])
-            ->setArguments([[]]);
+            ->setArguments([$config['headers']]);
 
         $container->register(DefaultHeadersSerializer::class)
             ->setArguments([

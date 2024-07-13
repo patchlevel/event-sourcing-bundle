@@ -31,6 +31,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  *      store: array{merge_orm_schema: bool, options: array<string, mixed>},
  *      aggregates: list<string>,
  *      events: list<string>,
+ *      headers: list<string>,
  *      snapshot_stores: array<string, array{type: string, service: string}>,
  *      migration: array{path: string, namespace: string},
  *      cryptography: array{enabled: bool, algorithm: string},
@@ -85,6 +86,12 @@ final class Configuration implements ConfigurationInterface
             ->end()
 
             ->arrayNode('aggregates')
+                ->beforeNormalization()->castToArray()->end()
+                ->defaultValue([])
+                ->scalarPrototype()->end()
+            ->end()
+
+            ->arrayNode('headers')
                 ->beforeNormalization()->castToArray()->end()
                 ->defaultValue([])
                 ->scalarPrototype()->end()

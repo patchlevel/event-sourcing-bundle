@@ -28,6 +28,7 @@ use Patchlevel\EventSourcing\Console\Command\SubscriptionStatusCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionTeardownCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
 use Patchlevel\EventSourcing\Debug\Trace\TraceStack;
+use Patchlevel\EventSourcing\Metadata\Message\MessageHeaderRegistry;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\ChainMessageDecorator;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\MessageDecorator;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\SplitStreamDecorator;
@@ -55,6 +56,7 @@ use Patchlevel\EventSourcing\Subscription\Repository\RunSubscriptionEngineReposi
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
+use Patchlevel\EventSourcingBundle\Tests\Fixtures\CustomHeader;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener1;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener2;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Profile;
@@ -430,6 +432,29 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertInstanceOf(AggregateRootRegistry::class, $aggregateRegistry);
         self::assertTrue($aggregateRegistry->hasAggregateClass(Profile::class));
+    }
+
+    public function testMessageHeaderRegistry(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'headers' => [__DIR__ . '/../Fixtures'],
+                ],
+            ]
+        );
+
+        /** @var MessageHeaderRegistry $messageHeaderRegistry */
+        $messageHeaderRegistry = $container->get(MessageHeaderRegistry::class);
+
+        self::assertInstanceOf(MessageHeaderRegistry::class, $messageHeaderRegistry);
+        self::assertTrue($messageHeaderRegistry->hasHeaderClass(CustomHeader::class));
     }
 
     public function testRepositoryManager(): void
