@@ -70,7 +70,7 @@ Or use an array to specify multiple paths.
 
 ```yaml
 patchlevel_event_sourcing:
-  events:
+  headers:
     - '%kernel.project_dir%/src/Hotel/Domain/Header'
     - '%kernel.project_dir%/src/Room/Domain/Header'
 ```
