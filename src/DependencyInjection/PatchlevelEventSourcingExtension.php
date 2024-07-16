@@ -74,8 +74,8 @@ use Patchlevel\EventSourcing\Schema\ChainDoctrineSchemaConfigurator;
 use Patchlevel\EventSourcing\Schema\DoctrineMigrationSchemaProvider;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaConfigurator;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaDirector;
+use Patchlevel\EventSourcing\Schema\DoctrineSchemaListener;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaProvider;
-use Patchlevel\EventSourcing\Schema\DoctrineSchemaSubscriber;
 use Patchlevel\EventSourcing\Schema\SchemaDirector;
 use Patchlevel\EventSourcing\Serializer\DefaultEventSerializer;
 use Patchlevel\EventSourcing\Serializer\Encoder\Encoder;
@@ -98,6 +98,7 @@ use Patchlevel\EventSourcing\Subscription\RetryStrategy\ClockBasedRetryStrategy;
 use Patchlevel\EventSourcing\Subscription\RetryStrategy\RetryStrategy;
 use Patchlevel\EventSourcing\Subscription\Store\DoctrineSubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\SubscriptionStore;
+use Patchlevel\EventSourcing\Subscription\Subscriber\ArgumentResolver\ArgumentResolver;
 use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorRepository;
 use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberAccessorRepository;
 use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberHelper;
@@ -312,10 +313,14 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->setAlias(SubscriptionStore::class, DoctrineSubscriptionStore::class);
 
+        $container->registerForAutoconfiguration(ArgumentResolver::class)
+            ->addTag('event_sourcing.argument_resolver');
+
         $container->register(MetadataSubscriberAccessorRepository::class)
             ->setArguments([
                 new TaggedIteratorArgument('event_sourcing.subscriber'),
                 new Reference(SubscriberMetadataFactory::class),
+                new TaggedIteratorArgument('event_sourcing.argument_resolver'),
             ]);
 
         $container->setAlias(SubscriberAccessorRepository::class, MetadataSubscriberAccessorRepository::class);
@@ -736,7 +741,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->setAlias(DoctrineSchemaConfigurator::class, ChainDoctrineSchemaConfigurator::class);
 
         if ($config['store']['merge_orm_schema']) {
-            $container->register(DoctrineSchemaSubscriber::class)
+            $container->register(DoctrineSchemaListener::class)
                 ->setArguments([new Reference(DoctrineSchemaConfigurator::class)])
                 ->addTag('doctrine.event_listener', ['event' => ToolEvents::postGenerateSchema]);
 
