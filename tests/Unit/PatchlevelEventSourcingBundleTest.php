@@ -28,15 +28,12 @@ use Patchlevel\EventSourcing\Console\Command\SubscriptionStatusCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionTeardownCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
 use Patchlevel\EventSourcing\Debug\Trace\TraceStack;
-use Patchlevel\EventSourcing\Metadata\Message\MessageHeaderRegistry;
-use Patchlevel\EventSourcing\Repository\MessageDecorator\ChainMessageDecorator;
-use Patchlevel\EventSourcing\Repository\MessageDecorator\MessageDecorator;
-use Patchlevel\EventSourcing\Repository\MessageDecorator\SplitStreamDecorator;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\Psr14EventBus;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
+use Patchlevel\EventSourcing\Metadata\Message\MessageHeaderRegistry;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\ChainMessageDecorator;
@@ -681,7 +678,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
             $container->get(SubscriptionEngine::class));
     }
 
-
     public function testAutoconfigureSubscriber(): void
     {
         $container = new ContainerBuilder();
@@ -717,7 +713,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         $container->setDefinition(DummyArgumentResolver::class, new Definition(DummyArgumentResolver::class))
             ->setAutoconfigured(true)
-            ;
+        ;
 
         $this->compileContainer(
             $container,
@@ -864,6 +860,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(RepositoryManager::class, $container->get(RepositoryManager::class));
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
     }
+
     public function testNamedRepository(): void
     {
         $container = new ContainerBuilder();
@@ -911,4 +908,5 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         $container->compile();
     }
+
 }
