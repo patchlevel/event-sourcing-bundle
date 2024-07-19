@@ -40,3 +40,11 @@ test: phpunit                                                                   
 
 .PHONY: dev
 dev: static test                                                                ## run dev tools
+
+.PHONY: docs
+docs: mkdocs                                                                          ## run mkdocs
+	cd docs && python3 -m mkdocs serve
+
+.PHONY: mkdocs
+mkdocs:                                                                         ## run mkdocs
+	cd docs && pip3 install -r requirements.txt
