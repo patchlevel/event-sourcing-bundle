@@ -1,6 +1,8 @@
 # yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
 
-site_name: Event Sourcing Bundle
+site_name: Event Sourcing Symfony Bundle
+site_description: A lightweight but also all-inclusive event sourcing bundle with a focus on developer experience and based on doctrine dbal.
+site_author: patchlevel
 site_url: https://patchlevel.github.io/event-sourcing-bundle-docs/
 repo_url: https://github.com/patchlevel/event-sourcing-bundle
 repo_name: patchlevel/event-sourcing-bundle
@@ -9,7 +11,7 @@ docs_dir: pages
 
 extra:
   meta:
-    title: Event Sourcing Bundle
+    title: Event Sourcing Symfony Bundle
     description: A lightweight but also all-inclusive event sourcing bundle with a focus on developer experience and based on doctrine dbal.
     image: img/patchlevel-banner.png
   social:
@@ -21,6 +23,9 @@ extra:
       link: https://twitter.com/patchlevelhq
   version:
     provider: mike
+    alias: true
+  analytics:
+    provider: custom
 
 extra_css:
   - stylesheets/extra.css
@@ -48,6 +53,10 @@ theme:
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
+
+plugins:
+  - mike:
+      canonical_version: latest
 
 markdown_extensions:
   - meta
