@@ -107,7 +107,8 @@ You can change the table name of the event store.
 ```yaml
 patchlevel_event_sourcing:
     store:
-        table_name: 'my_event_store'
+        options:
+            table_name: 'my_event_store'
 ```
 ### Merge ORM Schema
 
