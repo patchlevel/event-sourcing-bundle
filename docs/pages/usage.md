@@ -11,7 +11,7 @@ But we provide only examples for specific symfo
     
 ## Repository
 
-You can access the specific repositories using the `RepositoryManager::get`. Or inject directly the right repository via 
+You can access the specific repositories using the `RepositoryManager::get`. Or inject directly the right repository via
 argument name injection. For our aggregate `Hotel` it would be `$hotelRepository`.
 
 ```php

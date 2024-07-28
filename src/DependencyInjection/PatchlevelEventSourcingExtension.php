@@ -88,7 +88,9 @@ use Patchlevel\EventSourcing\Snapshot\Adapter\Psr6SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\DefaultSnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
 use Patchlevel\EventSourcing\Store\DoctrineDbalStore;
+use Patchlevel\EventSourcing\Store\InMemoryStore;
 use Patchlevel\EventSourcing\Store\Store;
+use Patchlevel\EventSourcing\Store\StreamDoctrineDbalStore;
 use Patchlevel\EventSourcing\Subscription\Engine\CatchUpSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\DefaultSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
@@ -126,8 +128,9 @@ use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
+use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
 use function class_exists;
 use function sprintf;
@@ -468,16 +471,60 @@ final class PatchlevelEventSourcingExtension extends Extension
     /** @param Config $config */
     private function configureStore(array $config, ContainerBuilder $container): void
     {
-        $container->register(DoctrineDbalStore::class)
-            ->setArguments([
-                new Reference('event_sourcing.dbal_connection'),
-                new Reference(EventSerializer::class),
-                new Reference(HeadersSerializer::class),
-                $config['store']['options'],
-            ])
-            ->addTag('event_sourcing.doctrine_schema_configurator');
+        if ($config['store']['type'] === 'custom') {
+            if ($config['store']['service'] === null) {
+                throw new InvalidArgumentException('Custom store type requires a service');
+            }
 
-        $container->setAlias(Store::class, DoctrineDbalStore::class);
+            $container->setAlias(Store::class, $config['store']['service']);
+
+            return;
+        }
+
+        if ($config['store']['type'] === 'in_memory') {
+            $service = $container->register(InMemoryStore::class);
+
+            if (($config['store']['options']['kernel_reset'] ?? false) === true) {
+                $service->addTag('kernel.reset', ['method' => 'clear']);
+            }
+
+            $container->setAlias(Store::class, InMemoryStore::class);
+
+            return;
+        }
+
+        if ($config['store']['type'] === 'dbal_aggregate') {
+            $container->register(DoctrineDbalStore::class)
+                ->setArguments([
+                    new Reference('event_sourcing.dbal_connection'),
+                    new Reference(EventSerializer::class),
+                    new Reference(HeadersSerializer::class),
+                    $config['store']['options'],
+                ])
+                ->addTag('event_sourcing.doctrine_schema_configurator');
+
+            $container->setAlias(Store::class, DoctrineDbalStore::class);
+
+            return;
+        }
+
+        if ($config['store']['type'] === 'dbal_stream') {
+            $container->register(StreamDoctrineDbalStore::class)
+                ->setArguments([
+                    new Reference('event_sourcing.dbal_connection'),
+                    new Reference(EventSerializer::class),
+                    new Reference(HeadersSerializer::class),
+                    new Reference('event_sourcing.clock'),
+                    $config['store']['options'],
+                ])
+                ->addTag('event_sourcing.doctrine_schema_configurator');
+
+            $container->setAlias(Store::class, StreamDoctrineDbalStore::class);
+
+            return;
+        }
+
+        throw new InvalidArgumentException(sprintf('Unknown store type "%s"', $config['store']['type']));
     }
 
     /** @param Config $config */
