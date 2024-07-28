@@ -16,7 +16,7 @@ Here, however, only the last events are loaded from the database and not all.
 !!! info
 
     You can find out more about snapshots in the library 
-    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/snapshots/). 
+    [documentation](https://event-sourcing.patchlevel.io/latest/snapshots/). 
     This documentation is limited to bundle integration.
 
 ## Using Symfony Cache

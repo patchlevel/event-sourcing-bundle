@@ -7,7 +7,7 @@ will also be persisted in the database and can be retrieved later on.
 !!! info
 
     You can find out more about message decorator in the library 
-    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/message_decorator/). 
+    [documentation](https://event-sourcing.patchlevel.io/latest/message_decorator/). 
     This documentation is limited to bundle integration.
 
 ## Usage

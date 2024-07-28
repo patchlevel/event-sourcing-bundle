@@ -8,7 +8,7 @@ denormalizing to an event object. There you can change the event name and adjust
 !!! info
 
     You can find out more about upcasting in the library 
-    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/upcasting/). 
+    [documentation](https://event-sourcing.patchlevel.io/latest/upcasting/). 
     This documentation is limited to bundle integration.
 
 ## Usage

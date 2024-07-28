@@ -3,7 +3,7 @@
 !!! info
 
     You can find out more about aggregates in the library 
-    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/aggregate/). 
+    [documentation](https://event-sourcing.patchlevel.io/latest/aggregate/). 
     This documentation is limited to bundle integration.
 
 ## Register aggregates
@@ -39,4 +39,4 @@ final class Hotel extends AggregateRoot
 
 !!! note
 
-    You should read [here](https://patchlevel.github.io/event-sourcing-docs/latest/aggregates/) how the aggregates then work internally.
+    You should read [here](https://event-sourcing.patchlevel.io/latest/aggregates/) how the aggregates then work internally.

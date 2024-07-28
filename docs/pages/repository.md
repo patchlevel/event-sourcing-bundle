@@ -9,7 +9,7 @@ And each repository is only responsible for one aggregate.
 !!! info
 
     You can find out more about repository in the library 
-    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/repository/). 
+    [documentation](https://event-sourcing.patchlevel.io/latest/repository/). 
     This documentation is limited to bundle integration.
 
 ## Use repositories

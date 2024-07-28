@@ -7,7 +7,7 @@ and offers two different store strategies.
 !!! info
 
     You can find out more about stores in the library 
-    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/store/). 
+    [documentation](https://event-sourcing.patchlevel.io/latest/store/). 
     This documentation is limited to bundle integration.
 
 ## Store types
