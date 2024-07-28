@@ -68,7 +68,7 @@ final class GuestIsCheckedOut
 ```
 !!! note
 
-    You can find out more about events in the [library](https://patchlevel.github.io/event-sourcing-docs/latest/events/).
+    You can find out more about events in the [library](https://event-sourcing.patchlevel.io/latest/events/).
     
 ## Define aggregates
 
@@ -168,7 +168,7 @@ final class Hotel extends BasicAggregateRoot
 ```
 !!! note
 
-    You can find out more about aggregates in the [library](https://patchlevel.github.io/event-sourcing-docs/latest/aggregate/).
+    You can find out more about aggregates in the [library](https://event-sourcing.patchlevel.io/latest/aggregate/).
     
 ## Define projections
 
@@ -259,7 +259,7 @@ final class HotelProjection
     
 !!! note
 
-    You can find out more about projections in the [library](https://patchlevel.github.io/event-sourcing-docs/latest/subscription/).
+    You can find out more about projections in the [library](https://event-sourcing.patchlevel.io/latest/subscription/).
     
 ## Processor
 
@@ -302,7 +302,7 @@ final class SendCheckInEmailListener
     
 !!! note
 
-    You can find out more about processor in the [library](https://patchlevel.github.io/event-sourcing-docs/latest/subscription/)
+    You can find out more about processor in the [library](https://event-sourcing.patchlevel.io/latest/subscription/)
     
 ## Database setup
 
@@ -315,7 +315,7 @@ bin/console event-sourcing:subscription:setup
 ```
 !!! note
 
-    You can find out more about the cli in the [library](https://patchlevel.github.io/event-sourcing-docs/latest/cli/).
+    You can find out more about the cli in the [library](https://event-sourcing.patchlevel.io/latest/cli/).
     
 ### Usage
 
@@ -404,5 +404,5 @@ final class HotelController
 !!! note
 
     This documentation is limited to the bundle integration.
-    You should also read the [library documentation](https://patchlevel.github.io/event-sourcing-docs/latest/).
+    You should also read the [library documentation](https://event-sourcing.patchlevel.io/latest/).
     

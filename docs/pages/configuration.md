@@ -3,7 +3,7 @@
 !!! info
 
     You can find out more about event sourcing in the library 
-    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/). 
+    [documentation](https://event-sourcing.patchlevel.io/latest/). 
     This documentation is limited to bundle integration and configuration.
     
 !!! tip
@@ -33,7 +33,7 @@ patchlevel_event_sourcing:
     
 !!! tip
 
-    If you want to learn more about aggregates, read the [library documentation](https://patchlevel.github.io/event-sourcing-docs/latest/aggregate/).
+    If you want to learn more about aggregates, read the [library documentation](https://event-sourcing.patchlevel.io/latest/aggregate/).
     
 ## Events
 
@@ -54,7 +54,7 @@ patchlevel_event_sourcing:
 ```
 !!! tip
 
-    If you want to learn more about events, read the [library documentation](https://patchlevel.github.io/event-sourcing-docs/latest/events/).
+    If you want to learn more about events, read the [library documentation](https://event-sourcing.patchlevel.io/latest/events/).
     
 ## Connection
 
@@ -130,7 +130,7 @@ patchlevel_event_sourcing:
     
 !!! tip
 
-    If you want to learn more about store, read the [library documentation](https://patchlevel.github.io/event-sourcing-docs/latest/store/).
+    If you want to learn more about store, read the [library documentation](https://event-sourcing.patchlevel.io/latest/store/).
     
 ## Migration
 
@@ -147,7 +147,7 @@ patchlevel_event_sourcing:
 !!! tip
 
     You can find out more about subscriptions in the library 
-    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/subscription/).
+    [documentation](https://event-sourcing.patchlevel.io/latest/subscription/).
     
 ### Catch Up
 
@@ -225,7 +225,7 @@ patchlevel_event_sourcing:
 ```
 !!! note
 
-    Default is the patchlevel [event bus](https://patchlevel.github.io/event-sourcing-docs/latest/event_bus/).
+    Default is the patchlevel [event bus](https://event-sourcing.patchlevel.io/latest/event_bus/).
     
 ### Patchlevel (Default) Event Bus
 
@@ -371,7 +371,7 @@ final class Profile extends BasicAggregateRoot
 ```
 !!! note
 
-    You can find out more about snapshots [here](https://patchlevel.github.io/event-sourcing-docs/latest/snapshots/).
+    You can find out more about snapshots [here](https://event-sourcing.patchlevel.io/latest/snapshots/).
     
 ## Cryptography
 
@@ -391,7 +391,7 @@ patchlevel_event_sourcing:
 ```
 !!! note
 
-    You can find out more about personal data [here](https://patchlevel.github.io/event-sourcing-docs/latest/personal_data/).
+    You can find out more about personal data [here](https://event-sourcing.patchlevel.io/latest/personal_data/).
     
 ## Clock
 
