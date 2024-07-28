@@ -8,7 +8,7 @@ the event will be dispatched to the `event bus`. All listeners are then called f
 !!! info
 
     You can find out more about the event bus in the library 
-    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/event_bus/). 
+    [documentation](https://event-sourcing.patchlevel.io/latest/event_bus/). 
     This documentation is limited to bundle integration.
 
 ## Symfony Event Bus

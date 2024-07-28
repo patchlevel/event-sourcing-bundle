@@ -5,7 +5,7 @@ There is also a watch server, because you can start to see all events in real ti
 !!! info
 
     You can find out more about the watch server in the library 
-    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/watch_server/). 
+    [documentation](https://event-sourcing.patchlevel.io/latest/watch_server/). 
     This documentation is limited to bundle integration.
 
 ## Configuration
