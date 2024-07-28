@@ -5,7 +5,7 @@ You can use doctrine migration, which is known from doctrine orm, to create your
 !!! info
 
     You can find out more about migration in the library 
-    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/migration/). 
+    [documentation](https://event-sourcing.patchlevel.io/latest/migration/). 
     This documentation is limited to bundle integration.
 
 

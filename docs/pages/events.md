@@ -8,7 +8,7 @@ You can also listen on events to react and perform different actions.
 !!! info
 
     You can find out more about events in the library 
-    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/events/). 
+    [documentation](https://event-sourcing.patchlevel.io/latest/events/). 
     This documentation is limited to bundle integration.
 
 ## Register events
@@ -50,7 +50,7 @@ final class HotelCreated
 
 !!! note
 
-    If you want to learn more about events, read the [library documentation](https://patchlevel.github.io/event-sourcing-docs/latest/events/).
+    If you want to learn more about events, read the [library documentation](https://event-sourcing.patchlevel.io/latest/events/).
 
 !!! note
 
