@@ -95,7 +95,7 @@ nav:
   - Configuration: configuration.md
   - Usage: usage.md
   - Links:
-    - Library Documentation: https://patchlevel.github.io/event-sourcing-docs/latest/
+    - Library Documentation: https://event-sourcing.patchlevel.io/latest/
     - Admin Bundle: https://github.com/patchlevel/event-sourcing-admin-bundle
     - Psalm Plugin: https://github.com/patchlevel/event-sourcing-psalm-plugin
     - Hydrator: https://github.com/patchlevel/hydrator
