@@ -6,7 +6,7 @@ But we provide only examples for specific symfo
 !!! info
 
     You can find out more about event sourcing in the library 
-    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/). 
+    [documentation](https://event-sourcing.patchlevel.io/latest/). 
     This documentation is limited to bundle integration and configuration.
     
 ## Repository
@@ -151,7 +151,7 @@ This bundle adds more Symfony specific normalizers in addition to the existing b
 
 !!! note
 
-    You can find the other build-in normalizers [here](https://patchlevel.github.io/event-sourcing-docs/latest/normalizer/#built-in-normalizer)
+    You can find the other build-in normalizers [here](https://event-sourcing.patchlevel.io/latest/normalizer/#built-in-normalizer)
     
 ### Uuid
 
