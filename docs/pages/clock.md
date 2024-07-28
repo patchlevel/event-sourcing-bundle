@@ -6,7 +6,7 @@ There is a system clock and a frozen clock for test purposes.
 !!! info
 
     You can find out more about clock in the library 
-    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/clock/). 
+    [documentation](https://event-sourcing.patchlevel.io/latest/clock/). 
     This documentation is limited to bundle integration.
 
 ## Configuration

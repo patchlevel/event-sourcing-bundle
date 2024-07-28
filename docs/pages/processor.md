@@ -5,7 +5,7 @@ The `processor` is a kind of [event bus](./event_bus.md) listener that can execu
 !!! info
 
     You can find out more about processor in the library 
-    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/processor/). 
+    [documentation](https://event-sourcing.patchlevel.io/latest/processor/). 
     This documentation is limited to bundle integration.
 
 ## Usage

@@ -8,7 +8,7 @@ you can test the new store beforehand, whether the migration worked.
 !!! info
 
     You can find out more about pipeline in the library 
-    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/pipeline/). 
+    [documentation](https://event-sourcing.patchlevel.io/latest/pipeline/). 
     This documentation is limited to bundle integration.
 
 ## Example

@@ -11,7 +11,7 @@ Either a file, a relational database, a no-sql database like mongodb or an elast
 !!! info
 
     You can find out more about projection in the library 
-    [documentation](https://patchlevel.github.io/event-sourcing-docs/latest/projection/). 
+    [documentation](https://event-sourcing.patchlevel.io/latest/projection/). 
     This documentation is limited to bundle integration.
 
 ## Define Projection
