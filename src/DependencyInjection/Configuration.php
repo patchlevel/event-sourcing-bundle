@@ -28,7 +28,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  *          rebuild_after_file_change: bool
  *      },
  *      connection: ?array{service: ?string, url: ?string},
- *      store: array{merge_orm_schema: bool, options: array<string, mixed>},
+ *      store: array{merge_orm_schema: bool, options: array<string, mixed>, type: string, service: ?string},
  *      aggregates: list<string>,
  *      events: list<string>,
  *      headers: list<string>,
@@ -62,8 +62,19 @@ final class Configuration implements ConfigurationInterface
             ->arrayNode('store')
                 ->addDefaultsIfNotSet()
                 ->children()
+                    ->enumNode('type')
+                        ->values(['dbal_aggregate', 'dbal_stream', 'in_memory', 'custom'])
+                        ->defaultValue('dbal_aggregate')
+                    ->end()
+                    ->scalarNode('service')->defaultNull()->end()
                     ->booleanNode('merge_orm_schema')->defaultFalse()->end()
                     ->arrayNode('options')->variablePrototype()->end()->end()
+                ->end()
+                ->validate()
+                    ->ifTrue(function (array $v) {
+                        return $v['type'] === 'custom' && empty($v['service']);
+                    })
+                    ->thenInvalid('The "service" field is required when "type" is set to "custom".')
                 ->end()
             ->end()
 

@@ -55,7 +55,7 @@ patchlevel_event_sourcing:
 !!! tip
 
     If you want to learn more about events, read the [library documentation](https://event-sourcing.patchlevel.io/latest/events/).
-
+    
 ## Custom Headers
 
 If you want to implement custom headers for your application, you must specify the
@@ -122,6 +122,26 @@ patchlevel_event_sourcing:
 
 The store and schema is configurable.
 
+### Change Store type
+
+You can change the store type of the event store.
+
+```yaml
+patchlevel_event_sourcing:
+    store:
+        type: 'in_memory'
+```
+Following store types are available:
+
+- `dbal_aggregate` *default*
+- `dbal_stream` *experimental*
+- `in_memory`
+- `custom`
+
+!!! note
+
+    If you use `custom` store type, you need to set the service id under `patchlevel_event_sourcing.store.service`.
+    
 ### Change table Name
 
 You can change the table name of the event store.
@@ -154,6 +174,16 @@ patchlevel_event_sourcing:
 
     If you want to learn more about store, read the [library documentation](https://event-sourcing.patchlevel.io/latest/store/).
     
+### Kernel Reset
+
+Only available in `in_memory` store. If you want to reset the store after each kernel request, you can activate this option.
+So you can avoid side effects between the tests.
+
+```yaml
+patchlevel_event_sourcing:
+    store:
+        kernel_reset: true
+```
 ## Migration
 
 You can use [doctrine migrations](https://www.doctrine-project.org/projects/migrations.html) to manage the schema.
