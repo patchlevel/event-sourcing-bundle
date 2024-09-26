@@ -96,6 +96,7 @@ nav:
   - Configuration: configuration.md
   - Usage: usage.md
   - Links:
+    - Blog: https://patchlevel.de/blog
     - Library Documentation: https://event-sourcing.patchlevel.io/latest/
     - Admin Bundle: https://github.com/patchlevel/event-sourcing-admin-bundle
     - Psalm Plugin: https://github.com/patchlevel/event-sourcing-psalm-plugin

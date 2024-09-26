@@ -37,6 +37,7 @@ this [installation documentation](https://patchlevel.github.io/event-sourcing-bu
 
 * [Bundle Documentation](https://patchlevel.github.io/event-sourcing-bundle-docs/latest/)
 * [Library Documentation](https://patchlevel.github.io/event-sourcing-docs/latest)
+* [Related Blog](https://patchlevel.de/blog)
 
 ## Integration
 
