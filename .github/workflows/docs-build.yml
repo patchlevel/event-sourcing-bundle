@@ -65,15 +65,22 @@ jobs:
       - run: git fetch doc gh-pages --verbose
 
       - run: |
+          current_major=$(echo "$version_current" | cut -d '.' -f 1)
+          current_minor=$(echo "$version_current" | cut -d '.' -f 2)
+          
+          latest_major=$(echo "$version_latest" | cut -d '.' -f 1)
+          latest_minor=$(echo "$version_latest" | cut -d '.' -f 2)
+          
           if [ "${{ steps.current.outputs.result }}" = "${{ steps.latest.outputs.result }}" ]
           then
             # Here we deploy a new latest version
-            mike deploy ${{ steps.current.outputs.result }} latest --config-file docs/mkdocs.yml --update-aliases --push --remote doc
-          else
-            # Here we deploy a version that's not the latest one
+            mike deploy latest ${{ steps.current.outputs.result }} --config-file docs/mkdocs.yml --title="${{ steps.current.outputs.result }} (latest)" --update-aliases --alias-type=redirect --push --remote doc
+          elif [ "$current_major" -lt "$latest_major" ] || \
+          { [ "$current_major" -eq "$latest_major" ] && [ "$current_minor" -lt "$latest_minor" ]; }
+          then
+          # Here we deploy a version that's not the latest one and smaller as the latest version
             mike deploy ${{ steps.current.outputs.result }} --config-file docs/mkdocs.yml --push --remote doc
           fi
-
       - run: |
           # Check if the "latest" alias exists
           HAS_LATEST=$(mike list --config-file docs/mkdocs.yml --rebase --remote doc | grep latest) || true
