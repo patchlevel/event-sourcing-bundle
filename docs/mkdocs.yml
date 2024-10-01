@@ -23,7 +23,6 @@ extra:
       link: https://twitter.com/patchlevelhq
   version:
     provider: mike
-    alias: true
   analytics:
     provider: custom
 
