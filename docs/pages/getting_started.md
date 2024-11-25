@@ -317,7 +317,7 @@ bin/console event-sourcing:subscription:setup
 
     You can find out more about the cli in the [library](https://event-sourcing.patchlevel.io/latest/cli/).
     
-### Usage
+## Usage
 
 We are now ready to use the Event Sourcing System. We can load, change and save aggregates.
 
