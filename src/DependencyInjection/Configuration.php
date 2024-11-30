@@ -11,6 +11,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  * @psalm-type Config = array{
  *      event_bus: array{enabled: bool, type: string, service: string},
  *      subscription: array{
+ *          store: array{type: string, service: string|null},
  *          retry_strategy: array{base_delay: int, delay_factor: int, max_attempts: int},
  *          catch_up: array{enabled: bool, limit: positive-int|null},
  *          throw_on_error: array{enabled: bool},
@@ -137,6 +138,17 @@ final class Configuration implements ConfigurationInterface
             ->arrayNode('subscription')
                 ->addDefaultsIfNotSet()
                 ->children()
+                    ->arrayNode('store')
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->enumNode('type')
+                                ->values(['dbal', 'in_memory', 'custom'])
+                                ->defaultValue('dbal')
+                            ->end()
+                            ->scalarNode('service')->defaultNull()->end()
+                        ->end()
+                    ->end()
+
                     ->arrayNode('retry_strategy')
                         ->addDefaultsIfNotSet()
                         ->children()
