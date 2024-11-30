@@ -200,7 +200,22 @@ patchlevel_event_sourcing:
 
     You can find out more about subscriptions in the library 
     [documentation](https://event-sourcing.patchlevel.io/latest/subscription/).
-    
+
+### Store
+
+You can change where the subscription engine stores its necessary information about the subscription. 
+Default is `dbal`, which means it stores it in the same DB that is used by the dbal event store. 
+Otherwise you also have the option to set it to `in_memory`, then this information will not be persisted anywhere. 
+This is very useful for testing. And if that is not enough, you can also define a `custom` store and specify the service.
+
+```yaml
+patchlevel_event_sourcing:
+  subscription:
+    store: 
+      type: 'custom' # default is 'dbal'
+      service: 'my_subscription_store'
+```
+
 ### Catch Up
 
 If aggregates are used in the processors and new events are generated there,

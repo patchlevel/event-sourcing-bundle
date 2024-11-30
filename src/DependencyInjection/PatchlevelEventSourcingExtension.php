@@ -99,6 +99,7 @@ use Patchlevel\EventSourcing\Subscription\Repository\RunSubscriptionEngineReposi
 use Patchlevel\EventSourcing\Subscription\RetryStrategy\ClockBasedRetryStrategy;
 use Patchlevel\EventSourcing\Subscription\RetryStrategy\RetryStrategy;
 use Patchlevel\EventSourcing\Subscription\Store\DoctrineSubscriptionStore;
+use Patchlevel\EventSourcing\Subscription\Store\InMemorySubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\SubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Subscriber\ArgumentResolver\ArgumentResolver;
 use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorRepository;
@@ -308,13 +309,24 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(SubscriberHelper::class)
             ->setArguments([new Reference(SubscriberMetadataFactory::class)]);
 
-        $container->register(DoctrineSubscriptionStore::class)
-            ->setArguments([
-                new Reference('event_sourcing.dbal_connection'),
-            ])
-            ->addTag('event_sourcing.doctrine_schema_configurator');
+        if ($config['subscription']['store']['type'] === 'custom') {
+            if ($config['subscription']['store']['service'] === null) {
+                throw new InvalidArgumentException('Custom subscription store type requires a service');
+            }
 
-        $container->setAlias(SubscriptionStore::class, DoctrineSubscriptionStore::class);
+            $container->setAlias(SubscriptionStore::class, $config['subscription']['store']['service']);
+        } elseif ($config['subscription']['store']['type'] === 'in_memory') {
+            $container->register(InMemorySubscriptionStore::class);
+            $container->setAlias(SubscriptionStore::class, InMemorySubscriptionStore::class);
+        } elseif ($config['subscription']['store']['type'] === 'dbal') {
+            $container->register(DoctrineSubscriptionStore::class)
+                ->setArguments([
+                    new Reference('event_sourcing.dbal_connection'),
+                ])
+                ->addTag('event_sourcing.doctrine_schema_configurator');
+
+            $container->setAlias(SubscriptionStore::class, DoctrineSubscriptionStore::class);
+        }
 
         $container->registerForAutoconfiguration(ArgumentResolver::class)
             ->addTag('event_sourcing.argument_resolver');

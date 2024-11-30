@@ -57,6 +57,9 @@ use Patchlevel\EventSourcing\Subscription\Engine\CatchUpSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\DefaultSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Repository\RunSubscriptionEngineRepositoryManager;
+use Patchlevel\EventSourcing\Subscription\Store\DoctrineSubscriptionStore;
+use Patchlevel\EventSourcing\Subscription\Store\InMemorySubscriptionStore;
+use Patchlevel\EventSourcing\Subscription\Store\SubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorRepository;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
@@ -749,6 +752,29 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
             $container->get(RepositoryManager::class));
     }
 
+    public function testSubscriptionEngineInMemoryStore(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'subscription' => [
+                        'store' => [
+                            'type' => 'in_memory'
+                        ],
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(InMemorySubscriptionStore::class, $container->get(SubscriptionStore::class));
+    }
+
     public function testCatchUpSubscriptionEngine(): void
     {
         $container = new ContainerBuilder();
@@ -954,6 +980,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(AggregateRootRegistry::class, $container->get(AggregateRootRegistry::class));
         self::assertInstanceOf(RepositoryManager::class, $container->get(RepositoryManager::class));
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
+        self::assertInstanceOf(DoctrineSubscriptionStore::class, $container->get(SubscriptionStore::class));
     }
 
     public function testNamedRepository(): void
