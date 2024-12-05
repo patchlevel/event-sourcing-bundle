@@ -470,11 +470,25 @@ final class PatchlevelEventSourcingExtension extends Extension
                     $config['connection']['url'],
                 ]);
 
+            if ($config['connection']['projection']) {
+                $container->register('event_sourcing.dbal_projection_connection', Connection::class)
+                    ->setFactory([DbalConnectionFactory::class, 'createConnection'])
+                    ->setArguments([
+                        $config['connection']['url'],
+                    ]);
+
+                $container->setAlias(Connection::class, 'event_sourcing.dbal_projection_connection');
+            }
+
             return;
         }
 
         if ($config['connection']['service'] === null) {
-            return;
+            throw new InvalidArgumentException('Connection service or url is required');
+        }
+
+        if ($config['connection']['projection']) {
+            throw new InvalidArgumentException('Projection connection is only supported with url');
         }
 
         $container->setAlias('event_sourcing.dbal_connection', $config['connection']['service']);
