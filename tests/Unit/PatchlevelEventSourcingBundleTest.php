@@ -87,6 +87,7 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final class PatchlevelEventSourcingBundleTest extends TestCase
@@ -797,6 +798,31 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertInstanceOf(CatchUpSubscriptionEngine::class,
             $container->get(SubscriptionEngine::class));
+    }
+
+    public function testSubscriberSameConnectionError(): void
+    {
+        $container = new ContainerBuilder();
+
+        $container->setDefinition(ProfileProjector::class, new Definition(
+            ProfileProjector::class,
+            [new Reference('doctrine.dbal.eventstore_connection')]
+        ))
+            ->setAutoconfigured(true);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Using the same database connection for the eventstore and projections is not allowed. This configuration may result in transaction conflicts due to DDL operations, leading to system instability. Please use separate connections for the eventstore and projections to ensure safe operation. Argument 1 on class Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileProjector.');
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                ],
+            ]
+        );
     }
 
     public function testAutoconfigureSubscriber(): void

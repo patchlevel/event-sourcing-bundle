@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="5.12.0@f90118cdeacd0088e7215e64c0c99ceca819e176">
+<files psalm-version="5.26.1@d747f6500b38ac4f7dfc5edbcae6e4b637d7add0">
   <file src="src/DependencyInjection/Configuration.php">
-    <PossiblyNullReference>
-      <code>scalarNode</code>
-    </PossiblyNullReference>
     <UndefinedInterfaceMethod>
-      <code>scalarNode</code>
+      <code><![CDATA[scalarNode]]></code>
     </UndefinedInterfaceMethod>
   </file>
-  <file src="src/DependencyInjection/PatchlevelEventSourcingExtension.php">
-    <DeprecatedClass>
-      <code>DoctrineSchemaManager::class</code>
-      <code>DoctrineSchemaManager::class</code>
-      <code>MetadataAwareProjectionHandler::class</code>
-      <code>MetadataAwareProjectionHandler::class</code>
-      <code>ProjectionListener::class</code>
-    </DeprecatedClass>
+  <file src="src/DependencyInjection/SubscriberGuardCompilePass.php">
+    <InvalidOperand>
+      <code><![CDATA[$index]]></code>
+    </InvalidOperand>
+    <MixedAssignment>
+      <code><![CDATA[$argument]]></code>
+    </MixedAssignment>
   </file>
 </files>
