@@ -811,7 +811,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
             ->setAutoconfigured(true);
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('You cannot use the same connection for event sourcing and your subscription. Argument 1 on class Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileProjector.');
+        $this->expectExceptionMessage('Using the same database connection for the eventstore and projections is not allowed. This configuration may result in transaction conflicts due to DDL operations, leading to system instability. Please use separate connections for the eventstore and projections to ensure safe operation. Argument 1 on class Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileProjector.');
 
         $this->compileContainer(
             $container,
