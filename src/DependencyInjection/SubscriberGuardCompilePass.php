@@ -61,7 +61,7 @@ final class SubscriberGuardCompilePass implements CompilerPassInterface
 
                 throw new InvalidArgumentException(
                     sprintf(
-                        'You cannot use the same connection for event sourcing and your subscription.%s',
+                        'Using the same database connection for the eventstore and projections is not allowed. This configuration may result in transaction conflicts due to DDL operations, leading to system instability. Please use separate connections for the eventstore and projections to ensure safe operation. %s',
                         $context,
                     ),
                 );
