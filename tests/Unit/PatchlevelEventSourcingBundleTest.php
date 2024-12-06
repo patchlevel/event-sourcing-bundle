@@ -161,14 +161,14 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                 'patchlevel_event_sourcing' => [
                     'connection' => [
                         'url' => 'sqlite3:///:memory:',
-                        'projection' => true,
+                        'provide_dedicated_connection' => true,
                     ],
                 ],
             ]
         );
 
         $eventSourcingConnection = $container->get('event_sourcing.dbal_connection');
-        $projectionConnection = $container->get('event_sourcing.dbal_projection_connection');
+        $projectionConnection = $container->get('event_sourcing.dbal_public_connection');
 
         self::assertInstanceOf(Connection::class, $eventSourcingConnection);
         self::assertInstanceOf(Connection::class, $projectionConnection);

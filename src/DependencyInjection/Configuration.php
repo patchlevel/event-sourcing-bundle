@@ -31,7 +31,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  *      connection: ?array{
  *          service: ?string,
  *          url: ?string,
- *          projection: bool
+ *          provide_dedicated_connection: bool
  *      },
  *      store: array{merge_orm_schema: bool, options: array<string, mixed>, type: string, service: ?string},
  *      aggregates: list<string>,
@@ -61,7 +61,7 @@ final class Configuration implements ConfigurationInterface
                 ->children()
                     ->scalarNode('service')->defaultNull()->end()
                     ->scalarNode('url')->defaultNull()->end()
-                    ->booleanNode('projection')->defaultFalse()->end()
+                    ->booleanNode('provide_dedicated_connection')->defaultFalse()->end()
                 ->end()
             ->end()
 

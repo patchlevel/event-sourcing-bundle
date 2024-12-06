@@ -470,14 +470,14 @@ final class PatchlevelEventSourcingExtension extends Extension
                     $config['connection']['url'],
                 ]);
 
-            if ($config['connection']['projection']) {
-                $container->register('event_sourcing.dbal_projection_connection', Connection::class)
+            if ($config['connection']['provide_dedicated_connection']) {
+                $container->register('event_sourcing.dbal_public_connection', Connection::class)
                     ->setFactory([DbalConnectionFactory::class, 'createConnection'])
                     ->setArguments([
                         $config['connection']['url'],
                     ]);
 
-                $container->setAlias(Connection::class, 'event_sourcing.dbal_projection_connection');
+                $container->setAlias(Connection::class, 'event_sourcing.dbal_public_connection');
             }
 
             return;
@@ -487,8 +487,8 @@ final class PatchlevelEventSourcingExtension extends Extension
             throw new InvalidArgumentException('Connection service or url is required');
         }
 
-        if ($config['connection']['projection']) {
-            throw new InvalidArgumentException('Projection connection is only supported with url');
+        if ($config['connection']['provide_dedicated_connection']) {
+            throw new InvalidArgumentException('Providing dedicated connection is only possible with url');
         }
 
         $container->setAlias('event_sourcing.dbal_connection', $config['connection']['service']);
