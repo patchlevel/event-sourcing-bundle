@@ -113,6 +113,7 @@ use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\RequestListener\AutoSetupListener;
 use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRebuildAfterFileChangeListener;
 use Patchlevel\EventSourcingBundle\RequestListener\TraceListener;
+use Patchlevel\EventSourcingBundle\Subscription\LockableSubscriptionEngine;
 use Patchlevel\EventSourcingBundle\ValueResolver\AggregateRootIdValueResolver;
 use Patchlevel\Hydrator\Cryptography\Cipher\Cipher;
 use Patchlevel\Hydrator\Cryptography\Cipher\CipherKeyFactory;
@@ -132,6 +133,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Lock\LockFactory;
 
 use function class_exists;
 use function sprintf;
@@ -378,6 +380,17 @@ final class PatchlevelEventSourcingExtension extends Extension
                     $config['subscription']['run_after_aggregate_save']['ids'] ?: null,
                     $config['subscription']['run_after_aggregate_save']['groups'] ?: null,
                     $config['subscription']['run_after_aggregate_save']['limit'],
+                ]);
+        }
+
+        if ($config['subscription']['locking']['enabled']) {
+            $container->register(LockableSubscriptionEngine::class)
+                ->setDecoratedService(SubscriptionEngine::class)
+                ->setArguments([
+                    new Reference('.inner'),
+                    new Reference(LockFactory::class),
+                    $config['subscription']['locking']['name'],
+                    $config['subscription']['locking']['blocking'],
                 ]);
         }
 

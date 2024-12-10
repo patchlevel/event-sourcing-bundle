@@ -26,7 +26,8 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  *               ids: list<string>,
  *               groups: list<string>,
  *           },
- *          rebuild_after_file_change: bool
+ *          rebuild_after_file_change: bool,
+ *          locking: array{enabled: bool, name: string, blocking: bool},
  *      },
  *      connection: ?array{
  *          service: ?string,
@@ -195,6 +196,15 @@ final class Configuration implements ConfigurationInterface
                     ->end()
 
                     ->booleanNode('rebuild_after_file_change')->defaultFalse()->end()
+
+                    ->arrayNode('locking')
+                        ->canBeEnabled()
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->scalarNode('name')->defaultValue('subscription-engine')->end()
+                            ->booleanNode('blocking')->defaultFalse()->end()
+                        ->end()
+                    ->end()
                 ->end()
             ->end()
 
