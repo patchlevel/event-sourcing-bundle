@@ -152,6 +152,30 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(DoctrineDbalStore::class, $container->get(Store::class));
     }
 
+    public function testProjectionConnection(): void
+    {
+        $container = new ContainerBuilder();
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'url' => 'sqlite3:///:memory:',
+                        'provide_dedicated_connection' => true,
+                    ],
+                ],
+            ]
+        );
+
+        $eventSourcingConnection = $container->get('event_sourcing.dbal_connection');
+        $projectionConnection = $container->get('event_sourcing.dbal_public_connection');
+
+        self::assertInstanceOf(Connection::class, $eventSourcingConnection);
+        self::assertInstanceOf(Connection::class, $projectionConnection);
+
+        self::assertNotSame($eventSourcingConnection, $projectionConnection);
+    }
+
     public function testCustomStore(): void
     {
         $store = $this->prophesize(Store::class)->reveal();

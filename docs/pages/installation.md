@@ -36,6 +36,7 @@ patchlevel_event_sourcing:
     events: '%kernel.project_dir%/src'
     connection:
       url: '%env(EVENTSTORE_URL)%'
+      provide_dedicated_connection: true
 
 when@dev:
   patchlevel_event_sourcing:
@@ -63,7 +64,7 @@ EVENTSTORE_URL="pdo-pgsql://app:!ChangeMe!@127.0.0.1:5432/app?serverVersion=16&c
 !!! note
 
     You can find out more about what a connection url looks like [here](https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html#connecting-using-a-url).
-
+    
 ## Database with Docker
 
 If you are using docker, you can use the following `compose.yaml` file to start a postgres database.
@@ -85,7 +86,6 @@ services:
 volumes:
   eventstore_data:
 ```
-
 And for development, you can add a `compose.override.yaml` file to expose the port.
 
 ```yaml
@@ -94,10 +94,9 @@ services:
     ports:
       - "5432"
 ```
-
 ## Symfony CLI
 
-If you are using the [symfony cli](https://symfony.com/download), 
+If you are using the [symfony cli](https://symfony.com/download),
 you can configure that the database is started automatically if you start the server.
 For this you have to add the following configuration to the `.symfony.local.yaml` file.
 
@@ -105,7 +104,6 @@ For this you have to add the following configuration to the `.symfony.local.yaml
 workers:
   docker_compose: ~
 ```
-
 !!! success
 
     You have successfully installed the bundle. Now you can start with the [quickstart](./getting_started.md) to get a feeling for the bundle.

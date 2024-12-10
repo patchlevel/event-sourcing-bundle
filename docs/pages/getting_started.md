@@ -194,8 +194,9 @@ final class HotelProjection
 {
     use SubscriberUtil;
 
-    public function __construct(private Connection $db)
-    {
+    public function __construct(
+        private Connection $projectionConnection,
+    ) {
     }
 
     /** @return list<array{id: string, name: string, guests: int}> */

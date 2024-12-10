@@ -92,6 +92,30 @@ patchlevel_event_sourcing:
     You can find out more about how to create a connection 
     [here](https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html)
     
+### Connection for Projections
+
+Per default, our event sourcing connection is not available to use in your application.
+But you can create a dedicated connection that you can use for your projections.
+
+```yaml
+patchlevel_event_sourcing:
+  connection:
+    url: '%env(EVENTSTORE_URL)%'
+    provide_dedicated_connection: true
+```
+!!! tip
+
+    You can autowire the connection in your services like this:
+    
+    ```php
+    use Doctrine\DBAL\Connection;
+    
+    public function __construct(
+        private readonly Connection $projectionConnection,
+    ) {
+    }
+    ```
+    
 ### Doctrine Bundle
 
 If you have installed the [doctrine bundle](https://github.com/doctrine/DoctrineBundle),
@@ -108,6 +132,11 @@ patchlevel_event_sourcing:
     connection:
         service: doctrine.dbal.eventstore_connection
 ```
+!!! danger
+
+    Do not use the same connection for event sourcing and your projections,
+    otherwise you may run into transaction problems.
+    
 !!! warning
 
     If you want to use the same connection as doctrine orm, then you have to set the flag `merge_orm_schema`. 
@@ -118,6 +147,42 @@ patchlevel_event_sourcing:
     You can find out more about the dbal configuration 
     [here](https://symfony.com/bundles/DoctrineBundle/current/configuration.html).
     
+If you are using Doctrine for your projections too, you need to create a dedicated connection for this.
+You can do this by defining a new connection named `projection` in the `doctrine.yaml` file
+and use the same connection url as for the event store.
+
+```yaml
+doctrine:
+    dbal:
+        connections:
+            eventstore:
+                url: '%env(EVENTSTORE_URL)%'
+            projection:
+                url: '%env(EVENTSTORE_URL)%'
+
+patchlevel_event_sourcing:
+    connection:
+        service: doctrine.dbal.eventstore_connection
+```
+Then you can use this connection in your projections.
+If you are using autowiring you can inject the right connection `Connection $projectionConnection` parameter name.
+The prefix `projection` is used to identify the connection.
+
+```php
+namespace App\Projection;
+
+use Doctrine\DBAL\Connection;
+use Patchlevel\EventSourcing\Attribute\Projector;
+
+#[Projector('my_projection')]
+class MyProjection
+{
+    public function __construct(
+        private readonly Connection $projectionConnection,
+    ) {
+    }
+}
+```
 ## Store
 
 The store and schema is configurable.
@@ -200,12 +265,12 @@ patchlevel_event_sourcing:
 
     You can find out more about subscriptions in the library 
     [documentation](https://event-sourcing.patchlevel.io/latest/subscription/).
-
+    
 ### Store
 
-You can change where the subscription engine stores its necessary information about the subscription. 
-Default is `dbal`, which means it stores it in the same DB that is used by the dbal event store. 
-Otherwise you also have the option to set it to `in_memory`, then this information will not be persisted anywhere. 
+You can change where the subscription engine stores its necessary information about the subscription.
+Default is `dbal`, which means it stores it in the same DB that is used by the dbal event store.
+Otherwise you also have the option to set it to `in_memory`, then this information will not be persisted anywhere.
 This is very useful for testing. And if that is not enough, you can also define a `custom` store and specify the service.
 
 ```yaml
@@ -215,7 +280,6 @@ patchlevel_event_sourcing:
       type: 'custom' # default is 'dbal'
       service: 'my_subscription_store'
 ```
-
 ### Catch Up
 
 If aggregates are used in the processors and new events are generated there,

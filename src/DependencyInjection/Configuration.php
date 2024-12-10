@@ -28,7 +28,11 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  *           },
  *          rebuild_after_file_change: bool
  *      },
- *      connection: ?array{service: ?string, url: ?string},
+ *      connection: ?array{
+ *          service: ?string,
+ *          url: ?string,
+ *          provide_dedicated_connection: bool
+ *      },
  *      store: array{merge_orm_schema: bool, options: array<string, mixed>, type: string, service: ?string},
  *      aggregates: list<string>,
  *      events: list<string>,
@@ -57,6 +61,7 @@ final class Configuration implements ConfigurationInterface
                 ->children()
                     ->scalarNode('service')->defaultNull()->end()
                     ->scalarNode('url')->defaultNull()->end()
+                    ->booleanNode('provide_dedicated_connection')->defaultFalse()->end()
                 ->end()
             ->end()
 
