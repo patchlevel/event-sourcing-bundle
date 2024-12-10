@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\RequestListener;
 
+use Patchlevel\EventSourcing\Subscription\Engine\AlreadyProcessing;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngineCriteria;
 use Patchlevel\EventSourcing\Subscription\Status;
@@ -45,9 +46,13 @@ final class AutoSetupListener
             $ids[] = $subscription->id();
         }
 
-        $this->subscriptionEngine->setup(
-            new SubscriptionEngineCriteria($ids),
-            true,
-        );
+        try {
+            $this->subscriptionEngine->setup(
+                new SubscriptionEngineCriteria($ids),
+                true,
+            );
+        } catch (AlreadyProcessing) {
+            // ignore
+        }
     }
 }

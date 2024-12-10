@@ -6,6 +6,7 @@ namespace Patchlevel\EventSourcingBundle\RequestListener;
 
 use Patchlevel\EventSourcing\Metadata\Subscriber\AttributeSubscriberMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Subscriber\SubscriberMetadataFactory;
+use Patchlevel\EventSourcing\Subscription\Engine\AlreadyProcessing;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngineCriteria;
 use Patchlevel\EventSourcing\Subscription\RunMode;
@@ -67,12 +68,16 @@ final class SubscriptionRebuildAfterFileChangeListener
 
         $criteria = new SubscriptionEngineCriteria($toRemove);
 
-        $this->subscriptionEngine->remove($criteria);
-        $this->subscriptionEngine->setup($criteria);
-        $this->subscriptionEngine->boot($criteria);
+        try {
+            $this->subscriptionEngine->remove($criteria);
+            $this->subscriptionEngine->setup($criteria);
+            $this->subscriptionEngine->boot($criteria);
 
-        foreach ($itemsToSave as $item) {
-            $this->cache->save($item);
+            foreach ($itemsToSave as $item) {
+                $this->cache->save($item);
+            }
+        } catch (AlreadyProcessing) {
+            // ignore
         }
     }
 
