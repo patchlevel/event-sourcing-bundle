@@ -44,13 +44,6 @@ final class SubscriptionRebuildAfterFileChangeListener
 
             $item = $this->cache->getItem($metadata->id);
 
-            if (!$item->isHit()) {
-                $item->set($this->getLastModifiedTime($subscriber));
-                $this->cache->save($item);
-
-                continue;
-            }
-
             /** @var int|null $lastModified */
             $lastModified = $item->get();
             $currentModified = $this->getLastModifiedTime($subscriber);
