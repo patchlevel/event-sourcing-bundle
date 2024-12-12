@@ -40,8 +40,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  *      snapshot_stores: array<string, array{type: string, service: string}>,
  *      migration: array{path: string, namespace: string},
  *      cryptography: array{enabled: bool, algorithm: string},
- *      clock: array{freeze: ?string, service: ?string},
- *      debug: array{trace: bool}
+ *      clock: array{freeze: ?string, service: ?string}
  * }
  */
 final class Configuration implements ConfigurationInterface
@@ -203,13 +202,6 @@ final class Configuration implements ConfigurationInterface
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->scalarNode('algorithm')->defaultValue('aes256')->end()
-                ->end()
-            ->end()
-
-            ->arrayNode('debug')
-                ->addDefaultsIfNotSet()
-                ->children()
-                    ->booleanNode('trace')->defaultFalse()->end()
                 ->end()
             ->end()
         ->end();

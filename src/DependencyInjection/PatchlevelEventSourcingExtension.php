@@ -40,9 +40,6 @@ use Patchlevel\EventSourcing\Console\Command\SubscriptionTeardownCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
 use Patchlevel\EventSourcing\Console\DoctrineHelper;
 use Patchlevel\EventSourcing\Cryptography\DoctrineCipherKeyStore;
-use Patchlevel\EventSourcing\Debug\Trace\TraceableSubscriberAccessorRepository;
-use Patchlevel\EventSourcing\Debug\Trace\TraceDecorator;
-use Patchlevel\EventSourcing\Debug\Trace\TraceStack;
 use Patchlevel\EventSourcing\EventBus\AttributeListenerProvider;
 use Patchlevel\EventSourcing\EventBus\Consumer;
 use Patchlevel\EventSourcing\EventBus\DefaultConsumer;
@@ -112,7 +109,6 @@ use Patchlevel\EventSourcingBundle\Doctrine\DbalConnectionFactory;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\RequestListener\AutoSetupListener;
 use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRebuildAfterFileChangeListener;
-use Patchlevel\EventSourcingBundle\RequestListener\TraceListener;
 use Patchlevel\EventSourcingBundle\ValueResolver\AggregateRootIdValueResolver;
 use Patchlevel\Hydrator\Cryptography\Cipher\Cipher;
 use Patchlevel\Hydrator\Cryptography\Cipher\CipherKeyFactory;
@@ -166,7 +162,6 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureSchema($config, $container);
         $this->configureSubscription($config, $container);
         $this->configureCryptography($config, $container);
-        $this->configureDebugging($config, $container);
         $this->configureMigration($config, $container);
         $this->configureValueResolver($container);
     }
@@ -896,54 +891,6 @@ final class PatchlevelEventSourcingExtension extends Extension
             ]);
 
         $container->setAlias(PayloadCryptographer::class, PersonalDataPayloadCryptographer::class);
-    }
-
-    /** @param Config $config */
-    private function configureDebugging(array $config, ContainerBuilder $container): void
-    {
-        if (!$config['debug']['trace']) {
-            return;
-        }
-
-        $container->register(TraceStack::class);
-
-        $container->register(TraceDecorator::class)
-            ->setArguments([
-                new Reference(TraceStack::class),
-            ])
-            ->addTag('event_sourcing.message_decorator');
-
-        $container->register(TraceableSubscriberAccessorRepository::class)
-            ->setDecoratedService(SubscriberAccessorRepository::class)
-            ->setArguments([
-                new Reference('.inner'),
-                new Reference(TraceStack::class),
-            ]);
-
-        $container->register(TraceListener::class)
-            ->setArguments([
-                new Reference(TraceStack::class),
-            ])
-            ->addTag('kernel.event_listener', [
-                'priority' => 0,
-                'event' => 'console.command',
-                'method' => 'onConsoleCommand',
-            ])
-            ->addTag('kernel.event_listener', [
-                'priority' => 0,
-                'event' => 'console.terminate',
-                'method' => 'onConsoleTerminate',
-            ])
-            ->addTag('kernel.event_listener', [
-                'priority' => 0,
-                'event' => 'kernel.request',
-                'method' => 'onRequest',
-            ])
-            ->addTag('kernel.event_listener', [
-                'priority' => 0,
-                'event' => 'kernel.response',
-                'method' => 'onResponse',
-            ]);
     }
 
     private function configureValueResolver(ContainerBuilder $container): void
