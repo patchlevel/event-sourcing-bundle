@@ -28,7 +28,6 @@ use Patchlevel\EventSourcing\Console\Command\SubscriptionSetupCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionStatusCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionTeardownCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
-use Patchlevel\EventSourcing\Debug\Trace\TraceStack;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\Psr14EventBus;
@@ -938,9 +937,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                     'connection' => [
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
-                    'debug' => [
-                        'trace' => true,
-                    ],
                     'cryptography' => [
                         'algorithm' => 'aes256',
                     ],
@@ -949,27 +945,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(PersonalDataPayloadCryptographer::class, $container->get(PayloadCryptographer::class));
-    }
-
-    public function testTrace(): void
-    {
-        $container = new ContainerBuilder();
-
-        $this->compileContainer(
-            $container,
-            [
-                'patchlevel_event_sourcing' => [
-                    'connection' => [
-                        'service' => 'doctrine.dbal.eventstore_connection',
-                    ],
-                    'debug' => [
-                        'trace' => true,
-                    ],
-                ],
-            ]
-        );
-
-        self::assertInstanceOf(TraceStack::class, $container->get(TraceStack::class));
     }
 
     public function testFullBuild(): void
@@ -1010,9 +985,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                     ],
                     'cryptography' => [
                         'algorithm' => 'aes256',
-                    ],
-                    'debug' => [
-                        'trace' => true,
                     ],
                     'subscription' => [
                         'catch_up' => [
