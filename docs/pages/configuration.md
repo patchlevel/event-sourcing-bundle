@@ -270,8 +270,13 @@ patchlevel_event_sourcing:
 
 You can change where the subscription engine stores its necessary information about the subscription.
 Default is `dbal`, which means it stores it in the same DB that is used by the dbal event store.
-Otherwise you also have the option to set it to `in_memory`, then this information will not be persisted anywhere.
-This is very useful for testing. And if that is not enough, you can also define a `custom` store and specify the service.
+
+Otherwise you can choose between the following stores:
+
+- `dbal` *default*
+- `in_memory`
+- `static_in_memory`
+- `custom`
 
 ```yaml
 patchlevel_event_sourcing:
@@ -280,6 +285,12 @@ patchlevel_event_sourcing:
       type: 'custom' # default is 'dbal'
       service: 'my_subscription_store'
 ```
+
+!!! tip
+
+    If you are using the [doctrine-test-bundle](https://github.com/dmaicher/doctrine-test-bundle),
+    you can use the `static_in_memory` store for testing.
+
 ### Catch Up
 
 If aggregates are used in the processors and new events are generated there,

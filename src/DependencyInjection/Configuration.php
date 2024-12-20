@@ -146,7 +146,7 @@ final class Configuration implements ConfigurationInterface
                         ->addDefaultsIfNotSet()
                         ->children()
                             ->enumNode('type')
-                                ->values(['dbal', 'in_memory', 'custom'])
+                                ->values(['dbal', 'in_memory', 'static_in_memory', 'custom'])
                                 ->defaultValue('dbal')
                             ->end()
                             ->scalarNode('service')->defaultNull()->end()

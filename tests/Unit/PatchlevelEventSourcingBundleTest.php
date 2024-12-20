@@ -799,6 +799,49 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(InMemorySubscriptionStore::class, $container->get(SubscriptionStore::class));
     }
 
+    public function testSubscriptionEngineStaticInMemoryStore(): void
+    {
+        $containerA = new ContainerBuilder();
+        $containerB = new ContainerBuilder();
+
+        $this->compileContainer(
+            $containerA,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'subscription' => [
+                        'store' => [
+                            'type' => 'static_in_memory'
+                        ],
+                    ],
+                ],
+            ]
+        );
+
+        $this->compileContainer(
+            $containerB,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'subscription' => [
+                        'store' => [
+                            'type' => 'static_in_memory'
+                        ],
+                    ],
+                ],
+            ]
+        );
+
+        self::assertSame(
+            $containerA->get(SubscriptionStore::class),
+            $containerB->get(SubscriptionStore::class)
+        );
+    }
+
     public function testCatchUpSubscriptionEngine(): void
     {
         $container = new ContainerBuilder();
@@ -1052,5 +1095,4 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         $container->compile();
     }
-
 }
