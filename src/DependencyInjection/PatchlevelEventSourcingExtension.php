@@ -109,6 +109,7 @@ use Patchlevel\EventSourcingBundle\Doctrine\DbalConnectionFactory;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\RequestListener\AutoSetupListener;
 use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRebuildAfterFileChangeListener;
+use Patchlevel\EventSourcingBundle\Subscription\StaticInMemorySubscriptionStoreFactory;
 use Patchlevel\EventSourcingBundle\ValueResolver\AggregateRootIdValueResolver;
 use Patchlevel\Hydrator\Cryptography\Cipher\Cipher;
 use Patchlevel\Hydrator\Cryptography\Cipher\CipherKeyFactory;
@@ -312,6 +313,10 @@ final class PatchlevelEventSourcingExtension extends Extension
             $container->setAlias(SubscriptionStore::class, $config['subscription']['store']['service']);
         } elseif ($config['subscription']['store']['type'] === 'in_memory') {
             $container->register(InMemorySubscriptionStore::class);
+            $container->setAlias(SubscriptionStore::class, InMemorySubscriptionStore::class);
+        } elseif ($config['subscription']['store']['type'] === 'static_in_memory') {
+            $container->register(InMemorySubscriptionStore::class)
+                ->setFactory([StaticInMemorySubscriptionStoreFactory::class, 'create']);
             $container->setAlias(SubscriptionStore::class, InMemorySubscriptionStore::class);
         } elseif ($config['subscription']['store']['type'] === 'dbal') {
             $container->register(DoctrineSubscriptionStore::class)
