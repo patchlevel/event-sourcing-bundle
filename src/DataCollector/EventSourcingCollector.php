@@ -29,6 +29,18 @@ use function array_map;
  *    events: array<string, class-string>
  * }
  * @psalm-property DataType|array{} $data
+ * @phpstan-type MessageType = array{
+ *      event_class: class-string,
+ *      event_name: string,
+ *      event: Data,
+ *      headers: list<Data>
+ *  }
+ * @phpstan-type DataType = array{
+ *     messages: list<MessageType>,
+ *     aggregates: array<string, class-string<AggregateRoot>>,
+ *     events: array<string, class-string>
+ *  }
+ * @phpstan-property DataType|array{} $data
  */
 final class EventSourcingCollector extends DataCollector
 {
