@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle;
 
+use Patchlevel\EventSourcingBundle\DependencyInjection\HandlerCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\RepositoryCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\SubscriberGuardCompilePass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -15,5 +16,6 @@ final class PatchlevelEventSourcingBundle extends Bundle
     {
         $container->addCompilerPass(new RepositoryCompilerPass());
         $container->addCompilerPass(new SubscriberGuardCompilePass());
+        $container->addCompilerPass(new HandlerCompilerPass(), priority: 100);
     }
 }

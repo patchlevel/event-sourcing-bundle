@@ -40,7 +40,8 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  *      snapshot_stores: array<string, array{type: string, service: string}>,
  *      migration: array{path: string, namespace: string},
  *      cryptography: array{enabled: bool, algorithm: string},
- *      clock: array{freeze: ?string, service: ?string}
+ *      clock: array{freeze: ?string, service: ?string},
+ *      aggregate_handlers: array{enabled: bool, bus: string|null},
  * }
  */
 final class Configuration implements ConfigurationInterface
@@ -204,6 +205,15 @@ final class Configuration implements ConfigurationInterface
                     ->scalarNode('algorithm')->defaultValue('aes256')->end()
                 ->end()
             ->end()
+
+            ->arrayNode('aggregate_handlers')
+                ->canBeEnabled()
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->scalarNode('bus')->defaultNull()->end()
+                ->end()
+            ->end()
+
         ->end();
         // @codingStandardsIgnoreEnd
 

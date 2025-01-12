@@ -13,7 +13,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
-/** @interal */
+/** @internal */
 final class RepositoryCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
