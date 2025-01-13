@@ -11,6 +11,7 @@ use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
 use InvalidArgumentException;
 use Patchlevel\EventSourcing\Clock\FrozenClock;
 use Patchlevel\EventSourcing\Clock\SystemClock;
+use Patchlevel\EventSourcing\CommandBus\Handler\CreateAggregateHandler;
 use Patchlevel\EventSourcing\Console\Command\DatabaseCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\DatabaseDropCommand;
 use Patchlevel\EventSourcing\Console\Command\DebugCommand;
@@ -63,6 +64,7 @@ use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorR
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
+use Patchlevel\EventSourcingBundle\Tests\Fixtures\CreateProfile;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\CustomHeader;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\DummyArgumentResolver;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener1;
@@ -406,6 +408,38 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
             ],
             $container->findTaggedServiceIds('event_sourcing.listener')
         );
+    }
+
+    public function testCommandHandler(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'aggregates' => [__DIR__ . '/../Fixtures'],
+                    'aggregate_handlers' => [
+                        'bus' => 'command.bus',
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(CreateAggregateHandler::class, $container->get('event_sourcing.handler.profile.create'));
+
+        $definition = $container->getDefinition('event_sourcing.handler.profile.create');
+        $tags = $definition->getTag('messenger.message_handler');
+
+        self::assertCount(1, $tags);
+
+        $tag = $tags[0];
+
+        self::assertEquals(CreateProfile::class, $tag['handles']);
+        self::assertEquals('command.bus', $tag['bus']);
     }
 
     public function testSnapshotStore(): void

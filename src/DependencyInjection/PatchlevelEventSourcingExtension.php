@@ -152,6 +152,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureUpcaster($container);
         $this->configureSerializer($config, $container);
         $this->configureMessageDecorator($container);
+        $this->configureAggregateHandlers($config, $container);
         $this->configureEventBus($config, $container);
         $this->configureConnection($config, $container);
         $this->configureStore($config, $container);
@@ -207,6 +208,16 @@ final class PatchlevelEventSourcingExtension extends Extension
             ]);
 
         $container->setAlias(HeadersSerializer::class, DefaultHeadersSerializer::class);
+    }
+
+    /** @param Config $config */
+    private function configureAggregateHandlers(array $config, ContainerBuilder $container): void
+    {
+        if (!$config['aggregate_handlers']['enabled']) {
+            return;
+        }
+
+        $container->setParameter('patchlevel_event_sourcing.aggregate_handlers.bus', $config['aggregate_handlers']['bus']);
     }
 
     /** @param Config $config */

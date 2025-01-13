@@ -285,12 +285,11 @@ patchlevel_event_sourcing:
       type: 'custom' # default is 'dbal'
       service: 'my_subscription_store'
 ```
-
 !!! tip
 
     If you are using the [doctrine-test-bundle](https://github.com/dmaicher/doctrine-test-bundle),
     you can use the `static_in_memory` store for testing.
-
+    
 ### Catch Up
 
 If aggregates are used in the processors and new events are generated there,
@@ -356,6 +355,44 @@ patchlevel_event_sourcing:
 
     This works only before each http requests and not if you use the console commands.
     
+## Command Bus
+
+You can also enable and register our handlers in symfony messenger.
+These handlers allow you to use your aggregates as command handlers.
+
+```yaml
+patchlevel_event_sourcing:
+    aggregate_handlers: ~ 
+```
+
+!!! note
+
+    You can find out more about the command bus integration [here](https://event-sourcing.patchlevel.io/latest/command_bus/).
+
+Default the handlers will be registered for all buses.
+You can also specify a specific bus. 
+Before you have to define the bus in the messenger configuration.
+
+```yaml
+framework:
+    messenger:
+        default_bus: command.bus
+        buses:
+            command.bus: ~
+```
+
+!!! tip
+
+    This is also useful if you have a event bus and a command bus.
+
+And then you can specify the bus in the configuration.
+
+```yaml
+patchlevel_event_sourcing:
+    aggregate_handlers:
+      bus: command.bus
+```
+
 ## Event Bus
 
 You can enable the event bus to listen for events and messages synchronously.
@@ -424,24 +461,6 @@ class SmsNotificationHandler
     }
 }
 ```
-#### Command Bus
-
-If you use a command bus or cqrs as a pattern, then you should define a new message bus.
-The whole thing can look like this:
-
-```yaml
-framework:
-    messenger:
-        default_bus: command.bus
-        buses:
-            command.bus: ~
-            event.bus:
-                default_middleware: allow_no_handlers
-```
-!!! warning
-
-    You should deactivate the autoconfigure feature for the handlers, 
-    otherwise they will be registered in both messenger.
     
 ### PSR-14 Event Bus
 
