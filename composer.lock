@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c4cadc9b7693bec7e05ad4160819f34c",
+    "content-hash": "35c203add0de04da68606fdce911f3fa",
     "packages": [
         {
             "name": "brick/math",
@@ -419,12 +419,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "17fd1be0a86404d4ec5369ddb783b2343ace1dad"
+                "reference": "a1941e71d2086146352baf3040099b47333a184e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/17fd1be0a86404d4ec5369ddb783b2343ace1dad",
-                "reference": "17fd1be0a86404d4ec5369ddb783b2343ace1dad",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/a1941e71d2086146352baf3040099b47333a184e",
+                "reference": "a1941e71d2086146352baf3040099b47333a184e",
                 "shasum": ""
             },
             "require": {
@@ -497,7 +497,7 @@
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
                 "source": "https://github.com/patchlevel/event-sourcing/tree/3.8.x"
             },
-            "time": "2025-01-12T11:42:16+00:00"
+            "time": "2025-01-13T01:19:06+00:00"
         },
         {
             "name": "patchlevel/hydrator",
@@ -10183,7 +10183,7 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": "~8.1.0 || ~8.2.0 || ~8.3.0"
+        "php": "~8.2.0 || ~8.3.0"
     },
     "platform-dev": {
         "ext-pdo_sqlite": "*"
