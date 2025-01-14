@@ -266,7 +266,6 @@ patchlevel_event_sourcing:
 ### Migrate To Stream Store
 
 If you want to migrate from the `dbal_aggregate` store to the `dbal_stream` store, you can set this option.
-This register the `StreamDoctrineDbalStore` as service, that you can use in your application.
 
 ```yaml
 patchlevel_event_sourcing:

@@ -111,6 +111,7 @@ use Patchlevel\EventSourcingBundle\Doctrine\DbalConnectionFactory;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\RequestListener\AutoSetupListener;
 use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRebuildAfterFileChangeListener;
+use Patchlevel\EventSourcingBundle\Subscription\MigrateAggregateToStreamStoreSubscriber;
 use Patchlevel\EventSourcingBundle\Subscription\StaticInMemorySubscriptionStoreFactory;
 use Patchlevel\EventSourcingBundle\ValueResolver\AggregateRootIdValueResolver;
 use Patchlevel\Hydrator\Cryptography\Cipher\Cipher;
@@ -611,6 +612,13 @@ final class PatchlevelEventSourcingExtension extends Extension
                 $config['store']['migrate_to_stream_store']['store_options'],
             ])
             ->addTag('event_sourcing.doctrine_schema_configurator');
+
+        $container->register(MigrateAggregateToStreamStoreSubscriber::class)
+            ->setArguments([
+                new Reference(StreamDoctrineDbalStore::class),
+                false,
+            ])
+            ->addTag('event_sourcing.subscriber');
     }
 
     /** @param Config $config */

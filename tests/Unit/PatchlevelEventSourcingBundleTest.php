@@ -67,6 +67,7 @@ use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorR
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
+use Patchlevel\EventSourcingBundle\Subscription\MigrateAggregateToStreamStoreSubscriber;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\CreateProfile;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\CustomHeader;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\DummyArgumentResolver;
@@ -310,6 +311,16 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertInstanceOf(DoctrineDbalStore::class, $container->get(Store::class));
         self::assertInstanceOf(StreamDoctrineDbalStore::class, $container->get(StreamDoctrineDbalStore::class));
+        self::assertInstanceOf(MigrateAggregateToStreamStoreSubscriber::class, $container->get(MigrateAggregateToStreamStoreSubscriber::class));
+
+        self::assertEquals(
+            [
+                MigrateAggregateToStreamStoreSubscriber::class => [
+                    [],
+                ],
+            ],
+            $container->findTaggedServiceIds('event_sourcing.subscriber')
+        );
     }
 
     public function testStreamReadOnlyStore(): void
