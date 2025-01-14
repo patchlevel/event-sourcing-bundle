@@ -21,7 +21,7 @@ use Patchlevel\EventSourcing\Subscription\Subscriber\BatchableSubscriber;
 
 use function count;
 
-#[Subscriber('migrate_aggregate_to_stream', RunMode::Once)]
+#[Subscriber('migrate_aggregate_to_stream', RunMode::FromBeginning, group: 'migration')]
 final class MigrateAggregateToStreamStoreSubscriber implements BatchableSubscriber
 {
     private readonly SchemaDirector|null $schemaDirector;
