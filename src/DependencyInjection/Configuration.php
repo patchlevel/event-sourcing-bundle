@@ -33,7 +33,17 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  *          url: ?string,
  *          provide_dedicated_connection: bool
  *      },
- *      store: array{merge_orm_schema: bool, options: array<string, mixed>, type: string, service: ?string},
+ *      store: array{
+ *          merge_orm_schema: bool,
+ *          options: array<string, mixed>,
+ *          type: string,
+ *          service: ?string,
+ *          read_only: bool,
+ *          migrate_to_stream_store: array{
+ *              enabled: bool,
+ *              store_options: array<string, mixed>
+*           }
+ *      },
  *      aggregates: list<string>,
  *      events: list<string>,
  *      headers: list<string>,
@@ -75,6 +85,14 @@ final class Configuration implements ConfigurationInterface
                     ->scalarNode('service')->defaultNull()->end()
                     ->booleanNode('merge_orm_schema')->defaultFalse()->end()
                     ->arrayNode('options')->variablePrototype()->end()->end()
+                    ->booleanNode('read_only')->defaultFalse()->end()
+                    ->arrayNode('migrate_to_stream_store')
+                        ->canBeEnabled()
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->arrayNode('store_options')->variablePrototype()->end()->end()
+                        ->end()
+                    ->end()
                 ->end()
                 ->validate()
                     ->ifTrue(function (array $v) {

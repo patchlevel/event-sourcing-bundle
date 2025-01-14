@@ -217,6 +217,20 @@ patchlevel_event_sourcing:
         options:
             table_name: 'my_event_store'
 ```
+### Read Only Mode
+
+For `dbal_aggregate` and `dbal_stream` store types you can activate the read only mode.
+Readings are possible, but if you try to write, an exception `StoreIsReadOnly` is thrown.
+
+```yaml
+patchlevel_event_sourcing:
+    store:
+        read_only: true
+```
+!!! tip
+
+    This is useful if you have maintenance work on the event store and you want to avoid side effects.
+    
 ### Merge ORM Schema
 
 You can also merge the schema with doctrine orm. You have to set the following flag for this:
@@ -248,6 +262,25 @@ So you can avoid side effects between the tests.
 patchlevel_event_sourcing:
     store:
         kernel_reset: true
+```
+### Migrate To Stream Store
+
+If you want to migrate from the `dbal_aggregate` store to the `dbal_stream` store, you can set this option.
+This register the `StreamDoctrineDbalStore` as service, that you can use in your application.
+
+```yaml
+patchlevel_event_sourcing:
+    store:
+        migrate_to_stream_store: ~
+```
+You can also define the options for the stream store.
+
+```yaml
+patchlevel_event_sourcing:
+    store:
+        migrate_to_stream_store:
+            store_options:
+                table_name: 'my_stream_store'
 ```
 ## Migration
 
@@ -362,15 +395,14 @@ These handlers allow you to use your aggregates as command handlers.
 
 ```yaml
 patchlevel_event_sourcing:
-    aggregate_handlers: ~ 
+    aggregate_handlers: ~
 ```
-
 !!! note
 
     You can find out more about the command bus integration [here](https://event-sourcing.patchlevel.io/latest/command_bus/).
-
+    
 Default the handlers will be registered for all buses.
-You can also specify a specific bus. 
+You can also specify a specific bus.
 Before you have to define the bus in the messenger configuration.
 
 ```yaml
@@ -380,11 +412,10 @@ framework:
         buses:
             command.bus: ~
 ```
-
 !!! tip
 
     This is also useful if you have a event bus and a command bus.
-
+    
 And then you can specify the bus in the configuration.
 
 ```yaml
@@ -392,7 +423,6 @@ patchlevel_event_sourcing:
     aggregate_handlers:
       bus: command.bus
 ```
-
 ## Event Bus
 
 You can enable the event bus to listen for events and messages synchronously.
@@ -461,7 +491,6 @@ class SmsNotificationHandler
     }
 }
 ```
-    
 ### PSR-14 Event Bus
 
 You can also use any other event bus that implements the [PSR-14](https://www.php-fig.org/psr/psr-14/) standard.
