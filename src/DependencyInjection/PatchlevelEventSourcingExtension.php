@@ -99,6 +99,7 @@ use Patchlevel\EventSourcing\Subscription\Store\DoctrineSubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\InMemorySubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\SubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Subscriber\ArgumentResolver\ArgumentResolver;
+use Patchlevel\EventSourcing\Subscription\Subscriber\ArgumentResolver\LookupResolver;
 use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorRepository;
 use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberAccessorRepository;
 use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberHelper;
@@ -340,6 +341,13 @@ final class PatchlevelEventSourcingExtension extends Extension
         }
 
         $container->registerForAutoconfiguration(ArgumentResolver::class)
+            ->addTag('event_sourcing.argument_resolver');
+
+        $container->register(LookupResolver::class)
+            ->setArguments([
+                new Reference(Store::class),
+                new Reference(EventRegistry::class),
+            ])
             ->addTag('event_sourcing.argument_resolver');
 
         $container->register(MetadataSubscriberAccessorRepository::class)
