@@ -51,7 +51,10 @@ use Patchlevel\EventSourcing\Snapshot\DefaultSnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
 use Patchlevel\EventSourcing\Store\DoctrineDbalStore;
 use Patchlevel\EventSourcing\Store\InMemoryStore;
+use Patchlevel\EventSourcing\Store\ReadOnlyStore;
 use Patchlevel\EventSourcing\Store\Store;
+use Patchlevel\EventSourcing\Store\StreamDoctrineDbalStore;
+use Patchlevel\EventSourcing\Store\StreamReadOnlyStore;
 use Patchlevel\EventSourcing\Store\StreamStore;
 use Patchlevel\EventSourcing\Subscription\Engine\CatchUpSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\DefaultSubscriptionEngine;
@@ -64,6 +67,7 @@ use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorR
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
+use Patchlevel\EventSourcingBundle\Subscription\MigrateAggregateToStreamStoreSubscriber;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\CreateProfile;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\CustomHeader;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\DummyArgumentResolver;
@@ -266,6 +270,78 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(InMemoryStore::class, $container->get(Store::class));
+    }
+
+    public function testReadOnlyStore(): void
+    {
+        $container = new ContainerBuilder();
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'store' => [
+                        'read_only' => true,
+                    ]
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(ReadOnlyStore::class, $container->get(Store::class));
+    }
+
+    public function testMigrateToStreamStore(): void
+    {
+        $container = new ContainerBuilder();
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'store' => [
+                        'migrate_to_stream_store' => true,
+                    ]
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(DoctrineDbalStore::class, $container->get(Store::class));
+        self::assertInstanceOf(StreamDoctrineDbalStore::class, $container->get(StreamDoctrineDbalStore::class));
+        self::assertInstanceOf(MigrateAggregateToStreamStoreSubscriber::class, $container->get(MigrateAggregateToStreamStoreSubscriber::class));
+
+        self::assertEquals(
+            [
+                MigrateAggregateToStreamStoreSubscriber::class => [
+                    [],
+                ],
+            ],
+            $container->findTaggedServiceIds('event_sourcing.subscriber')
+        );
+    }
+
+    public function testStreamReadOnlyStore(): void
+    {
+        $container = new ContainerBuilder();
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'store' => [
+                        'type' => 'dbal_stream',
+                        'read_only' => true,
+                    ]
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(StreamReadOnlyStore::class, $container->get(Store::class));
     }
 
     public function testSymfonyEventBus(): void
