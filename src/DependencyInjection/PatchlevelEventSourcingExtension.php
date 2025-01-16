@@ -627,7 +627,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                 throw new InvalidArgumentException('Custom store type requires a service');
             }
 
-            $container->setAlias($id, $config['store']['service']);
+            $container->setAlias($id, $config['store']['migrate_to_new_store']['service']);
         }
 
         if ($config['store']['migrate_to_new_store']['type'] === 'in_memory') {

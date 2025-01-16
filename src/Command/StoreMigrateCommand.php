@@ -23,7 +23,7 @@ use function count;
 )]
 final class StoreMigrateCommand extends Command
 {
-    /** @param iterable<Translator> $translators */
+    /** @param iterable<int, Translator> $translators */
     public function __construct(
         private readonly Store $store,
         private readonly Store $newStore,

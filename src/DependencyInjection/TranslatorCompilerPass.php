@@ -19,6 +19,7 @@ final class TranslatorCompilerPass implements CompilerPassInterface
             return;
         }
 
+        /** @var array<int, string> $translators */
         $translators = $container->getParameter('event_sourcing.translators');
 
         foreach ($translators as $priority => $translatorId) {
