@@ -285,6 +285,10 @@ patchlevel_event_sourcing:
     Make sure that you use different table names for the old and new store.
     Otherwise your event store will be destroyed.
     
+!!! tip
+
+    Set the `read_only` flag to `true` for the old store to avoid side effects
+    and missing events during the migration.
 ## Migration
 
 You can use [doctrine migrations](https://www.doctrine-project.org/projects/migrations.html) to manage the schema.
