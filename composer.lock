@@ -419,12 +419,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "fedc793ce2674fc8cbd6d57c67692ef24bfd8512"
+                "reference": "5467b3d915a4487b49746bfb4dd28f009e96ec53"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/fedc793ce2674fc8cbd6d57c67692ef24bfd8512",
-                "reference": "fedc793ce2674fc8cbd6d57c67692ef24bfd8512",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/5467b3d915a4487b49746bfb4dd28f009e96ec53",
+                "reference": "5467b3d915a4487b49746bfb4dd28f009e96ec53",
                 "shasum": ""
             },
             "require": {
@@ -497,7 +497,7 @@
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
                 "source": "https://github.com/patchlevel/event-sourcing/tree/3.8.x"
             },
-            "time": "2025-01-14T15:32:13+00:00"
+            "time": "2025-01-15T14:09:31+00:00"
         },
         {
             "name": "patchlevel/hydrator",
@@ -6610,12 +6610,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "b3b47da8ab8f3fd7ab2881a1add662280d6257e2"
+                "reference": "e7a38fcc13e4ddfe9a28d5c7bf50aa9a9da758ec"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/b3b47da8ab8f3fd7ab2881a1add662280d6257e2",
-                "reference": "b3b47da8ab8f3fd7ab2881a1add662280d6257e2",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/e7a38fcc13e4ddfe9a28d5c7bf50aa9a9da758ec",
+                "reference": "e7a38fcc13e4ddfe9a28d5c7bf50aa9a9da758ec",
                 "shasum": ""
             },
             "conflict": {
@@ -6899,6 +6899,7 @@
                 "intelliants/subrion": "<4.2.2",
                 "inter-mediator/inter-mediator": "==5.5",
                 "ipl/web": "<0.10.1",
+                "islandora/crayfish": "<4.1",
                 "islandora/islandora": ">=2,<2.4.1",
                 "ivankristianto/phpwhois": "<=4.3",
                 "jackalope/jackalope-doctrine-dbal": "<1.7.4",
@@ -7469,7 +7470,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-01-14T23:04:29+00:00"
+            "time": "2025-01-15T23:05:13+00:00"
         },
         {
             "name": "sanmai/later",
