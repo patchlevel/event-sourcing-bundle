@@ -103,6 +103,11 @@ patchlevel_event_sourcing:
     url: '%env(EVENTSTORE_URL)%'
     provide_dedicated_connection: true
 ```
+!!! warning
+
+    If you use doctrine migrations, you should exclude you projection tables from the schema generation.
+    The schema is managed by the subscription engine and should not be managed by doctrine.
+    
 !!! tip
 
     You can autowire the connection in your services like this:
@@ -164,6 +169,16 @@ patchlevel_event_sourcing:
     connection:
         service: doctrine.dbal.eventstore_connection
 ```
+!!! warning
+
+    You should exclude your projection tables from the schema generation.
+    
+    ```yaml
+    doctrine:
+        dbal:
+            schema_filter: ~^(projection_)~
+    ```
+    
 Then you can use this connection in your projections.
 If you are using autowiring you can inject the right connection `Connection $projectionConnection` parameter name.
 The prefix `projection` is used to identify the connection.
@@ -289,6 +304,7 @@ patchlevel_event_sourcing:
 
     Set the `read_only` flag to `true` for the old store to avoid side effects
     and missing events during the migration.
+    
 ## Migration
 
 You can use [doctrine migrations](https://www.doctrine-project.org/projects/migrations.html) to manage the schema.
