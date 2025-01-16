@@ -75,7 +75,7 @@ final class StoreMigrateCommand extends Command
             $style->progressAdvance($buffer);
         }
 
-        if (count($bufferedMessages) >= $buffer) {
+        if (count($bufferedMessages) !== 0) {
             $this->newStore->save(...$bufferedMessages);
             $style->progressAdvance(count($bufferedMessages));
         }
