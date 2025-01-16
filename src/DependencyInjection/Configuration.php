@@ -39,10 +39,13 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  *          type: string,
  *          service: ?string,
  *          read_only: bool,
- *          migrate_to_stream_store: array{
+ *          migrate_to_new_store: array{
  *              enabled: bool,
- *              store_options: array<string, mixed>
-*           }
+ *              type: string,
+ *              service: ?string,
+ *              options: array<string, mixed>,
+ *              translators: list<string>
+ *          }
  *      },
  *      aggregates: list<string>,
  *      events: list<string>,
@@ -86,11 +89,16 @@ final class Configuration implements ConfigurationInterface
                     ->booleanNode('merge_orm_schema')->defaultFalse()->end()
                     ->arrayNode('options')->variablePrototype()->end()->end()
                     ->booleanNode('read_only')->defaultFalse()->end()
-                    ->arrayNode('migrate_to_stream_store')
+                    ->arrayNode('migrate_to_new_store')
                         ->canBeEnabled()
                         ->addDefaultsIfNotSet()
                         ->children()
-                            ->arrayNode('store_options')->variablePrototype()->end()->end()
+                            ->enumNode('type')
+                                ->values(['dbal_aggregate', 'dbal_stream', 'in_memory', 'custom'])
+                            ->end()
+                            ->scalarNode('service')->defaultNull()->end()
+                            ->arrayNode('options')->variablePrototype()->end()->end()
+                            ->arrayNode('translators')->scalarPrototype()->end()->end()
                         ->end()
                     ->end()
                 ->end()

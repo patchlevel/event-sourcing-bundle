@@ -263,24 +263,28 @@ patchlevel_event_sourcing:
     store:
         kernel_reset: true
 ```
-### Migrate To Stream Store
+### Data Migration
 
-If you want to migrate from the `dbal_aggregate` store to the `dbal_stream` store, you can set this option.
-
-```yaml
-patchlevel_event_sourcing:
-    store:
-        migrate_to_stream_store: ~
-```
-You can also define the options for the stream store.
+If you want to migrate from your current store to a new store, you can use the following configuration.
+This register a new store and a new cli command `event-sourcing:store:migrate`.
+You can define translators to translate the old events to the new store.
+Here is an example for a migration from `dbal_aggregate` to `dbal_stream`.
 
 ```yaml
 patchlevel_event_sourcing:
     store:
-        migrate_to_stream_store:
-            store_options:
+        migrate_to_new_store:
+            type: 'dbal_stream'
+            options:
                 table_name: 'my_stream_store'
+            translators:
+              - Patchlevel\EventSourcing\Message\Translator\AggregateToStreamHeaderTranslator
 ```
+!!! danger
+
+    Make sure that you use different table names for the old and new store.
+    Otherwise your event store will be destroyed.
+    
 ## Migration
 
 You can use [doctrine migrations](https://www.doctrine-project.org/projects/migrations.html) to manage the schema.

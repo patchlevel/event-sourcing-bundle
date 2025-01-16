@@ -7,6 +7,7 @@ namespace Patchlevel\EventSourcingBundle;
 use Patchlevel\EventSourcingBundle\DependencyInjection\HandlerCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\RepositoryCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\SubscriberGuardCompilePass;
+use Patchlevel\EventSourcingBundle\DependencyInjection\TranslatorCompilerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
@@ -17,5 +18,6 @@ final class PatchlevelEventSourcingBundle extends Bundle
         $container->addCompilerPass(new RepositoryCompilerPass());
         $container->addCompilerPass(new SubscriberGuardCompilePass());
         $container->addCompilerPass(new HandlerCompilerPass(), priority: 100);
+        $container->addCompilerPass(new TranslatorCompilerPass());
     }
 }

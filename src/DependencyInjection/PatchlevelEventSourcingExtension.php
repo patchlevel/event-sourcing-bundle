@@ -106,13 +106,13 @@ use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorR
 use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberAccessorRepository;
 use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberHelper;
 use Patchlevel\EventSourcingBundle\Attribute\AsListener;
+use Patchlevel\EventSourcingBundle\Command\StoreMigrateCommand;
 use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
 use Patchlevel\EventSourcingBundle\DataCollector\MessageCollectorEventBus;
 use Patchlevel\EventSourcingBundle\Doctrine\DbalConnectionFactory;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\RequestListener\AutoSetupListener;
 use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRebuildAfterFileChangeListener;
-use Patchlevel\EventSourcingBundle\Subscription\MigrateAggregateToStreamStoreSubscriber;
 use Patchlevel\EventSourcingBundle\Subscription\StaticInMemorySubscriptionStoreFactory;
 use Patchlevel\EventSourcingBundle\ValueResolver\AggregateRootIdValueResolver;
 use Patchlevel\Hydrator\Cryptography\Cipher\Cipher;
@@ -170,7 +170,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureCryptography($config, $container);
         $this->configureMigration($config, $container);
         $this->configureValueResolver($container);
-        $this->configureStreamStoreMigration($config, $container);
+        $this->configureStoreMigration($config, $container);
     }
 
     /** @param Config $config */
@@ -601,32 +601,69 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /** @param Config $config */
-    private function configureStreamStoreMigration(array $config, ContainerBuilder $container): void
+    private function configureStoreMigration(array $config, ContainerBuilder $container): void
     {
-        if (!$config['store']['migrate_to_stream_store']['enabled']) {
+        if (!$config['store']['migrate_to_new_store']['enabled']) {
             return;
         }
 
-        if ($config['store']['type'] !== 'dbal_aggregate') {
-            throw new InvalidArgumentException('Migrate to stream store is only supported for dbal_aggregate store');
+        $id = 'event_sourcing.store.new_store';
+
+        $container->setParameter(
+            'event_sourcing.translators',
+            $config['store']['migrate_to_new_store']['translators'],
+        );
+
+        $container->register(StoreMigrateCommand::class)
+            ->setArguments([
+                new Reference(Store::class),
+                new Reference($id),
+                new TaggedIteratorArgument('event_sourcing.translator'),
+            ])
+            ->addTag('console.command');
+
+        if ($config['store']['migrate_to_new_store']['type'] === 'custom') {
+            if ($config['store']['migrate_to_new_store']['service'] === null) {
+                throw new InvalidArgumentException('Custom store type requires a service');
+            }
+
+            $container->setAlias($id, $config['store']['service']);
         }
 
-        $container->register(StreamDoctrineDbalStore::class)
-            ->setArguments([
-                new Reference('event_sourcing.dbal_connection'),
-                new Reference(EventSerializer::class),
-                new Reference(HeadersSerializer::class),
-                new Reference('event_sourcing.clock'),
-                $config['store']['migrate_to_stream_store']['store_options'],
-            ])
-            ->addTag('event_sourcing.doctrine_schema_configurator');
+        if ($config['store']['migrate_to_new_store']['type'] === 'in_memory') {
+            $container->register($id, InMemoryStore::class);
 
-        $container->register(MigrateAggregateToStreamStoreSubscriber::class)
-            ->setArguments([
-                new Reference(StreamDoctrineDbalStore::class),
-                false,
-            ])
-            ->addTag('event_sourcing.subscriber');
+            return;
+        }
+
+        if ($config['store']['migrate_to_new_store']['type'] === 'dbal_aggregate') {
+            $container->register($id, DoctrineDbalStore::class)
+                ->setArguments([
+                    new Reference('event_sourcing.dbal_connection'),
+                    new Reference(EventSerializer::class),
+                    new Reference(HeadersSerializer::class),
+                    $config['store']['options'],
+                ])
+                ->addTag('event_sourcing.doctrine_schema_configurator');
+
+            return;
+        }
+
+        if ($config['store']['migrate_to_new_store']['type'] === 'dbal_stream') {
+            $container->register($id, StreamDoctrineDbalStore::class)
+                ->setArguments([
+                    new Reference('event_sourcing.dbal_connection'),
+                    new Reference(EventSerializer::class),
+                    new Reference(HeadersSerializer::class),
+                    new Reference('event_sourcing.clock'),
+                    $config['store']['options'],
+                ])
+                ->addTag('event_sourcing.doctrine_schema_configurator');
+
+            return;
+        }
+
+        throw new InvalidArgumentException(sprintf('Unknown store type "%s"', $config['store']['type']));
     }
 
     /** @param Config $config */
