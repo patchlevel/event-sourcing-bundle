@@ -32,6 +32,9 @@ use Patchlevel\EventSourcing\Console\Command\WatchCommand;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\Psr14EventBus;
+use Patchlevel\EventSourcing\Message\Translator\AggregateToStreamHeaderTranslator;
+use Patchlevel\EventSourcing\Message\Translator\ExcludeEventWithHeaderTranslator;
+use Patchlevel\EventSourcing\Message\Translator\RecalculatePlayheadTranslator;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
 use Patchlevel\EventSourcing\Metadata\Message\MessageHeaderRegistry;
@@ -49,6 +52,7 @@ use Patchlevel\EventSourcing\Snapshot\Adapter\Psr16SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr6SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\DefaultSnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
+use Patchlevel\EventSourcing\Store\ArchivedHeader;
 use Patchlevel\EventSourcing\Store\DoctrineDbalStore;
 use Patchlevel\EventSourcing\Store\InMemoryStore;
 use Patchlevel\EventSourcing\Store\ReadOnlyStore;
@@ -64,10 +68,10 @@ use Patchlevel\EventSourcing\Subscription\Store\DoctrineSubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\InMemorySubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\SubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorRepository;
+use Patchlevel\EventSourcingBundle\Command\StoreMigrateCommand;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
-use Patchlevel\EventSourcingBundle\Subscription\MigrateAggregateToStreamStoreSubscriber;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\CreateProfile;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\CustomHeader;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\DummyArgumentResolver;
@@ -292,9 +296,13 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(ReadOnlyStore::class, $container->get(Store::class));
     }
 
-    public function testMigrateToStreamStore(): void
+    public function testMigrateStore(): void
     {
         $container = new ContainerBuilder();
+
+        $container->register('my_translator', ExcludeEventWithHeaderTranslator::class)
+            ->setArguments([ArchivedHeader::class]);
+
         $this->compileContainer(
             $container,
             [
@@ -303,23 +311,36 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                         'service' => 'doctrine.dbal.eventstore_connection',
                     ],
                     'store' => [
-                        'migrate_to_stream_store' => true,
+                        'migrate_to_new_store' => [
+                            'type' => 'dbal_stream',
+                            'translators' => [
+                                'my_translator',
+                                RecalculatePlayheadTranslator::class,
+                                AggregateToStreamHeaderTranslator::class,
+                            ],
+                        ],
                     ]
                 ],
             ]
         );
 
         self::assertInstanceOf(DoctrineDbalStore::class, $container->get(Store::class));
-        self::assertInstanceOf(StreamDoctrineDbalStore::class, $container->get(StreamDoctrineDbalStore::class));
-        self::assertInstanceOf(MigrateAggregateToStreamStoreSubscriber::class, $container->get(MigrateAggregateToStreamStoreSubscriber::class));
+        self::assertInstanceOf(StreamDoctrineDbalStore::class, $container->get('event_sourcing.store.new_store'));
+        self::assertInstanceOf(StoreMigrateCommand::class, $container->get(StoreMigrateCommand::class));
 
         self::assertEquals(
             [
-                MigrateAggregateToStreamStoreSubscriber::class => [
-                    [],
+                'my_translator' => [
+                    ['priority' => 0],
+                ],
+                RecalculatePlayheadTranslator::class => [
+                    ['priority' => -1],
+                ],
+                AggregateToStreamHeaderTranslator::class => [
+                    ['priority' => -2],
                 ],
             ],
-            $container->findTaggedServiceIds('event_sourcing.subscriber')
+            $container->findTaggedServiceIds('event_sourcing.translator')
         );
     }
 
