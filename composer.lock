@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "35c203add0de04da68606fdce911f3fa",
+    "content-hash": "e50e702f298976685bba75f0e5fdc08a",
     "packages": [
         {
             "name": "brick/math",
@@ -413,16 +413,16 @@
         },
         {
             "name": "patchlevel/event-sourcing",
-            "version": "3.8.x-dev",
+            "version": "3.8.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "c3184df1226e7ad9a0451e6d01effc2f0bbd526e"
+                "reference": "c2b495ea6dd114e40178850c71316cfbc0fdd7e7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/c3184df1226e7ad9a0451e6d01effc2f0bbd526e",
-                "reference": "c3184df1226e7ad9a0451e6d01effc2f0bbd526e",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/c2b495ea6dd114e40178850c71316cfbc0fdd7e7",
+                "reference": "c2b495ea6dd114e40178850c71316cfbc0fdd7e7",
                 "shasum": ""
             },
             "require": {
@@ -464,7 +464,6 @@
             "suggest": {
                 "patchlevel/event-sourcing-psalm-plugin": "for psalm support"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -493,9 +492,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
-                "source": "https://github.com/patchlevel/event-sourcing/tree/3.8.x"
+                "source": "https://github.com/patchlevel/event-sourcing/tree/3.8.0"
             },
-            "time": "2025-01-16T17:33:48+00:00"
+            "time": "2025-01-17T11:09:24+00:00"
         },
         {
             "name": "patchlevel/hydrator",
@@ -10185,7 +10184,6 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "patchlevel/event-sourcing": 20,
         "roave/security-advisories": 20
     },
     "prefer-stable": true,
