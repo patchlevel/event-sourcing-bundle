@@ -9,6 +9,7 @@ use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
 use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
 use InvalidArgumentException;
+use Patchlevel\EventSourcing\Aggregate\CustomId;
 use Patchlevel\EventSourcing\Clock\FrozenClock;
 use Patchlevel\EventSourcing\Clock\SystemClock;
 use Patchlevel\EventSourcing\CommandBus\Handler\CreateAggregateHandler;
@@ -92,6 +93,7 @@ use Psr\Clock\ClockInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
+use stdClass;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -526,7 +528,11 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
             ]
         );
 
-        self::assertInstanceOf(CreateAggregateHandler::class, $container->get('event_sourcing.handler.profile.create'));
+        $handler = $container->get('event_sourcing.handler.profile.create');
+
+        self::assertInstanceOf(CreateAggregateHandler::class, $handler);
+
+        $handler(new CreateProfile(CustomId::fromString('1')));
 
         $definition = $container->getDefinition('event_sourcing.handler.profile.create');
         $tags = $definition->getTag('messenger.message_handler');
