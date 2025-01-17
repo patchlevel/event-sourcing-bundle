@@ -8,6 +8,7 @@ use Patchlevel\EventSourcing\Attribute\Aggregate;
 use Patchlevel\EventSourcing\Attribute\Apply;
 use Patchlevel\EventSourcing\Attribute\Handle;
 use Patchlevel\EventSourcing\Attribute\Id;
+use Patchlevel\EventSourcing\Repository\Repository;
 
 #[Aggregate('profile')]
 class Profile extends BasicAggregateRoot
@@ -16,7 +17,10 @@ class Profile extends BasicAggregateRoot
     private CustomId $id;
 
     #[Handle]
-    public static function create(CreateProfile $command): self
+    public static function create(
+        CreateProfile $command,
+        Repository $profileRepository
+    ): self
     {
         $profile = new self();
         $profile->recordThat(new ProfileCreated($command->id));
