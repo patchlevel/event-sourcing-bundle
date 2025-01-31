@@ -6605,12 +6605,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "a39f409dd81c4cde087ab72b9026c013f09fc492"
+                "reference": "b6841f6613aeea6dbf722ac1663e6409653873d5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/a39f409dd81c4cde087ab72b9026c013f09fc492",
-                "reference": "a39f409dd81c4cde087ab72b9026c013f09fc492",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/b6841f6613aeea6dbf722ac1663e6409653873d5",
+                "reference": "b6841f6613aeea6dbf722ac1663e6409653873d5",
                 "shasum": ""
             },
             "conflict": {
@@ -6647,6 +6647,7 @@
                 "asymmetricrypt/asymmetricrypt": "<9.9.99",
                 "athlon1600/php-proxy": "<=5.1",
                 "athlon1600/php-proxy-app": "<=3",
+                "athlon1600/youtube-downloader": "<=4",
                 "austintoddj/canvas": "<=3.4.2",
                 "auth0/wordpress": "<=4.6",
                 "automad/automad": "<2.0.0.0-alpha5",
@@ -7278,7 +7279,7 @@
                 "t3g/svg-sanitizer": "<1.0.3",
                 "t3s/content-consent": "<1.0.3|>=2,<2.0.2",
                 "tastyigniter/tastyigniter": "<3.3",
-                "tcg/voyager": "<=1.4",
+                "tcg/voyager": "<=1.8",
                 "tecnickcom/tc-lib-pdf-font": "<2.6.4",
                 "tecnickcom/tcpdf": "<6.8",
                 "terminal42/contao-tablelookupwizard": "<3.3.5",
@@ -7466,7 +7467,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-01-29T19:04:15+00:00"
+            "time": "2025-01-30T23:05:03+00:00"
         },
         {
             "name": "sanmai/later",
