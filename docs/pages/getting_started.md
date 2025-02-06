@@ -21,30 +21,30 @@ namespace App\Hotel\Domain\Event;
 
 use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Attribute\Event;
-use Patchlevel\EventSourcing\Serializer\Normalizer\IdNormalizer;
 
 #[Event('hotel.created')]
 final class HotelCreated
 {
     public function __construct(
-        #[IdNormalizer]
-        public readonly Uuid $id,
+        public readonly Uuid $hotelId,
         public readonly string $hotelName,
     ) {
     }
 }
 ```
-A guest can check in by `name`:
+A guest can check in by `guestName`:
 
 ```php
 namespace App\Hotel\Domain\Event;
 
+use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Attribute\Event;
 
 #[Event('hotel.guest_is_checked_in')]
 final class GuestIsCheckedIn
 {
     public function __construct(
+        public readonly Uuid $hotelId,
         public readonly string $guestName,
     ) {
     }
@@ -55,12 +55,14 @@ And also check out again:
 ```php
 namespace App\Hotel\Domain\Event;
 
+use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Attribute\Event;
 
 #[Event('hotel.guest_is_checked_out')]
 final class GuestIsCheckedOut
 {
     public function __construct(
+        public readonly Uuid $hotelId,
         public readonly string $guestName,
     ) {
     }
@@ -128,7 +130,7 @@ final class Hotel extends BasicAggregateRoot
             throw new GuestHasAlreadyCheckedIn($guestName);
         }
 
-        $this->recordThat(new GuestIsCheckedIn($guestName));
+        $this->recordThat(new GuestIsCheckedIn($this->id, $guestName));
     }
 
     public function checkOut(string $guestName): void
@@ -137,7 +139,7 @@ final class Hotel extends BasicAggregateRoot
             throw new IsNotAGuest($guestName);
         }
 
-        $this->recordThat(new GuestIsCheckedOut($guestName));
+        $this->recordThat(new GuestIsCheckedOut($this->id, $guestName));
     }
 
     #[Apply]
@@ -172,8 +174,8 @@ final class Hotel extends BasicAggregateRoot
     
 ## Define projections
 
-So that we can see all the hotels on our website and also see how many guests are currently visiting the hotels,
-we need a projection for it. To create a projection we need a projector.
+Now we want to see which guests are currently checked in at a hotel or when a guest checked in and out.
+For this we need a projection and to create a projection we need a projector.
 Each projector is then responsible for a specific projection.
 
 ```php
@@ -181,65 +183,88 @@ namespace App\Hotel\Infrastructure\Projection;
 
 use App\Hotel\Domain\Event\GuestIsCheckedIn;
 use App\Hotel\Domain\Event\GuestIsCheckedOut;
-use App\Hotel\Domain\Event\HotelCreated;
 use Doctrine\DBAL\Connection;
+use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Attribute\Projector;
 use Patchlevel\EventSourcing\Attribute\Setup;
 use Patchlevel\EventSourcing\Attribute\Subscribe;
 use Patchlevel\EventSourcing\Attribute\Teardown;
 use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberUtil;
 
-#[Projector('hotel')]
-final class HotelProjection
+/**
+ * @psalm-type GuestData = array{
+ *     guest_name: string,
+ *     hotel_id: string,
+ *     check_in_date: string,
+ *     check_out_date: string|null
+ * }
+ */
+#[Projector('guests')]
+final class GuestProjection
 {
     use SubscriberUtil;
 
     public function __construct(
-        private Connection $projectionConnection,
+        private Connection $db,
     ) {
     }
 
-    /** @return list<array{id: string, name: string, guests: int}> */
-    public function getHotels(): array
+    /** @return list<GuestData> */
+    public function findGuestsByHotelId(Uuid $hotelId): array
     {
-        return $this->db->fetchAllAssociative("SELECT id, name, guests FROM {$this->table()};");
+        return $this->db->createQueryBuilder()
+            ->select('*')
+            ->from($this->table())
+            ->where('hotel_id = :hotel_id')
+            ->setParameter('hotel_id', $hotelId->toString())
+            ->fetchAllAssociative();
     }
 
-    #[Subscribe(HotelCreated::class)]
-    public function handleHotelCreated(HotelCreated $event): void
-    {
+    #[Subscribe(GuestIsCheckedIn::class)]
+    public function onGuestIsCheckedIn(
+        GuestIsCheckedIn $event,
+        DateTimeImmutable $recordedOn,
+    ): void {
         $this->db->insert(
             $this->table(),
             [
-                'id' => $event->id->toString(),
-                'name' => $event->hotelName,
-                'guests' => 0,
+                'hotel_id' => $event->hotelId->toString(),
+                'guest_name' => $event->guestName,
+                'check_in_date' => $recordedOn->format('Y-m-d H:i:s'),
+                'check_out_date' => null,
             ],
         );
     }
 
-    #[Subscribe(GuestIsCheckedIn::class)]
-    public function handleGuestIsCheckedIn(Uuid $hotelId): void
-    {
-        $this->db->executeStatement(
-            "UPDATE {$this->table()} SET guests = guests + 1 WHERE id = ?;",
-            [$hotelId->toString()],
-        );
-    }
-
     #[Subscribe(GuestIsCheckedOut::class)]
-    public function handleGuestIsCheckedOut(Uuid $hotelId): void
-    {
-        $this->db->executeStatement(
-            "UPDATE {$this->table()} SET guests = guests - 1 WHERE id = ?;",
-            [$hotelId->toString()],
+    public function onGuestIsCheckedOut(
+        GuestIsCheckedOut $event,
+        DateTimeImmutable $recordedOn,
+    ): void {
+        $this->db->update(
+            $this->table(),
+            [
+                'check_out_date' => $recordedOn->format('Y-m-d H:i:s'),
+            ],
+            [
+                'hotel_id' => $event->hotelId->toString(),
+                'guest_name' => $event->guestName,
+                'check_out_date' => null,
+            ],
         );
     }
 
     #[Setup]
     public function create(): void
     {
-        $this->db->executeStatement("CREATE TABLE IF NOT EXISTS {$this->table()} (id VARCHAR PRIMARY KEY, name VARCHAR, guests INTEGER);");
+        $this->db->executeStatement(
+            "CREATE TABLE {$this->table()} (
+                hotel_id VARCHAR(36) NOT NULL,
+                guest_name VARCHAR(255) NOT NULL,
+                check_in_date TIMESTAMP NOT NULL,
+                check_out_date TIMESTAMP NULL
+            );",
+        );
     }
 
     #[Teardown]
@@ -271,15 +296,16 @@ namespace App\Hotel\Application\Processor;
 
 use App\Hotel\Domain\Event\GuestIsCheckedIn;
 use Patchlevel\EventSourcing\Attribute\Processor;
+use Patchlevel\EventSourcing\Attribute\Subscribe;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 
 use function sprintf;
 
 #[Processor('admin_emails')]
-final class SendCheckInEmailListener
+final class SendCheckInEmailProcessor
 {
-    private function __construct(
+    public function __construct(
         private readonly MailerInterface $mailer,
     ) {
     }
@@ -312,7 +338,12 @@ So that we can actually write the data to a database, we need the associated sch
 ```bash
 bin/console event-sourcing:database:create
 bin/console event-sourcing:schema:create
-bin/console event-sourcing:subscription:setup
+```
+or you can use doctrine migrations:
+
+```bash
+bin/console event-sourcing:migrations:diff
+bin/console event-sourcing:migrations:migrate
 ```
 !!! note
 
@@ -326,7 +357,7 @@ We are now ready to use the Event Sourcing System. We can load, change and save 
 namespace App\Hotel\Infrastructure\Controller;
 
 use App\Hotel\Domain\Hotel;
-use App\Hotel\Infrastructure\Projection\HotelProjection;
+use App\Hotel\Infrastructure\Projection\GuestProjection;
 use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Repository\Repository;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -337,26 +368,26 @@ use Symfony\Component\Routing\Annotation\Route;
 #[AsController]
 final class HotelController
 {
+    /** @param Repository<Hotel> $hotelRepository */
     public function __construct(
-        private readonly HotelProjection $hotelProjection,
-        /** @var Repository<Hotel> */
         private readonly Repository $hotelRepository,
+        private readonly GuestProjection $guestProjection,
     ) {
     }
 
-    #[Route('/', methods:['GET'])]
-    public function listAction(): JsonResponse
+    #[Route('/{hotelId}/guests', methods:['GET'])]
+    public function hotelGuestsAction(Uuid $hotelId): JsonResponse
     {
         return new JsonResponse(
-            $this->hotelProjection->getHotels(),
+            $this->guestProjection->findGuestsByHotelId($hotelId),
         );
     }
 
     #[Route('/create', methods:['POST'])]
     public function createAction(Request $request): JsonResponse
     {
-        $hotelName = $request->request->get('name'); // need validation!
-        $id = Uuid::v7();
+        $hotelName = $request->getPayload()->get('name'); // need validation!
+        $id = Uuid::generate();
 
         $hotel = Hotel::create($id, $hotelName);
         $this->hotelRepository->save($hotel);
@@ -367,7 +398,7 @@ final class HotelController
     #[Route('/{hotelId}/check-in', methods:['POST'])]
     public function checkInAction(Uuid $hotelId, Request $request): JsonResponse
     {
-        $guestName = $request->request->get('name'); // need validation!
+        $guestName = $request->getPayload()->get('name'); // need validation!
 
         $hotel = $this->hotelRepository->load($hotelId);
         $hotel->checkIn($guestName);
@@ -379,7 +410,7 @@ final class HotelController
     #[Route('/{hotelId}/check-out', methods:['POST'])]
     public function checkOutAction(Uuid $hotelId, Request $request): JsonResponse
     {
-        $guestName = $request->request->get('name'); // need validation!
+        $guestName = $request->getPayload()->get('name'); // need validation!
 
         $hotel = $this->hotelRepository->load($hotelId);
         $hotel->checkOut($guestName);
