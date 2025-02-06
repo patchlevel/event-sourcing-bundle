@@ -953,6 +953,10 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
     public function testTrace(): void
     {
+        if (!class_exists(TraceStack::class)) {
+            $this->markTestSkipped('Trace feature is not available.');
+        }
+
         $container = new ContainerBuilder();
 
         $this->compileContainer(

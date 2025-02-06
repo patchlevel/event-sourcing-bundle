@@ -660,7 +660,6 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(SubscriptionBootCommand::class)
             ->setArguments([
                 new Reference(SubscriptionEngine::class),
-                new Reference(Store::class),
             ])
             ->addTag('console.command');
 
