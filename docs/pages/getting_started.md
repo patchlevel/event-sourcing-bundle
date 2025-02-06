@@ -205,7 +205,7 @@ final class GuestProjection
     use SubscriberUtil;
 
     public function __construct(
-        private Connection $db
+        private Connection $db,
     ) {
     }
 
@@ -223,7 +223,7 @@ final class GuestProjection
     #[Subscribe(GuestIsCheckedIn::class)]
     public function onGuestIsCheckedIn(
         GuestIsCheckedIn $event,
-        DateTimeImmutable $recordedOn
+        DateTimeImmutable $recordedOn,
     ): void {
         $this->db->insert(
             $this->table(),
@@ -232,14 +232,14 @@ final class GuestProjection
                 'guest_name' => $event->guestName,
                 'check_in_date' => $recordedOn->format('Y-m-d H:i:s'),
                 'check_out_date' => null,
-            ]
+            ],
         );
     }
 
     #[Subscribe(GuestIsCheckedOut::class)]
     public function onGuestIsCheckedOut(
         GuestIsCheckedOut $event,
-        DateTimeImmutable $recordedOn
+        DateTimeImmutable $recordedOn,
     ): void {
         $this->db->update(
             $this->table(),
@@ -250,7 +250,7 @@ final class GuestProjection
                 'hotel_id' => $event->hotelId->toString(),
                 'guest_name' => $event->guestName,
                 'check_out_date' => null,
-            ]
+            ],
         );
     }
 
@@ -263,7 +263,7 @@ final class GuestProjection
                 guest_name VARCHAR(255) NOT NULL,
                 check_in_date TIMESTAMP NOT NULL,
                 check_out_date TIMESTAMP NULL
-            );"
+            );",
         );
     }
 
@@ -339,14 +339,12 @@ So that we can actually write the data to a database, we need the associated sch
 bin/console event-sourcing:database:create
 bin/console event-sourcing:schema:create
 ```
-
 or you can use doctrine migrations:
 
 ```bash
 bin/console event-sourcing:migrations:diff
 bin/console event-sourcing:migrations:migrate
 ```
-
 !!! note
 
     You can find out more about the cli in the [library](https://event-sourcing.patchlevel.io/latest/cli/).
@@ -370,9 +368,7 @@ use Symfony\Component\Routing\Annotation\Route;
 #[AsController]
 final class HotelController
 {
-    /**
-     * @param Repository<Hotel> $hotelRepository
-     */
+    /** @param Repository<Hotel> $hotelRepository */
     public function __construct(
         private readonly Repository $hotelRepository,
         private readonly GuestProjection $guestProjection,
