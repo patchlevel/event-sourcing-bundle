@@ -113,6 +113,7 @@ use Patchlevel\EventSourcingBundle\Doctrine\DbalConnectionFactory;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\RequestListener\AutoSetupListener;
 use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRebuildAfterFileChangeListener;
+use Patchlevel\EventSourcingBundle\Subscription\ResetServicesListener;
 use Patchlevel\EventSourcingBundle\Subscription\StaticInMemorySubscriptionStoreFactory;
 use Patchlevel\EventSourcingBundle\ValueResolver\AggregateRootIdValueResolver;
 use Patchlevel\Hydrator\Cryptography\Cipher\Cipher;
@@ -126,6 +127,7 @@ use Patchlevel\Hydrator\Hydrator;
 use Patchlevel\Hydrator\Metadata\AttributeMetadataFactory;
 use Patchlevel\Hydrator\Metadata\MetadataFactory;
 use Patchlevel\Hydrator\MetadataHydrator;
+use Patchlevel\Worker\Event\WorkerRunningEvent;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -374,6 +376,15 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
 
         $container->setAlias(SubscriptionEngine::class, DefaultSubscriptionEngine::class);
+
+        $container->register(ResetServicesListener::class)
+            ->setArguments([
+                new Reference('services_resetter'),
+            ])
+            ->addTag('kernel.event_listener', [
+                'event' => WorkerRunningEvent::class,
+                'method' => 'onWorkerRunningEvent',
+            ]);
 
         if ($config['subscription']['throw_on_error']['enabled']) {
             $container->register(ThrowOnErrorSubscriptionEngine::class)
@@ -773,6 +784,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(SubscriptionBootCommand::class)
             ->setArguments([
                 new Reference(SubscriptionEngine::class),
+                new Reference('event_dispatcher', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             ])
             ->addTag('console.command');
 
@@ -780,6 +792,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->setArguments([
                 new Reference(SubscriptionEngine::class),
                 new Reference(Store::class),
+                new Reference('event_dispatcher', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             ])
             ->addTag('console.command');
 

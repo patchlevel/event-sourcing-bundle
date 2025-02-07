@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e50e702f298976685bba75f0e5fdc08a",
+    "content-hash": "87f2fe933ed6aeec311686ce0ccc4cc3",
     "packages": [
         {
             "name": "brick/math",
@@ -413,23 +413,23 @@
         },
         {
             "name": "patchlevel/event-sourcing",
-            "version": "3.8.1",
+            "version": "3.9.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "c2b495ea6dd114e40178850c71316cfbc0fdd7e7"
+                "reference": "d0ea8503ff083228ba5caa8135ede0f0593d8f54"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/c2b495ea6dd114e40178850c71316cfbc0fdd7e7",
-                "reference": "c2b495ea6dd114e40178850c71316cfbc0fdd7e7",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/d0ea8503ff083228ba5caa8135ede0f0593d8f54",
+                "reference": "d0ea8503ff083228ba5caa8135ede0f0593d8f54",
                 "shasum": ""
             },
             "require": {
                 "doctrine/dbal": "^4.0.0",
                 "doctrine/migrations": "^3.3.2",
                 "patchlevel/hydrator": "^1.5.0",
-                "patchlevel/worker": "^1.2.0",
+                "patchlevel/worker": "^1.4.0",
                 "php": "~8.2.0 || ~8.3.0",
                 "psr/cache": "^2.0.0|^3.0.0",
                 "psr/clock": "^1.0",
@@ -492,9 +492,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
-                "source": "https://github.com/patchlevel/event-sourcing/tree/3.8.1"
+                "source": "https://github.com/patchlevel/event-sourcing/tree/3.9.0"
             },
-            "time": "2025-01-17T11:09:24+00:00"
+            "time": "2025-02-07T12:02:04+00:00"
         },
         {
             "name": "patchlevel/hydrator",

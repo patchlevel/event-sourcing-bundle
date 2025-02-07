@@ -73,6 +73,7 @@ use Patchlevel\EventSourcingBundle\Command\StoreMigrateCommand;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
+use Patchlevel\EventSourcingBundle\Subscription\ResetServicesListener;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\CreateProfile;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\CustomHeader;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\DummyArgumentResolver;
@@ -99,6 +100,7 @@ use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\HttpKernel\DependencyInjection\ServicesResetter;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final class PatchlevelEventSourcingBundleTest extends TestCase
@@ -1183,6 +1185,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(RepositoryManager::class, $container->get(RepositoryManager::class));
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
         self::assertInstanceOf(DoctrineSubscriptionStore::class, $container->get(SubscriptionStore::class));
+        self::assertInstanceOf(ResetServicesListener::class, $container->get(ResetServicesListener::class));
     }
 
     public function testNamedRepository(): void
@@ -1221,6 +1224,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         $container->set('event.bus', $this->prophesize(MessageBusInterface::class)->reveal());
         $container->set('cache.default', $this->prophesize(CacheItemPoolInterface::class)->reveal());
         $container->set('event_dispatcher', $this->prophesize(EventDispatcherInterface::class)->reveal());
+        $container->set('services_resetter', $this->prophesize(ServicesResetter::class)->reveal());
         $container->set(LoggerInterface::class, $this->prophesize(LoggerInterface::class)->reveal());
 
         $extension = new PatchlevelEventSourcingExtension();
