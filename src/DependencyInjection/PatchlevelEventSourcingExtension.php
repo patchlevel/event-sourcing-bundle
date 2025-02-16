@@ -429,7 +429,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                 ]);
         }
 
-        if (!$config['subscription']['rebuild_after_file_change']) {
+        if (!$config['subscription']['rebuild_after_file_change']['enabled']) {
             return;
         }
 
@@ -437,7 +437,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->setArguments([
                 new Reference(SubscriptionEngine::class),
                 new TaggedIteratorArgument('event_sourcing.subscriber'),
-                new Reference('cache.app'),
+                new Reference($config['subscription']['rebuild_after_file_change']['cache_pool']),
                 new Reference(SubscriberMetadataFactory::class),
             ])
             ->addTag('kernel.event_listener', [

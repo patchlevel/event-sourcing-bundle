@@ -411,6 +411,10 @@ patchlevel_event_sourcing:
 
     This works only before each http requests and not if you use the console commands.
     
+!!! tip
+
+    This is using the cache system to store the latest file change time. You can change the cache pool with the `cache_pool` option.
+
 ## Command Bus
 
 You can also enable and register our handlers in symfony messenger.

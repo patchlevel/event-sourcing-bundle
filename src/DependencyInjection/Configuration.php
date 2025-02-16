@@ -26,7 +26,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  *               ids: list<string>,
  *               groups: list<string>,
  *           },
- *          rebuild_after_file_change: bool
+ *          rebuild_after_file_change: array{enabled: bool, cache_pool: string}
  *      },
  *      connection: ?array{
  *          service: ?string,
@@ -220,7 +220,13 @@ final class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
 
-                    ->booleanNode('rebuild_after_file_change')->defaultFalse()->end()
+                    ->arrayNode('rebuild_after_file_change')
+                        ->canBeEnabled()
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->scalarNode('cache_pool')->defaultValue('cache.app')->end()
+                        ->end()
+                    ->end()
                 ->end()
             ->end()
 
