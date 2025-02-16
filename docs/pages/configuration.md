@@ -413,7 +413,7 @@ patchlevel_event_sourcing:
     
 !!! tip
 
-    This use the cache system to store the last file change time. You can change the cache pool with the `cache_pool` option.
+    This is using the cache system to store the latest file change time. You can change the cache pool with the `cache_pool` option.
 
 ## Command Bus
 
