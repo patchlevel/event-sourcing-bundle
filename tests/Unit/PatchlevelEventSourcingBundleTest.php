@@ -12,6 +12,7 @@ use InvalidArgumentException;
 use Patchlevel\EventSourcing\Aggregate\CustomId;
 use Patchlevel\EventSourcing\Clock\FrozenClock;
 use Patchlevel\EventSourcing\Clock\SystemClock;
+use Patchlevel\EventSourcing\CommandBus\CommandBus;
 use Patchlevel\EventSourcing\CommandBus\Handler\CreateAggregateHandler;
 use Patchlevel\EventSourcing\Console\Command\DatabaseCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\DatabaseDropCommand;
@@ -70,6 +71,7 @@ use Patchlevel\EventSourcing\Subscription\Store\InMemorySubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\SubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorRepository;
 use Patchlevel\EventSourcingBundle\Command\StoreMigrateCommand;
+use Patchlevel\EventSourcingBundle\CommandBus\SymfonyCommandBus;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
@@ -545,6 +547,69 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertEquals(CreateProfile::class, $tag['handles']);
         self::assertEquals('command.bus', $tag['bus']);
+    }
+
+    public function testCommandBusAndLegacyConfigurationNotAllowed(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Remove legacy aggregate_handlers configuration when using command_bus');
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'aggregates' => [__DIR__ . '/../Fixtures'],
+                    'aggregate_handlers' => [
+                        'bus' => 'command.bus',
+                    ],
+                    'command_bus' => [
+                        'service' => 'command.bus',
+                    ],
+                ],
+            ]
+        );
+    }
+
+    public function testCommandBus(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'aggregates' => [__DIR__ . '/../Fixtures'],
+                    'command_bus' => [
+                        'service' => 'command.bus',
+                    ],
+                ],
+            ]
+        );
+
+        $handler = $container->get('event_sourcing.handler.profile.create');
+
+        self::assertInstanceOf(CreateAggregateHandler::class, $handler);
+
+        $handler(new CreateProfile(CustomId::fromString('1')));
+
+        $definition = $container->getDefinition('event_sourcing.handler.profile.create');
+        $tags = $definition->getTag('messenger.message_handler');
+
+        self::assertCount(1, $tags);
+
+        $tag = $tags[0];
+
+        self::assertEquals(CreateProfile::class, $tag['handles']);
+        self::assertEquals('command.bus', $tag['bus']);
+        self::assertInstanceOf(SymfonyCommandBus::class, $container->get(CommandBus::class));
     }
 
     public function testSnapshotStore(): void
@@ -1222,6 +1287,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         $container->set('doctrine.dbal.eventstore_connection', $this->prophesize(Connection::class)->reveal());
         $container->set('event.bus', $this->prophesize(MessageBusInterface::class)->reveal());
+        $container->set('command.bus', $this->prophesize(MessageBusInterface::class)->reveal());
         $container->set('cache.default', $this->prophesize(CacheItemPoolInterface::class)->reveal());
         $container->set('event_dispatcher', $this->prophesize(EventDispatcherInterface::class)->reveal());
         $container->set('services_resetter', $this->prophesize(ServicesResetter::class)->reveal());

@@ -418,7 +418,7 @@ These handlers allow you to use your aggregates as command handlers.
 
 ```yaml
 patchlevel_event_sourcing:
-    aggregate_handlers: ~
+    command_bus: ~
 ```
 !!! note
 
@@ -427,6 +427,8 @@ patchlevel_event_sourcing:
 Default the handlers will be registered for all buses.
 You can also specify a specific bus.
 Before you have to define the bus in the messenger configuration.
+
+### Symfony Messenger
 
 ```yaml
 framework:
@@ -443,9 +445,10 @@ And then you can specify the bus in the configuration.
 
 ```yaml
 patchlevel_event_sourcing:
-    aggregate_handlers:
-      bus: command.bus
+    command_bus:
+        service: command.bus
 ```
+
 ## Event Bus
 
 You can enable the event bus to listen for events and messages synchronously.

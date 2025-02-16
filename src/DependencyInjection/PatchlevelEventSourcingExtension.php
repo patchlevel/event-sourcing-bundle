@@ -21,6 +21,7 @@ use Patchlevel\EventSourcing\Attribute\Projector;
 use Patchlevel\EventSourcing\Attribute\Subscriber;
 use Patchlevel\EventSourcing\Clock\FrozenClock;
 use Patchlevel\EventSourcing\Clock\SystemClock;
+use Patchlevel\EventSourcing\CommandBus\CommandBus;
 use Patchlevel\EventSourcing\Console\Command\DatabaseCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\DatabaseDropCommand;
 use Patchlevel\EventSourcing\Console\Command\DebugCommand;
@@ -107,6 +108,7 @@ use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberAccessorRepositor
 use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberHelper;
 use Patchlevel\EventSourcingBundle\Attribute\AsListener;
 use Patchlevel\EventSourcingBundle\Command\StoreMigrateCommand;
+use Patchlevel\EventSourcingBundle\CommandBus\SymfonyCommandBus;
 use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
 use Patchlevel\EventSourcingBundle\DataCollector\MessageCollectorEventBus;
 use Patchlevel\EventSourcingBundle\Doctrine\DbalConnectionFactory;
@@ -135,7 +137,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Reference;
-
 use function class_exists;
 use function sprintf;
 
@@ -158,7 +159,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureUpcaster($container);
         $this->configureSerializer($config, $container);
         $this->configureMessageDecorator($container);
-        $this->configureAggregateHandlers($config, $container);
+        $this->configureCommandBus($config, $container);
         $this->configureEventBus($config, $container);
         $this->configureConnection($config, $container);
         $this->configureStore($config, $container);
@@ -218,13 +219,36 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /** @param Config $config */
-    private function configureAggregateHandlers(array $config, ContainerBuilder $container): void
+    private function configureCommandBus(array $config, ContainerBuilder $container): void
     {
+        if ($config['command_bus']['enabled'] && $config['aggregate_handlers']['enabled']) {
+            throw new InvalidArgumentException('Remove legacy aggregate_handlers configuration when using command_bus');
+        }
+
+        if ($config['command_bus']['enabled']) {
+            $container->register(SymfonyCommandBus::class)
+                ->setArguments([
+                    new Reference($config['command_bus']['service']),
+                ]);
+
+            $container->setAlias(CommandBus::class, SymfonyCommandBus::class);
+
+            $container->setParameter(
+                'patchlevel_event_sourcing.aggregate_handlers.bus',
+                $config['command_bus']['service']
+            );
+
+            return;
+        }
+
         if (!$config['aggregate_handlers']['enabled']) {
             return;
         }
 
-        $container->setParameter('patchlevel_event_sourcing.aggregate_handlers.bus', $config['aggregate_handlers']['bus']);
+        $container->setParameter(
+            'patchlevel_event_sourcing.aggregate_handlers.bus',
+            $config['aggregate_handlers']['bus']
+        );
     }
 
     /** @param Config $config */
