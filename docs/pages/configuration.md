@@ -413,22 +413,8 @@ patchlevel_event_sourcing:
     
 ## Command Bus
 
-You can also enable and register our handlers in symfony messenger.
-These handlers allow you to use your aggregates as command handlers.
-
-```yaml
-patchlevel_event_sourcing:
-    command_bus: ~
-```
-!!! note
-
-    You can find out more about the command bus integration [here](https://event-sourcing.patchlevel.io/latest/command_bus/).
-    
-Default the handlers will be registered for all buses.
-You can also specify a specific bus.
-Before you have to define the bus in the messenger configuration.
-
-### Symfony Messenger
+You can enable the command bus integration to use your aggregates as command handlers.
+For this bundle we provide only a symfony messenger integration, so you have to define the bus in the messenger configuration.
 
 ```yaml
 framework:
@@ -437,18 +423,19 @@ framework:
         buses:
             command.bus: ~
 ```
-!!! tip
-
-    This is also useful if you have a event bus and a command bus.
-    
-And then you can specify the bus in the configuration.
+After this, you need to define the command bus in the event sourcing configuration.
+This will automatically register the aggregate handlers for the symfony messenger,
+so you can handle commands with your aggregates.
 
 ```yaml
 patchlevel_event_sourcing:
     command_bus:
         service: command.bus
 ```
+!!! note
 
+    You can find out more about the command bus and the aggregate handlers [here](https://event-sourcing.patchlevel.io/latest/command_bus/).
+    
 ## Event Bus
 
 You can enable the event bus to listen for events and messages synchronously.

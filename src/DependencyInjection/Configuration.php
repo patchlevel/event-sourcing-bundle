@@ -10,7 +10,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 /**
  * @psalm-type Config = array{
  *      event_bus: array{enabled: bool, type: string, service: string},
- *      command_bus: array{enabled: bool, message_bus: string},
+ *      command_bus: array{enabled: bool, service: string},
  *      subscription: array{
  *          store: array{type: string, service: string|null},
  *          retry_strategy: array{base_delay: int, delay_factor: int, max_attempts: int},
@@ -237,7 +237,7 @@ final class Configuration implements ConfigurationInterface
                 ->canBeEnabled()
                 ->addDefaultsIfNotSet()
                 ->children()
-                    ->scalarNode('service')->defaultNull()->end()
+                    ->scalarNode('service')->isRequired()->end()
                     ->booleanNode('register_aggregate_handlers')->defaultTrue()->end()
                 ->end()
             ->end()

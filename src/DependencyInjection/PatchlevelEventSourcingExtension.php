@@ -137,6 +137,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Reference;
+
 use function class_exists;
 use function sprintf;
 
@@ -235,7 +236,7 @@ final class PatchlevelEventSourcingExtension extends Extension
 
             $container->setParameter(
                 'patchlevel_event_sourcing.aggregate_handlers.bus',
-                $config['command_bus']['service']
+                $config['command_bus']['service'],
             );
 
             return;
@@ -247,7 +248,7 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->setParameter(
             'patchlevel_event_sourcing.aggregate_handlers.bus',
-            $config['aggregate_handlers']['bus']
+            $config['aggregate_handlers']['bus'],
         );
     }
 

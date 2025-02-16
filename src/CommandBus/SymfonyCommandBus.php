@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Patchlevel\EventSourcingBundle\CommandBus;
 
 use Patchlevel\EventSourcing\CommandBus\CommandBus;
