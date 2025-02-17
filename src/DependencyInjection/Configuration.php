@@ -10,6 +10,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 /**
  * @psalm-type Config = array{
  *      event_bus: array{enabled: bool, type: string, service: string},
+ *      command_bus: array{enabled: bool, service: string},
  *      subscription: array{
  *          store: array{type: string, service: string|null},
  *          retry_strategy: array{base_delay: int, delay_factor: int, max_attempts: int},
@@ -238,12 +239,26 @@ final class Configuration implements ConfigurationInterface
                 ->end()
             ->end()
 
+            ->arrayNode('command_bus')
+                ->canBeEnabled()
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->scalarNode('service')->isRequired()->end()
+                    ->booleanNode('register_aggregate_handlers')->defaultTrue()->end()
+                ->end()
+            ->end()
+
             ->arrayNode('aggregate_handlers')
                 ->canBeEnabled()
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->scalarNode('bus')->defaultNull()->end()
                 ->end()
+                ->setDeprecated(
+                    'patchlevel/event-sourcing-bundle',
+                    '3.9',
+                    'The "%node%" option is deprecated and will be removed in 4.0. Use "patchlevel_event_sourcing.command_bus" instead.'
+                )
             ->end()
 
         ->end();
