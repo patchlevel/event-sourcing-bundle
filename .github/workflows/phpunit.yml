@@ -23,15 +23,16 @@ jobs:
         php-version:
           - "8.2"
           - "8.3"
+          - "8.4"
         operating-system:
           - "ubuntu-latest"
           - "windows-latest"
         include:
           - dependencies: "locked"
-            php-version: "8.3"
+            php-version: "8.4"
             operating-system: "ubuntu-latest"
           - dependencies: "locked"
-            php-version: "8.3"
+            php-version: "8.4"
             operating-system: "windows-latest"
     steps:
       - name: "Checkout"
