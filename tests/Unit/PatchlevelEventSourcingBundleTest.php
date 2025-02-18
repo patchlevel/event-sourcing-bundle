@@ -66,6 +66,10 @@ use Patchlevel\EventSourcing\Subscription\Engine\CatchUpSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\DefaultSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Repository\RunSubscriptionEngineRepositoryManager;
+use Patchlevel\EventSourcing\Subscription\RetryStrategy\ClockBasedRetryStrategy;
+use Patchlevel\EventSourcing\Subscription\RetryStrategy\NoRetryStrategy;
+use Patchlevel\EventSourcing\Subscription\RetryStrategy\RetryStrategy;
+use Patchlevel\EventSourcing\Subscription\RetryStrategy\RetryStrategyRepository;
 use Patchlevel\EventSourcing\Subscription\Store\DoctrineSubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\InMemorySubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\SubscriptionStore;
@@ -96,7 +100,6 @@ use Psr\Clock\ClockInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
-use stdClass;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -1129,8 +1132,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         $container = new ContainerBuilder();
 
         $container->setDefinition(DummyArgumentResolver::class, new Definition(DummyArgumentResolver::class))
-            ->setAutoconfigured(true)
-        ;
+            ->setAutoconfigured(true);
 
         $this->compileContainer(
             $container,
@@ -1144,8 +1146,110 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertTrue($container->getDefinition(DummyArgumentResolver::class)->hasTag('event_sourcing.argument_resolver'));
-        self::assertInstanceOf(TaggedIteratorArgument::class, $container->getDefinition(MetadataSubscriberAccessorRepository::class)->getArgument(2));
-        self::assertEquals('event_sourcing.argument_resolver', $container->getDefinition(MetadataSubscriberAccessorRepository::class)->getArgument(2)->getTag());
+        self::assertInstanceOf(TaggedIteratorArgument::class,
+            $container->getDefinition(MetadataSubscriberAccessorRepository::class)->getArgument(2));
+        self::assertEquals('event_sourcing.argument_resolver',
+            $container->getDefinition(MetadataSubscriberAccessorRepository::class)->getArgument(2)->getTag());
+    }
+
+    public function testLegacyRetryStrategy(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'subscription' => [
+                        'retry_strategy' => [
+                            'base_delay' => 10,
+                            'delay_factor' => 11,
+                            'max_attempts' => 12,
+                        ],
+                    ],
+                ],
+            ]
+        );
+
+        $repository = $container->get(RetryStrategyRepository::class);
+
+        self::assertInstanceOf(RetryStrategyRepository::class, $repository);
+        self::assertInstanceOf(ClockBasedRetryStrategy::class, $repository->getDefaultRetryStrategy());
+        self::assertInstanceOf(ClockBasedRetryStrategy::class, $repository->get('default'));
+        self::assertInstanceOf(NoRetryStrategy::class, $repository->get('no_retry'));
+    }
+
+    public function testRetryStrategy(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'subscription' => [
+                        'retry_strategies' => [
+                            'default' => [
+                                'type' => 'clock_based',
+                                'options' => [
+                                    'base_delay' => 10,
+                                    'delay_factor' => 11,
+                                    'max_attempts' => 12,
+                                ],
+                            ],
+                            'no_retry' => [
+                                'type' => 'no_retry',
+                            ]
+                        ]
+                    ],
+                ],
+            ]
+        );
+
+        $repository = $container->get(RetryStrategyRepository::class);
+
+        self::assertInstanceOf(RetryStrategyRepository::class, $repository);
+        self::assertInstanceOf(ClockBasedRetryStrategy::class, $repository->getDefaultRetryStrategy());
+        self::assertInstanceOf(ClockBasedRetryStrategy::class, $repository->get('default'));
+        self::assertInstanceOf(NoRetryStrategy::class, $repository->get('no_retry'));
+    }
+
+    public function testRetryStrategyCustom(): void
+    {
+        $retryStrategy = $this->prophesize(RetryStrategy::class)->reveal();
+
+        $container = new ContainerBuilder();
+        $container->set('my_retry_strategy', $retryStrategy);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'subscription' => [
+                        'retry_strategies' => [
+                            'default' => [
+                                'type' => 'custom',
+                                'service' => 'my_retry_strategy'
+                            ],
+                        ]
+                    ],
+                ],
+            ]
+        );
+
+        $repository = $container->get(RetryStrategyRepository::class);
+
+        self::assertInstanceOf(RetryStrategyRepository::class, $repository);
+        self::assertEquals($retryStrategy, $repository->getDefaultRetryStrategy());
     }
 
     public function testSchemaMerge(): void

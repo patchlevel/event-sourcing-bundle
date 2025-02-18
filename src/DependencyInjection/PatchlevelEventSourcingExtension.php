@@ -97,7 +97,9 @@ use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\ThrowOnErrorSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Repository\RunSubscriptionEngineRepositoryManager;
 use Patchlevel\EventSourcing\Subscription\RetryStrategy\ClockBasedRetryStrategy;
+use Patchlevel\EventSourcing\Subscription\RetryStrategy\NoRetryStrategy;
 use Patchlevel\EventSourcing\Subscription\RetryStrategy\RetryStrategy;
+use Patchlevel\EventSourcing\Subscription\RetryStrategy\RetryStrategyRepository;
 use Patchlevel\EventSourcing\Subscription\Store\DoctrineSubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\InMemorySubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\SubscriptionStore;
@@ -335,15 +337,72 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->register(AttributeSubscriberMetadataFactory::class);
         $container->setAlias(SubscriberMetadataFactory::class, AttributeSubscriberMetadataFactory::class);
 
-        $container->register(ClockBasedRetryStrategy::class)
-            ->setArguments([
-                new Reference('event_sourcing.clock'),
-                $config['subscription']['retry_strategy']['base_delay'],
-                $config['subscription']['retry_strategy']['delay_factor'],
-                $config['subscription']['retry_strategy']['max_attempts'],
-            ]);
+        $strategies = [];
 
-        $container->setAlias(RetryStrategy::class, ClockBasedRetryStrategy::class);
+        $retryStrategy = $config['subscription']['retry_strategy'] ?? null;
+
+        if ($retryStrategy) {
+            $container->register(ClockBasedRetryStrategy::class)
+                ->setArguments([
+                    new Reference('event_sourcing.clock'),
+                    $retryStrategy['base_delay'],
+                    $retryStrategy['delay_factor'],
+                    $retryStrategy['max_attempts'],
+                ]);
+
+            $container->register(NoRetryStrategy::class);
+
+            $container
+                ->setAlias(RetryStrategy::class, ClockBasedRetryStrategy::class)
+                ->setDeprecated(
+                    'patchlevel/event-sourcing-bundle',
+                    '3.10',
+                    'The "%alias_id%" alias is deprecated, use "RetryStrategyRepository" instead.',
+                );
+
+            $strategies['default'] = new Reference(RetryStrategy::class);
+            $strategies['no_retry'] = new Reference(NoRetryStrategy::class);
+        } else {
+            foreach ($config['subscription']['retry_strategies'] as $name => $strategyConfig) {
+                if ($strategyConfig['type'] === 'custom') {
+                    $strategies[$name] = new Reference($strategyConfig['service']);
+
+                    continue;
+                }
+
+                $id = 'event_sourcing.subscription.retry_strategy.' . $name;
+
+                if ($strategyConfig['type'] === 'clock_based') {
+                    $container->register($id, ClockBasedRetryStrategy::class)
+                        ->setArguments([
+                            new Reference('event_sourcing.clock'),
+                            $strategyConfig['options']['base_delay'] ?? 5,
+                            $strategyConfig['options']['delay_factor'] ?? 2,
+                            $strategyConfig['options']['max_attempts'] ?? 5,
+                        ]);
+
+                    $strategies[$name] = new Reference($id);
+
+                    continue;
+                }
+
+                if ($strategyConfig['type'] === 'no_retry') {
+                    $container->register($id, NoRetryStrategy::class);
+
+                    $strategies[$name] = new Reference($id);
+
+                    continue;
+                }
+
+                throw new InvalidArgumentException(sprintf('Unknown retry strategy type "%s"', $strategyConfig['type']));
+            }
+        }
+
+        $container->register(RetryStrategyRepository::class)
+            ->setArguments([
+                $strategies,
+                $config['subscription']['default_retry_strategy'],
+            ]);
 
         $container->register(SubscriberHelper::class)
             ->setArguments([new Reference(SubscriberMetadataFactory::class)]);
@@ -395,7 +454,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(Store::class),
                 new Reference(SubscriptionStore::class),
                 new Reference(SubscriberAccessorRepository::class),
-                new Reference(RetryStrategy::class),
+                new Reference(RetryStrategyRepository::class),
                 new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             ])
             ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
