@@ -13,7 +13,9 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  *      command_bus: array{enabled: bool, service: string},
  *      subscription: array{
  *          store: array{type: string, service: string|null},
- *          retry_strategy: array{base_delay: int, delay_factor: int, max_attempts: int},
+ *          retry_strategy?: array{base_delay: int, delay_factor: int, max_attempts: int},
+ *          retry_strategies: array<string, array{type: string, service: string, options: array<string, mixed>}>,
+ *          default_retry_strategy: string,
  *          catch_up: array{enabled: bool, limit: positive-int|null},
  *          throw_on_error: array{enabled: bool},
  *          run_after_aggregate_save: array{
@@ -182,13 +184,43 @@ final class Configuration implements ConfigurationInterface
                     ->end()
 
                     ->arrayNode('retry_strategy')
-                        ->addDefaultsIfNotSet()
+                        ->setDeprecated(
+                            'patchlevel/event-sourcing-bundle',
+                            '3.10',
+                            'The "%node%" option is deprecated and will be removed in 4.0. Use "patchlevel_event_sourcing.subscription.retry_strategies" instead.'
+                        )
                         ->children()
                             ->integerNode('base_delay')->defaultValue(5)->end()
                             ->integerNode('delay_factor')->defaultValue(2)->end()
                             ->integerNode('max_attempts')->defaultValue(5)->end()
                         ->end()
                     ->end()
+
+                    ->arrayNode('retry_strategies')
+                        ->useAttributeAsKey('name')
+                        ->arrayPrototype()
+                            ->children()
+                                ->enumNode('type')->values(['clock_based', 'no_retry', 'custom'])->end()
+                                ->scalarNode('service')->end()
+                                ->arrayNode('options')->variablePrototype()->end()->end()
+                            ->end()
+                        ->end()
+                        ->defaultValue([
+                            'default' => [
+                                'type' => 'clock_based',
+                                'options' => [
+                                    'base_delay' => 5,
+                                    'delay_factor' => 2,
+                                    'max_attempts' => 5,
+                                ],
+                            ],
+                            'no_retry' => [
+                                'type' => 'no_retry',
+                            ],
+                        ])
+                    ->end()
+
+                    ->scalarNode('default_retry_strategy')->defaultValue('default')->end()
 
                     ->arrayNode('catch_up')
                         ->canBeEnabled()

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "23268bcf3b36fdea578a33c77056eade",
+    "content-hash": "8877397a40ab62c2e6c5fbb9a51301f2",
     "packages": [
         {
             "name": "brick/math",
@@ -413,16 +413,16 @@
         },
         {
             "name": "patchlevel/event-sourcing",
-            "version": "3.9.0",
+            "version": "3.10.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "d0ea8503ff083228ba5caa8135ede0f0593d8f54"
+                "reference": "0f1656bb4221e4b78df087c934b30a6346a3e7c8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/d0ea8503ff083228ba5caa8135ede0f0593d8f54",
-                "reference": "d0ea8503ff083228ba5caa8135ede0f0593d8f54",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/0f1656bb4221e4b78df087c934b30a6346a3e7c8",
+                "reference": "0f1656bb4221e4b78df087c934b30a6346a3e7c8",
                 "shasum": ""
             },
             "require": {
@@ -430,7 +430,7 @@
                 "doctrine/migrations": "^3.3.2",
                 "patchlevel/hydrator": "^1.5.0",
                 "patchlevel/worker": "^1.4.0",
-                "php": "~8.2.0 || ~8.3.0",
+                "php": "~8.2.0 || ~8.3.0 || ~8.4.0",
                 "psr/cache": "^2.0.0|^3.0.0",
                 "psr/clock": "^1.0",
                 "psr/container": "^2.0",
@@ -443,22 +443,22 @@
                 "symfony/type-info": "^7.2"
             },
             "require-dev": {
-                "cspray/phinal": "^2.0.0",
+                "cspray/phinal": "dev-main#9826c3407056a4618f8bba303800403e47ccb3a7",
                 "doctrine/orm": "^2.18.0|^3.0.0",
-                "ext-pdo_sqlite": "~8.2.0 || ~8.3.0",
-                "infection/infection": "^0.27.10",
+                "ext-pdo_sqlite": "~8.2.0 || ~8.3.0 || ~8.4.0",
+                "infection/infection": "^0.29.10",
                 "league/commonmark": "^2.4",
                 "patchlevel/coding-standard": "^1.3.0",
-                "patchlevel/event-sourcing-psalm-plugin": "^3.0.0",
+                "patchlevel/event-sourcing-psalm-plugin": "^3.1.0",
                 "phpbench/phpbench": "^1.2.15",
                 "phpspec/prophecy-phpunit": "^2.1.0",
                 "phpstan/phpstan": "^2.1.0",
-                "phpunit/phpunit": "^10.5.2",
+                "phpunit/phpunit": "^11.5.7",
                 "psalm/plugin-phpunit": "^0.19.0",
-                "roave/infection-static-analysis-plugin": "^1.34.0",
+                "roave/infection-static-analysis-plugin": "^1.36.0",
                 "symfony/messenger": "^5.4.31|^6.4.0|^7.0.1",
                 "symfony/var-dumper": "^5.4.29|^6.4.0|^7.0.0",
-                "vimeo/psalm": "^5.17.0",
+                "vimeo/psalm": "^6.0.0",
                 "wnx/commonmark-markdown-renderer": "^1.4"
             },
             "suggest": {
@@ -492,9 +492,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
-                "source": "https://github.com/patchlevel/event-sourcing/tree/3.9.0"
+                "source": "https://github.com/patchlevel/event-sourcing/tree/3.10.0"
             },
-            "time": "2025-02-07T12:02:04+00:00"
+            "time": "2025-02-19T01:58:04+00:00"
         },
         {
             "name": "patchlevel/hydrator",
