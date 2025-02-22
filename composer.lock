@@ -413,16 +413,16 @@
         },
         {
             "name": "patchlevel/event-sourcing",
-            "version": "3.10.0",
+            "version": "3.10.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "0f1656bb4221e4b78df087c934b30a6346a3e7c8"
+                "reference": "d276fb1a28610a21f0398f60f723a1000dac8b74"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/0f1656bb4221e4b78df087c934b30a6346a3e7c8",
-                "reference": "0f1656bb4221e4b78df087c934b30a6346a3e7c8",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/d276fb1a28610a21f0398f60f723a1000dac8b74",
+                "reference": "d276fb1a28610a21f0398f60f723a1000dac8b74",
                 "shasum": ""
             },
             "require": {
@@ -492,22 +492,22 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
-                "source": "https://github.com/patchlevel/event-sourcing/tree/3.10.0"
+                "source": "https://github.com/patchlevel/event-sourcing/tree/3.10.1"
             },
-            "time": "2025-02-19T01:58:04+00:00"
+            "time": "2025-02-21T11:20:02+00:00"
         },
         {
             "name": "patchlevel/hydrator",
-            "version": "1.7.0",
+            "version": "1.7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/hydrator.git",
-                "reference": "e60410fbbfbfcfd02aa16eedab94434fa9ddf359"
+                "reference": "e4caf6af9e4fe3ecbc988942954318d11e848380"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/hydrator/zipball/e60410fbbfbfcfd02aa16eedab94434fa9ddf359",
-                "reference": "e60410fbbfbfcfd02aa16eedab94434fa9ddf359",
+                "url": "https://api.github.com/repos/patchlevel/hydrator/zipball/e4caf6af9e4fe3ecbc988942954318d11e848380",
+                "reference": "e4caf6af9e4fe3ecbc988942954318d11e848380",
                 "shasum": ""
             },
             "require": {
@@ -557,9 +557,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/hydrator/issues",
-                "source": "https://github.com/patchlevel/hydrator/tree/1.7.0"
+                "source": "https://github.com/patchlevel/hydrator/tree/1.7.1"
             },
-            "time": "2025-01-28T11:28:11+00:00"
+            "time": "2025-02-20T14:47:14+00:00"
         },
         {
             "name": "patchlevel/worker",
@@ -6965,16 +6965,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.1.5",
+            "version": "2.1.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "451b17f9665481ee502adc39be987cb71067ece2"
+                "reference": "6eaec7c6c9e90dcfe46ad1e1ffa5171e2dab641c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/451b17f9665481ee502adc39be987cb71067ece2",
-                "reference": "451b17f9665481ee502adc39be987cb71067ece2",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/6eaec7c6c9e90dcfe46ad1e1ffa5171e2dab641c",
+                "reference": "6eaec7c6c9e90dcfe46ad1e1ffa5171e2dab641c",
                 "shasum": ""
             },
             "require": {
@@ -7019,7 +7019,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-02-13T12:49:56+00:00"
+            "time": "2025-02-19T15:46:42+00:00"
         },
         {
             "name": "phpstan/phpstan-symfony",
@@ -7765,12 +7765,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "70eb886a27427421cf1bd612067810c9fb1cbb5c"
+                "reference": "23b2141a1db97b4e3278510ed9e74a16361619b1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/70eb886a27427421cf1bd612067810c9fb1cbb5c",
-                "reference": "70eb886a27427421cf1bd612067810c9fb1cbb5c",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/23b2141a1db97b4e3278510ed9e74a16361619b1",
+                "reference": "23b2141a1db97b4e3278510ed9e74a16361619b1",
                 "shasum": ""
             },
             "conflict": {
@@ -8109,6 +8109,7 @@
                 "league/commonmark": "<2.6",
                 "league/flysystem": "<1.1.4|>=2,<2.1.1",
                 "league/oauth2-server": ">=8.3.2,<8.4.2|>=8.5,<8.5.3",
+                "leantime/leantime": "<3.3",
                 "lexik/jwt-authentication-bundle": "<2.10.7|>=2.11,<2.11.3",
                 "libreform/libreform": ">=2,<=2.0.8",
                 "librenms/librenms": "<2017.08.18",
@@ -8133,7 +8134,7 @@
                 "mantisbt/mantisbt": "<=2.26.3",
                 "marcwillmann/turn": "<0.3.3",
                 "matyhtf/framework": "<3.0.6",
-                "mautic/core": "<4.4.13|>=5,<5.1.1",
+                "mautic/core": "<4.4.13|>=5.0.0.0-alpha,<5.1.1",
                 "mautic/core-lib": ">=1.0.0.0-beta,<4.4.13|>=5.0.0.0-alpha,<5.1.1",
                 "maximebf/debugbar": "<1.19",
                 "mdanter/ecc": "<2",
@@ -8631,7 +8632,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-02-18T20:05:22+00:00"
+            "time": "2025-02-21T23:05:15+00:00"
         },
         {
             "name": "sanmai/later",
@@ -10852,16 +10853,16 @@
         },
         {
             "name": "thecodingmachine/safe",
-            "version": "v3.0.1",
+            "version": "v3.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thecodingmachine/safe.git",
-                "reference": "37123c3b729fb10dc35f91fa1ba9cec9c28cb393"
+                "reference": "22ffad3248982a784f9870a37aeb2e522bd19645"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thecodingmachine/safe/zipball/37123c3b729fb10dc35f91fa1ba9cec9c28cb393",
-                "reference": "37123c3b729fb10dc35f91fa1ba9cec9c28cb393",
+                "url": "https://api.github.com/repos/thecodingmachine/safe/zipball/22ffad3248982a784f9870a37aeb2e522bd19645",
+                "reference": "22ffad3248982a784f9870a37aeb2e522bd19645",
                 "shasum": ""
             },
             "require": {
@@ -10971,7 +10972,7 @@
             "description": "PHP core functions that throw exceptions instead of returning FALSE on error",
             "support": {
                 "issues": "https://github.com/thecodingmachine/safe/issues",
-                "source": "https://github.com/thecodingmachine/safe/tree/v3.0.1"
+                "source": "https://github.com/thecodingmachine/safe/tree/v3.0.2"
             },
             "funding": [
                 {
@@ -10987,7 +10988,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-02-18T02:09:20+00:00"
+            "time": "2025-02-19T19:23:00+00:00"
         },
         {
             "name": "theseer/tokenizer",
@@ -11120,16 +11121,16 @@
         },
         {
             "name": "vimeo/psalm",
-            "version": "6.8.0",
+            "version": "6.8.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/vimeo/psalm.git",
-                "reference": "a9e6444f6bccb72393ee7e94d32f094e87884346"
+                "reference": "34ba9e1e5ea2e7396d3e2e644ee3e3a1d4336603"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vimeo/psalm/zipball/a9e6444f6bccb72393ee7e94d32f094e87884346",
-                "reference": "a9e6444f6bccb72393ee7e94d32f094e87884346",
+                "url": "https://api.github.com/repos/vimeo/psalm/zipball/34ba9e1e5ea2e7396d3e2e644ee3e3a1d4336603",
+                "reference": "34ba9e1e5ea2e7396d3e2e644ee3e3a1d4336603",
                 "shasum": ""
             },
             "require": {
@@ -11234,7 +11235,7 @@
                 "issues": "https://github.com/vimeo/psalm/issues",
                 "source": "https://github.com/vimeo/psalm"
             },
-            "time": "2025-02-19T11:12:21+00:00"
+            "time": "2025-02-21T10:03:22+00:00"
         },
         {
             "name": "webmozart/assert",
