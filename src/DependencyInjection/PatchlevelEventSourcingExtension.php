@@ -16,6 +16,8 @@ use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
 use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
 use Doctrine\ORM\Tools\ToolEvents;
+use Patchlevel\EventSourcing\Attribute\Aggregate;
+use Patchlevel\EventSourcing\Attribute\Event;
 use Patchlevel\EventSourcing\Attribute\Processor;
 use Patchlevel\EventSourcing\Attribute\Projector;
 use Patchlevel\EventSourcing\Attribute\Subscriber;
@@ -149,6 +151,8 @@ final class PatchlevelEventSourcingExtension extends Extension
     /** @param array<array-key, mixed> $configs */
     public function load(array $configs, ContainerBuilder $container): void
     {
+        $this->removeNonServices($container);
+
         $configuration = new Configuration();
 
         /** @var Config $config */
@@ -1111,5 +1115,27 @@ final class PatchlevelEventSourcingExtension extends Extension
     {
         $container->register(AggregateRootIdValueResolver::class)
             ->addTag('controller.argument_value_resolver', ['priority' => 200]);
+    }
+
+    private function removeNonServices(ContainerBuilder $container): void
+    {
+        $container->registerAttributeForAutoconfiguration(
+            Aggregate::class,
+            static function (ChildDefinition $definition): void {
+                $definition->setAbstract(true)->addTag(
+                    'container.excluded',
+                    ['source' => sprintf('with #[%s] attribute', Aggregate::class)]
+                );
+            }
+        );
+        $container->registerAttributeForAutoconfiguration(
+            Event::class,
+            static function (ChildDefinition $definition): void {
+                $definition->setAbstract(true)->addTag(
+                    'container.excluded',
+                    ['source' => sprintf('with #[%s] attribute', Event::class)]
+                );
+            }
+        );
     }
 }
