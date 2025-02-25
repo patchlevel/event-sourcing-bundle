@@ -1124,18 +1124,18 @@ final class PatchlevelEventSourcingExtension extends Extension
             static function (ChildDefinition $definition): void {
                 $definition->setAbstract(true)->addTag(
                     'container.excluded',
-                    ['source' => sprintf('with #[%s] attribute', Aggregate::class)]
+                    ['source' => sprintf('with #[%s] attribute', Aggregate::class)],
                 );
-            }
+            },
         );
         $container->registerAttributeForAutoconfiguration(
             Event::class,
             static function (ChildDefinition $definition): void {
                 $definition->setAbstract(true)->addTag(
                     'container.excluded',
-                    ['source' => sprintf('with #[%s] attribute', Event::class)]
+                    ['source' => sprintf('with #[%s] attribute', Event::class)],
                 );
-            }
+            },
         );
     }
 }

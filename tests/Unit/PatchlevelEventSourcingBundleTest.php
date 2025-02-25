@@ -10,6 +10,8 @@ use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
 use InvalidArgumentException;
 use Patchlevel\EventSourcing\Aggregate\CustomId;
+use Patchlevel\EventSourcing\Attribute\Aggregate;
+use Patchlevel\EventSourcing\Attribute\Event;
 use Patchlevel\EventSourcing\Clock\FrozenClock;
 use Patchlevel\EventSourcing\Clock\SystemClock;
 use Patchlevel\EventSourcing\CommandBus\CommandBus;
@@ -102,6 +104,7 @@ use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
+use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
@@ -148,8 +151,16 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
         self::assertInstanceOf(SystemClock::class, $container->get('event_sourcing.clock'));
         self::assertInstanceOf(DefaultSubscriptionEngine::class, $container->get(SubscriptionEngine::class));
-
         self::assertFalse($container->has(EventBus::class));
+
+        $attributes = $container->getAutoconfiguredAttributes();
+        foreach ([Aggregate::class, Event::class] as $class) {
+            $definition = new ChildDefinition('');
+            $attributes[$class]($definition);
+
+            $this->assertSame([['source' => sprintf('with #[%s] attribute', $class)]], $definition->getTag('container.excluded'));
+            $this->assertTrue($definition->isAbstract());
+        }
     }
 
     public function testConnectionService(): void
