@@ -481,6 +481,29 @@ patchlevel_event_sourcing:
 
     You can find out more about the command bus and the aggregate handlers [here](https://event-sourcing.patchlevel.io/latest/command_bus/).
     
+## Query Bus
+
+You can enable the query bus integration to use queries to retrieve data from your system. For this bundle we provide
+only a symfony messenger integration, so you have to define the bus in the messenger configuration.
+
+```yaml
+framework:
+    messenger:
+        buses:
+            query.bus: ~
+```
+After this, you need to define the query bus in the event sourcing configuration.
+This will automatically register the handlers for the symfony messenger, so you can handle queries in your services.
+
+```yaml
+patchlevel_event_sourcing:
+    query_bus:
+        service: query.bus
+```
+!!! note
+
+    You can find out more about the query bus [here](https://event-sourcing.patchlevel.io/latest/query_bus/).
+    
 ## Event Bus
 
 You can enable the event bus to listen for events and messages synchronously.

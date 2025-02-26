@@ -66,6 +66,7 @@ use Patchlevel\EventSourcing\Metadata\Message\MessageHeaderRegistry;
 use Patchlevel\EventSourcing\Metadata\Message\MessageHeaderRegistryFactory;
 use Patchlevel\EventSourcing\Metadata\Subscriber\AttributeSubscriberMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Subscriber\SubscriberMetadataFactory;
+use Patchlevel\EventSourcing\QueryBus\QueryBus;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\ChainMessageDecorator;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\MessageDecorator;
@@ -121,6 +122,7 @@ use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
 use Patchlevel\EventSourcingBundle\DataCollector\MessageCollectorEventBus;
 use Patchlevel\EventSourcingBundle\Doctrine\DbalConnectionFactory;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
+use Patchlevel\EventSourcingBundle\QueryBus\SymfonyQueryBus;
 use Patchlevel\EventSourcingBundle\RequestListener\AutoSetupListener;
 use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRebuildAfterFileChangeListener;
 use Patchlevel\EventSourcingBundle\Subscription\ResetServicesListener;
@@ -172,6 +174,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureMessageDecorator($container);
         $this->configureCommandBus($config, $container);
         $this->configureEventBus($config, $container);
+        $this->configureQueryBus($config, $container);
         $this->configureConnection($config, $container);
         $this->configureStore($config, $container);
         $this->configureSnapshots($config, $container);
@@ -351,6 +354,26 @@ final class PatchlevelEventSourcingExtension extends Extension
             ]);
 
         $container->setAlias(MessageLoader::class, GapResolverStoreMessageLoader::class);
+    }
+
+    /** @param Config $config */
+    private function configureQueryBus(array $config, ContainerBuilder $container): void
+    {
+        if (!$config['query_bus']['enabled']) {
+            return;
+        }
+
+        $container->register(SymfonyQueryBus::class)
+            ->setArguments([
+                new Reference($config['query_bus']['service']),
+            ]);
+
+        $container->setAlias(QueryBus::class, SymfonyQueryBus::class);
+
+        $container->setParameter(
+            'patchlevel_event_sourcing.query_handlers.bus',
+            $config['query_bus']['service'],
+        );
     }
 
     /** @param Config $config */

@@ -17,7 +17,7 @@ use function sprintf;
 use function strtolower;
 
 /** @internal */
-final class HandlerCompilerPass implements CompilerPassInterface
+final class CommandHandlerCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
