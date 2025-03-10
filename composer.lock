@@ -413,16 +413,16 @@
         },
         {
             "name": "patchlevel/event-sourcing",
-            "version": "3.10.2",
+            "version": "3.10.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "b94fdb8bcf7f16052b034a9c6997ba714cb03267"
+                "reference": "90d65c8a029fda60e16cca0642683897a22e2f6a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/b94fdb8bcf7f16052b034a9c6997ba714cb03267",
-                "reference": "b94fdb8bcf7f16052b034a9c6997ba714cb03267",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/90d65c8a029fda60e16cca0642683897a22e2f6a",
+                "reference": "90d65c8a029fda60e16cca0642683897a22e2f6a",
                 "shasum": ""
             },
             "require": {
@@ -492,9 +492,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
-                "source": "https://github.com/patchlevel/event-sourcing/tree/3.10.2"
+                "source": "https://github.com/patchlevel/event-sourcing/tree/3.10.3"
             },
-            "time": "2025-02-24T08:57:25+00:00"
+            "time": "2025-03-09T08:46:35+00:00"
         },
         {
             "name": "patchlevel/hydrator",
@@ -7150,16 +7150,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.1.7",
+            "version": "2.1.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "12567f91a74036d56ba0af6d56c8e73ac0e8d850"
+                "reference": "f9adff3b87c03b12cc7e46a30a524648e497758f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/12567f91a74036d56ba0af6d56c8e73ac0e8d850",
-                "reference": "12567f91a74036d56ba0af6d56c8e73ac0e8d850",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/f9adff3b87c03b12cc7e46a30a524648e497758f",
+                "reference": "f9adff3b87c03b12cc7e46a30a524648e497758f",
                 "shasum": ""
             },
             "require": {
@@ -7204,7 +7204,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-03-05T13:43:55+00:00"
+            "time": "2025-03-09T09:30:48+00:00"
         },
         {
             "name": "phpstan/phpstan-symfony",
