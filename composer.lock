@@ -7950,12 +7950,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "6ba50c57532da17268dc38903cc0abffb0f74660"
+                "reference": "700b113fafb61467cdb435b48a29c533235f41d3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/6ba50c57532da17268dc38903cc0abffb0f74660",
-                "reference": "6ba50c57532da17268dc38903cc0abffb0f74660",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/700b113fafb61467cdb435b48a29c533235f41d3",
+                "reference": "700b113fafb61467cdb435b48a29c533235f41d3",
                 "shasum": ""
             },
             "conflict": {
@@ -8344,7 +8344,7 @@
                 "miniorange/miniorange-saml": "<1.4.3",
                 "mittwald/typo3_forum": "<1.2.1",
                 "mobiledetect/mobiledetectlib": "<2.8.32",
-                "modx/revolution": "<=2.8.3.0-patch",
+                "modx/revolution": "<=3.1",
                 "mojo42/jirafeau": "<4.4",
                 "mongodb/mongodb": ">=1,<1.9.2",
                 "monolog/monolog": ">=1.8,<1.12",
@@ -8819,7 +8819,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-03-12T23:05:27+00:00"
+            "time": "2025-03-13T20:05:28+00:00"
         },
         {
             "name": "sanmai/later",
