@@ -7835,12 +7835,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "1fd2478f5f196be425357f9797048c94ec704135"
+                "reference": "9ec3309dcdef9afaf7649b5ddff330d58abe4d34"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/1fd2478f5f196be425357f9797048c94ec704135",
-                "reference": "1fd2478f5f196be425357f9797048c94ec704135",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/9ec3309dcdef9afaf7649b5ddff330d58abe4d34",
+                "reference": "9ec3309dcdef9afaf7649b5ddff330d58abe4d34",
                 "shasum": ""
             },
             "conflict": {
@@ -8469,7 +8469,7 @@
                 "sylius/admin-bundle": ">=1,<1.0.17|>=1.1,<1.1.9|>=1.2,<1.2.2",
                 "sylius/grid": ">=1,<1.1.19|>=1.2,<1.2.18|>=1.3,<1.3.13|>=1.4,<1.4.5|>=1.5,<1.5.1",
                 "sylius/grid-bundle": "<1.10.1",
-                "sylius/paypal-plugin": ">=1,<1.2.4|>=1.3,<1.3.1",
+                "sylius/paypal-plugin": "<1.6.1|>=1.7,<1.7.1|>=2,<2.0.1",
                 "sylius/resource-bundle": ">=1,<1.3.14|>=1.4,<1.4.7|>=1.5,<1.5.2|>=1.6,<1.6.4",
                 "sylius/sylius": "<1.12.19|>=1.13.0.0-alpha1,<1.13.4",
                 "symbiote/silverstripe-multivaluefield": ">=3,<3.1",
@@ -8704,7 +8704,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-03-16T18:05:49+00:00"
+            "time": "2025-03-17T22:04:58+00:00"
         },
         {
             "name": "sanmai/later",
@@ -11197,12 +11197,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/vimeo/psalm.git",
-                "reference": "17267f458584ed554ab6d6664c30475852be0611"
+                "reference": "81c8a77c0793d450fee40265cfe68891df11d505"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vimeo/psalm/zipball/17267f458584ed554ab6d6664c30475852be0611",
-                "reference": "17267f458584ed554ab6d6664c30475852be0611",
+                "url": "https://api.github.com/repos/vimeo/psalm/zipball/81c8a77c0793d450fee40265cfe68891df11d505",
+                "reference": "81c8a77c0793d450fee40265cfe68891df11d505",
                 "shasum": ""
             },
             "require": {
@@ -11307,7 +11307,7 @@
                 "issues": "https://github.com/vimeo/psalm/issues",
                 "source": "https://github.com/vimeo/psalm"
             },
-            "time": "2025-03-16T22:15:27+00:00"
+            "time": "2025-03-17T09:40:52+00:00"
         },
         {
             "name": "webmozart/assert",
