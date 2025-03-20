@@ -7093,16 +7093,16 @@
         },
         {
             "name": "phpstan/phpstan-symfony",
-            "version": "2.0.2",
+            "version": "2.0.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan-symfony.git",
-                "reference": "65f02c7e585f3c7372e42e14d3d87da034031553"
+                "reference": "8f0edc7ea5a8769cdef8aa67b7eeec4a8a9f3746"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan-symfony/zipball/65f02c7e585f3c7372e42e14d3d87da034031553",
-                "reference": "65f02c7e585f3c7372e42e14d3d87da034031553",
+                "url": "https://api.github.com/repos/phpstan/phpstan-symfony/zipball/8f0edc7ea5a8769cdef8aa67b7eeec4a8a9f3746",
+                "reference": "8f0edc7ea5a8769cdef8aa67b7eeec4a8a9f3746",
                 "shasum": ""
             },
             "require": {
@@ -7158,9 +7158,9 @@
             "description": "Symfony Framework extensions and rules for PHPStan",
             "support": {
                 "issues": "https://github.com/phpstan/phpstan-symfony/issues",
-                "source": "https://github.com/phpstan/phpstan-symfony/tree/2.0.2"
+                "source": "https://github.com/phpstan/phpstan-symfony/tree/2.0.3"
             },
-            "time": "2025-01-21T18:57:07+00:00"
+            "time": "2025-03-19T12:40:41+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
@@ -7835,12 +7835,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "74f7ebd1c51cf5a6682c4fad1697cb1fab3c17cf"
+                "reference": "af199f9f0a8c465dd03b06977d83d5b5cbe32a3a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/74f7ebd1c51cf5a6682c4fad1697cb1fab3c17cf",
-                "reference": "74f7ebd1c51cf5a6682c4fad1697cb1fab3c17cf",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/af199f9f0a8c465dd03b06977d83d5b5cbe32a3a",
+                "reference": "af199f9f0a8c465dd03b06977d83d5b5cbe32a3a",
                 "shasum": ""
             },
             "conflict": {
@@ -8471,7 +8471,7 @@
                 "sylius/admin-bundle": ">=1,<1.0.17|>=1.1,<1.1.9|>=1.2,<1.2.2",
                 "sylius/grid": ">=1,<1.1.19|>=1.2,<1.2.18|>=1.3,<1.3.13|>=1.4,<1.4.5|>=1.5,<1.5.1",
                 "sylius/grid-bundle": "<1.10.1",
-                "sylius/paypal-plugin": "<1.6.1|>=1.7,<1.7.1|>=2,<2.0.1",
+                "sylius/paypal-plugin": "<1.6.2|>=1.7,<1.7.2|>=2,<2.0.2",
                 "sylius/resource-bundle": ">=1,<1.3.14|>=1.4,<1.4.7|>=1.5,<1.5.2|>=1.6,<1.6.4",
                 "sylius/sylius": "<1.12.19|>=1.13.0.0-alpha1,<1.13.4",
                 "symbiote/silverstripe-multivaluefield": ">=3,<3.1",
@@ -8706,7 +8706,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-03-18T22:05:07+00:00"
+            "time": "2025-03-19T17:05:08+00:00"
         },
         {
             "name": "sanmai/later",
