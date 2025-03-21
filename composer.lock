@@ -413,16 +413,16 @@
         },
         {
             "name": "patchlevel/event-sourcing",
-            "version": "3.10.3",
+            "version": "3.10.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "90d65c8a029fda60e16cca0642683897a22e2f6a"
+                "reference": "08e6a21b237ddef78d6cf7d2039b709aa84bbb46"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/90d65c8a029fda60e16cca0642683897a22e2f6a",
-                "reference": "90d65c8a029fda60e16cca0642683897a22e2f6a",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/08e6a21b237ddef78d6cf7d2039b709aa84bbb46",
+                "reference": "08e6a21b237ddef78d6cf7d2039b709aa84bbb46",
                 "shasum": ""
             },
             "require": {
@@ -492,9 +492,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
-                "source": "https://github.com/patchlevel/event-sourcing/tree/3.10.3"
+                "source": "https://github.com/patchlevel/event-sourcing/tree/3.10.4"
             },
-            "time": "2025-03-09T08:46:35+00:00"
+            "time": "2025-03-20T14:06:09+00:00"
         },
         {
             "name": "patchlevel/hydrator",
@@ -11195,16 +11195,16 @@
         },
         {
             "name": "vimeo/psalm",
-            "version": "6.9.1",
+            "version": "6.9.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/vimeo/psalm.git",
-                "reference": "81c8a77c0793d450fee40265cfe68891df11d505"
+                "reference": "e052de4275fb6cdbfedfef1d883a7e90732ea609"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vimeo/psalm/zipball/81c8a77c0793d450fee40265cfe68891df11d505",
-                "reference": "81c8a77c0793d450fee40265cfe68891df11d505",
+                "url": "https://api.github.com/repos/vimeo/psalm/zipball/e052de4275fb6cdbfedfef1d883a7e90732ea609",
+                "reference": "e052de4275fb6cdbfedfef1d883a7e90732ea609",
                 "shasum": ""
             },
             "require": {
@@ -11309,7 +11309,7 @@
                 "issues": "https://github.com/vimeo/psalm/issues",
                 "source": "https://github.com/vimeo/psalm"
             },
-            "time": "2025-03-17T09:40:52+00:00"
+            "time": "2025-03-20T13:21:28+00:00"
         },
         {
             "name": "webmozart/assert",
