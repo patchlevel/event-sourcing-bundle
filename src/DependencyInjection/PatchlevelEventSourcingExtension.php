@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\DependencyInjection;
 
+use DateInterval;
 use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
 use Doctrine\Migrations\Configuration\Connection\ExistingConnection;
@@ -95,6 +96,9 @@ use Patchlevel\EventSourcing\Store\StreamDoctrineDbalStore;
 use Patchlevel\EventSourcing\Store\StreamReadOnlyStore;
 use Patchlevel\EventSourcing\Subscription\Engine\CatchUpSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\DefaultSubscriptionEngine;
+use Patchlevel\EventSourcing\Subscription\Engine\GapResolverStoreMessageLoader;
+use Patchlevel\EventSourcing\Subscription\Engine\MessageLoader;
+use Patchlevel\EventSourcing\Subscription\Engine\StoreMessageLoader;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\ThrowOnErrorSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Repository\RunSubscriptionEngineRepositoryManager;
@@ -176,6 +180,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureProfiler($container);
         $this->configureClock($config, $container);
         $this->configureSchema($config, $container);
+        $this->configureMessageLoader($config, $container);
         $this->configureSubscription($config, $container);
         $this->configureCryptography($config, $container);
         $this->configureMigration($config, $container);
@@ -325,6 +330,30 @@ final class PatchlevelEventSourcingExtension extends Extension
     }
 
     /** @param Config $config */
+    private function configureMessageLoader(array $config, ContainerBuilder $container): void
+    {
+        $container->register(StoreMessageLoader::class)
+            ->setArguments([
+                new Reference(Store::class),
+            ]);
+        $container->setAlias(MessageLoader::class, StoreMessageLoader::class);
+
+        if (!$config['subscription']['gap_detection']['enabled']) {
+            return;
+        }
+
+        $container->register(GapResolverStoreMessageLoader::class)
+            ->setArguments([
+                new Reference(Store::class),
+                new Reference('event_sourcing.clock'),
+                $config['subscription']['gap_detection']['retries_in_ms'],
+                new DateInterval($config['subscription']['gap_detection']['detection_window']),
+            ]);
+
+        $container->setAlias(MessageLoader::class, GapResolverStoreMessageLoader::class);
+    }
+
+    /** @param Config $config */
     private function configureSubscription(array $config, ContainerBuilder $container): void
     {
         $attributes = [Subscriber::class, Processor::class, Projector::class];
@@ -455,7 +484,7 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->register(DefaultSubscriptionEngine::class)
             ->setArguments([
-                new Reference(Store::class),
+                new Reference(MessageLoader::class),
                 new Reference(SubscriptionStore::class),
                 new Reference(SubscriberAccessorRepository::class),
                 new Reference(RetryStrategyRepository::class),

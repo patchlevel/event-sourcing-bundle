@@ -414,7 +414,48 @@ patchlevel_event_sourcing:
 !!! tip
 
     This is using the cache system to store the latest file change time. You can change the cache pool with the `cache_pool` option.
+    
+### Gap Detection
 
+Depending on the database you are using for the eventstore it may be happening that your subscriptions are skipping some
+events. This is due to how auto-increments work in these databases in combination with e.g. longer open transactions.
+Even when not working with longer open transactions, this may occur if load is high on the database. We already have a
+locking mechanism in place to prevent this behaviour which throttles write speed. Gap Detection operates different, it
+checks if a gap between the last message handled and the current message is present. If so it waits a reasonable amount
+of time and re-fetches the message. This results into slower updates for the subscriptions but creates more resilience.
+
+```yaml
+patchlevel_event_sourcing:
+    subscription:
+        gap_detection: ~
+```
+!!! info
+
+    For more context you can read more about this in [this issue](https://github.com/patchlevel/event-sourcing/issues/727#issuecomment-2757297536).
+    
+!!! tip
+
+    You can use both techniques locking and gap detecion to mitigate gaps happening in the subscriptions.
+    
+You can also define how often the gap detection should re-check the gap and how long it should wait, in this example we
+instantly retry the first time, then we wait 500ms and after that we check a last time after 1 second.
+
+```yaml
+patchlevel_event_sourcing:
+    subscription:
+        gap_detection:
+            retries_in_ms: [0, 500, 1000]
+```
+Another config option is to define the detection window. The option defines the timeframe from now if we should check
+for a gap. It's defined as an [DateInterval](https://www.php.net/manual/en/class.dateinterval.php) so you need to
+provide a valid `string` for it.
+
+```yaml
+patchlevel_event_sourcing:
+    subscription:
+        gap_detection:
+            detection_window: 'PT5M'
+```
 ## Command Bus
 
 You can enable the command bus integration to use your aggregates as command handlers.
