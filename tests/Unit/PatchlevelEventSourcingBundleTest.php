@@ -66,6 +66,9 @@ use Patchlevel\EventSourcing\Store\StreamReadOnlyStore;
 use Patchlevel\EventSourcing\Store\StreamStore;
 use Patchlevel\EventSourcing\Subscription\Engine\CatchUpSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\DefaultSubscriptionEngine;
+use Patchlevel\EventSourcing\Subscription\Engine\GapResolverStoreMessageLoader;
+use Patchlevel\EventSourcing\Subscription\Engine\MessageLoader;
+use Patchlevel\EventSourcing\Subscription\Engine\StoreMessageLoader;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Repository\RunSubscriptionEngineRepositoryManager;
 use Patchlevel\EventSourcing\Subscription\RetryStrategy\ClockBasedRetryStrategy;
@@ -624,6 +627,78 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertEquals(CreateProfile::class, $tag['handles']);
         self::assertEquals('command.bus', $tag['bus']);
         self::assertInstanceOf(SymfonyCommandBus::class, $container->get(CommandBus::class));
+    }
+
+    public function testMessageLoader(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                ],
+            ]
+        );
+
+        $messageLoader = $container->get(MessageLoader::class);
+
+        self::assertInstanceOf(StoreMessageLoader::class, $messageLoader);
+    }
+
+    public function testGapDetection(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'subscription' => [
+                        'gap_detection' => [
+                            'enabled' => true,
+                        ],
+                    ],
+                ],
+            ]
+        );
+
+        $messageLoader = $container->get(MessageLoader::class);
+
+        self::assertInstanceOf(GapResolverStoreMessageLoader::class, $messageLoader);
+    }
+
+    public function testGapDetectionWithExplicitValues(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'subscription' => [
+                        'gap_detection' => [
+                            'enabled' => true,
+                            'retries_in_ms' => [0, 1, 2],
+                            'detection_window' => 'PT3M',
+                        ],
+                    ],
+                ],
+            ]
+        );
+
+        $messageLoader = $container->get(MessageLoader::class);
+
+        self::assertInstanceOf(GapResolverStoreMessageLoader::class, $messageLoader);
     }
 
     public function testSnapshotStore(): void

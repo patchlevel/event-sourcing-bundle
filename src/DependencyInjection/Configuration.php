@@ -29,7 +29,12 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  *               ids: list<string>,
  *               groups: list<string>,
  *           },
- *          rebuild_after_file_change: array{enabled: bool, cache_pool: string}
+ *          rebuild_after_file_change: array{enabled: bool, cache_pool: string},
+ *          gap_detection: array{
+ *              enabled: bool,
+ *              retries_in_ms: list<int>,
+ *              detection_window: string
+ *          }
  *      },
  *      connection: ?array{
  *          service: ?string,
@@ -258,6 +263,18 @@ final class Configuration implements ConfigurationInterface
                         ->addDefaultsIfNotSet()
                         ->children()
                             ->scalarNode('cache_pool')->defaultValue('cache.app')->end()
+                        ->end()
+                    ->end()
+
+                    ->arrayNode('gap_detection')
+                        ->canBeEnabled()
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->arrayNode('retries_in_ms')
+                                ->scalarPrototype()->end()
+                                ->defaultValue([0, 5, 50, 500])
+                            ->end()
+                            ->scalarNode('detection_window')->defaultValue('PT5M')->end()
                         ->end()
                     ->end()
                 ->end()
