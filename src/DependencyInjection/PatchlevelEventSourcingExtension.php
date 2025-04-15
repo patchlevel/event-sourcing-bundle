@@ -1158,6 +1158,8 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(CipherKeyStore::class),
                 new Reference(CipherKeyFactory::class),
                 new Reference(Cipher::class),
+                $config['cryptography']['use_encrypted_field_name'],
+                $config['cryptography']['fallback_to_field_name'],
             ]);
 
         $container->setAlias(PayloadCryptographer::class, PersonalDataPayloadCryptographer::class);
