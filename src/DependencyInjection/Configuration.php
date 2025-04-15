@@ -55,7 +55,12 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  *      headers: list<string>,
  *      snapshot_stores: array<string, array{type: string, service: string}>,
  *      migration: array{path: string, namespace: string},
- *      cryptography: array{enabled: bool, algorithm: string},
+ *      cryptography: array{
+ *          enabled: bool,
+ *          algorithm: string,
+ *          use_encrypted_field_name: bool,
+ *          fallback_to_field_name: bool,
+ *      },
  *      clock: array{freeze: ?string, service: ?string},
  *      aggregate_handlers: array{enabled: bool, bus: string|null},
  * }
@@ -268,6 +273,8 @@ final class Configuration implements ConfigurationInterface
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->scalarNode('algorithm')->defaultValue('aes256')->end()
+                    ->booleanNode('use_encrypted_field_name')->defaultFalse()->end()
+                    ->booleanNode('fallback_to_field_name')->defaultFalse()->end()
                 ->end()
             ->end()
 
