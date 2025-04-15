@@ -11,6 +11,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  * @psalm-type Config = array{
  *      event_bus: array{enabled: bool, type: string, service: string},
  *      command_bus: array{enabled: bool, service: string},
+ *      query_bus: array{enabled: bool, service: string},
  *      subscription: array{
  *          store: array{type: string, service: string|null},
  *          retry_strategy?: array{base_delay: int, delay_factor: int, max_attempts: int},
@@ -294,6 +295,14 @@ final class Configuration implements ConfigurationInterface
                 ->children()
                     ->scalarNode('service')->isRequired()->end()
                     ->booleanNode('register_aggregate_handlers')->defaultTrue()->end()
+                ->end()
+            ->end()
+
+            ->arrayNode('query_bus')
+                ->canBeEnabled()
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->scalarNode('service')->isRequired()->end()
                 ->end()
             ->end()
 

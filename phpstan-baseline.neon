@@ -1,2 +1,7 @@
 parameters:
 	ignoreErrors:
+		-
+			message: '#^Parameter \#1 \$classString of static method Patchlevel\\EventSourcing\\QueryBus\\HandlerFinder\:\:findInClass\(\) expects class\-string, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/DependencyInjection/QueryHandlerCompilerPass.php

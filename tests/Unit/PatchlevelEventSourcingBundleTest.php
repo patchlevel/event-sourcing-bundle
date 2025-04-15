@@ -42,6 +42,7 @@ use Patchlevel\EventSourcing\Message\Translator\RecalculatePlayheadTranslator;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
 use Patchlevel\EventSourcing\Metadata\Message\MessageHeaderRegistry;
+use Patchlevel\EventSourcing\QueryBus\QueryBus;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\ChainMessageDecorator;
@@ -84,6 +85,7 @@ use Patchlevel\EventSourcingBundle\CommandBus\SymfonyCommandBus;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
+use Patchlevel\EventSourcingBundle\QueryBus\SymfonyQueryBus;
 use Patchlevel\EventSourcingBundle\Subscription\ResetServicesListener;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\CreateProfile;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\CustomHeader;
@@ -95,6 +97,7 @@ use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileCreated;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileProcessor;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileProjector;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileSubscriber;
+use Patchlevel\EventSourcingBundle\Tests\Fixtures\QueryFoo;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\SnapshotableProfile;
 use Patchlevel\Hydrator\Cryptography\PayloadCryptographer;
 use Patchlevel\Hydrator\Cryptography\PersonalDataPayloadCryptographer;
@@ -627,6 +630,45 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertEquals(CreateProfile::class, $tag['handles']);
         self::assertEquals('command.bus', $tag['bus']);
         self::assertInstanceOf(SymfonyCommandBus::class, $container->get(CommandBus::class));
+    }
+
+    public function testQueryBus(): void
+    {
+        $container = new ContainerBuilder();
+
+        $container->setDefinition(ProfileProjector::class, new Definition(ProfileProjector::class))
+            ->setAutoconfigured(true);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'aggregates' => [__DIR__ . '/../Fixtures'],
+                    'query_bus' => [
+                        'service' => 'query.bus',
+                    ],
+                ],
+            ]
+        );
+
+        $definition = $container->getDefinition(ProfileProjector::class);
+        $tags = $definition->getTag('messenger.message_handler');
+
+        self::assertCount(1, $tags);
+
+        $tag = $tags[0];
+
+        self::assertEquals('query', $tag['method']);
+        self::assertEquals(QueryFoo::class, $tag['handles']);
+        self::assertEquals('query.bus', $tag['bus']);
+        self::assertInstanceOf(SymfonyQueryBus::class, $container->get(QueryBus::class));
+
+        $handler = $container->get(ProfileProjector::class);
+
+        self::assertEquals('foo', $handler->{$tag['method']}(new QueryFoo('foo')));
     }
 
     public function testMessageLoader(): void
@@ -1478,6 +1520,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         $container->set('doctrine.dbal.eventstore_connection', $this->prophesize(Connection::class)->reveal());
         $container->set('event.bus', $this->prophesize(MessageBusInterface::class)->reveal());
         $container->set('command.bus', $this->prophesize(MessageBusInterface::class)->reveal());
+        $container->set('query.bus', $this->prophesize(MessageBusInterface::class)->reveal());
         $container->set('cache.default', $this->prophesize(CacheItemPoolInterface::class)->reveal());
         $container->set('event_dispatcher', $this->prophesize(EventDispatcherInterface::class)->reveal());
         $container->set('services_resetter', $this->prophesize(ServicesResetter::class)->reveal());
