@@ -501,16 +501,16 @@
         },
         {
             "name": "patchlevel/hydrator",
-            "version": "1.8.0",
+            "version": "1.8.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/hydrator.git",
-                "reference": "d583af6b4bdacc901611156a7e889cfce99a9b32"
+                "reference": "8d70a36422721b23dc9ee5eb76391729fcc96978"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/hydrator/zipball/d583af6b4bdacc901611156a7e889cfce99a9b32",
-                "reference": "d583af6b4bdacc901611156a7e889cfce99a9b32",
+                "url": "https://api.github.com/repos/patchlevel/hydrator/zipball/8d70a36422721b23dc9ee5eb76391729fcc96978",
+                "reference": "8d70a36422721b23dc9ee5eb76391729fcc96978",
                 "shasum": ""
             },
             "require": {
@@ -561,9 +561,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/hydrator/issues",
-                "source": "https://github.com/patchlevel/hydrator/tree/1.8.0"
+                "source": "https://github.com/patchlevel/hydrator/tree/1.8.1"
             },
-            "time": "2025-04-11T12:52:13+00:00"
+            "time": "2025-04-17T11:47:33+00:00"
         },
         {
             "name": "patchlevel/worker",
@@ -7839,12 +7839,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "508576e5d70b881870043c666e3e4081b474d23f"
+                "reference": "6c54d20ae795b83ecf3f826311d7f488cd1ef005"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/508576e5d70b881870043c666e3e4081b474d23f",
-                "reference": "508576e5d70b881870043c666e3e4081b474d23f",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/6c54d20ae795b83ecf3f826311d7f488cd1ef005",
+                "reference": "6c54d20ae795b83ecf3f826311d7f488cd1ef005",
                 "shasum": ""
             },
             "conflict": {
@@ -8351,6 +8351,7 @@
                 "pear/archive_tar": "<1.4.14",
                 "pear/auth": "<1.2.4",
                 "pear/crypt_gpg": "<1.6.7",
+                "pear/http_request2": "<2.7",
                 "pear/pear": "<=1.10.1",
                 "pegasus/google-for-jobs": "<1.5.1|>=2,<2.1.1",
                 "personnummer/personnummer": "<3.0.2",
@@ -8756,7 +8757,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-04-14T20:05:54+00:00"
+            "time": "2025-04-17T15:05:22+00:00"
         },
         {
             "name": "sanmai/later",
