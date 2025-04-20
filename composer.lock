@@ -501,16 +501,16 @@
         },
         {
             "name": "patchlevel/hydrator",
-            "version": "1.8.1",
+            "version": "1.9.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/hydrator.git",
-                "reference": "8d70a36422721b23dc9ee5eb76391729fcc96978"
+                "reference": "f70e3799b5c61639026d78a010c707d9588c5b61"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/hydrator/zipball/8d70a36422721b23dc9ee5eb76391729fcc96978",
-                "reference": "8d70a36422721b23dc9ee5eb76391729fcc96978",
+                "url": "https://api.github.com/repos/patchlevel/hydrator/zipball/f70e3799b5c61639026d78a010c707d9588c5b61",
+                "reference": "f70e3799b5c61639026d78a010c707d9588c5b61",
                 "shasum": ""
             },
             "require": {
@@ -525,7 +525,7 @@
                 "phpbench/phpbench": "^1.2.15",
                 "phpspec/prophecy-phpunit": "^2.1.0",
                 "phpstan/phpstan": "^2.1.0",
-                "phpunit/phpunit": "^10.5.2",
+                "phpunit/phpunit": "^11.5.17",
                 "psalm/plugin-phpunit": "^0.19.2",
                 "psr/cache": "^2.0.0|^3.0.0",
                 "psr/simple-cache": "^2.0.0|^3.0.0",
@@ -561,9 +561,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/hydrator/issues",
-                "source": "https://github.com/patchlevel/hydrator/tree/1.8.1"
+                "source": "https://github.com/patchlevel/hydrator/tree/1.9.0"
             },
-            "time": "2025-04-17T11:47:33+00:00"
+            "time": "2025-04-19T07:16:31+00:00"
         },
         {
             "name": "patchlevel/worker",
