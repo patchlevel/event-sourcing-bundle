@@ -501,36 +501,35 @@
         },
         {
             "name": "patchlevel/hydrator",
-            "version": "1.9.0",
+            "version": "1.10.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/hydrator.git",
-                "reference": "f70e3799b5c61639026d78a010c707d9588c5b61"
+                "reference": "8c6390af606289edf3a297e55c5eb8503a417523"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/hydrator/zipball/f70e3799b5c61639026d78a010c707d9588c5b61",
-                "reference": "f70e3799b5c61639026d78a010c707d9588c5b61",
+                "url": "https://api.github.com/repos/patchlevel/hydrator/zipball/8c6390af606289edf3a297e55c5eb8503a417523",
+                "reference": "8c6390af606289edf3a297e55c5eb8503a417523",
                 "shasum": ""
             },
             "require": {
                 "ext-openssl": "*",
                 "php": "~8.2.0  || ~8.3.0 || ~8.4.0",
-                "symfony/event-dispatcher": "^5.4.29|^6.4.0|^7.0.0",
+                "psr/cache": "^2.0.0 || ^3.0.0",
+                "psr/simple-cache": "^2.0.0 || ^3.0.0",
+                "symfony/event-dispatcher": "^5.4.29 || ^6.4.0 || ^7.0.0",
                 "symfony/type-info": "^7.2.4"
             },
             "require-dev": {
                 "infection/infection": "^0.29.10",
                 "patchlevel/coding-standard": "^1.3.0",
                 "phpbench/phpbench": "^1.2.15",
-                "phpspec/prophecy-phpunit": "^2.1.0",
                 "phpstan/phpstan": "^2.1.0",
                 "phpunit/phpunit": "^11.5.17",
                 "psalm/plugin-phpunit": "^0.19.2",
-                "psr/cache": "^2.0.0|^3.0.0",
-                "psr/simple-cache": "^2.0.0|^3.0.0",
                 "roave/infection-static-analysis-plugin": "^1.36.0",
-                "symfony/var-dumper": "^5.4.29|^6.4.0|^7.0.0",
+                "symfony/var-dumper": "^5.4.29 || ^6.4.0 || ^7.0.0",
                 "vimeo/psalm": "^6.0.0"
             },
             "type": "library",
@@ -561,9 +560,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/hydrator/issues",
-                "source": "https://github.com/patchlevel/hydrator/tree/1.9.0"
+                "source": "https://github.com/patchlevel/hydrator/tree/1.10.0"
             },
-            "time": "2025-04-19T07:16:31+00:00"
+            "time": "2025-04-20T10:08:52+00:00"
         },
         {
             "name": "patchlevel/worker",
