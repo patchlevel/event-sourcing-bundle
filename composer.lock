@@ -7838,12 +7838,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "4a535062396cc0a0bb7a6bc72e4dc15e8b2018d0"
+                "reference": "1205ebec5b1296c38f6d287a8780c1561380ec2f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/4a535062396cc0a0bb7a6bc72e4dc15e8b2018d0",
-                "reference": "4a535062396cc0a0bb7a6bc72e4dc15e8b2018d0",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/1205ebec5b1296c38f6d287a8780c1561380ec2f",
+                "reference": "1205ebec5b1296c38f6d287a8780c1561380ec2f",
                 "shasum": ""
             },
             "conflict": {
@@ -7957,7 +7957,7 @@
                 "concrete5/core": "<8.5.8|>=9,<9.1",
                 "contao-components/mediaelement": ">=2.14.2,<2.21.1",
                 "contao/comments-bundle": ">=2,<4.13.40|>=5.0.0.0-RC1-dev,<5.3.4",
-                "contao/contao": "<=5.4.1",
+                "contao/contao": ">=3,<3.5.37|>=4,<4.4.56|>=4.5,<4.9.40|>=4.10,<4.11.7|>=4.13,<4.13.21|>=5.1,<5.1.4",
                 "contao/core": "<3.5.39",
                 "contao/core-bundle": "<4.13.54|>=5,<5.3.30|>=5.4,<5.5.6",
                 "contao/listing-bundle": ">=3,<=3.5.30|>=4,<4.4.8",
@@ -8288,6 +8288,7 @@
                 "mustache/mustache": ">=2,<2.14.1",
                 "mwdelaney/wp-enable-svg": "<=0.2",
                 "namshi/jose": "<2.2",
+                "nasirkhan/laravel-starter": "<11.11",
                 "nategood/httpful": "<1",
                 "neoan3-apps/template": "<1.1.1",
                 "neorazorx/facturascripts": "<2022.04",
@@ -8756,7 +8757,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-04-21T23:05:07+00:00"
+            "time": "2025-04-22T23:05:21+00:00"
         },
         {
             "name": "sanmai/later",
