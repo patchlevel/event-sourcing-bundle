@@ -7838,12 +7838,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "1205ebec5b1296c38f6d287a8780c1561380ec2f"
+                "reference": "3fe23dd6d9c692ec019ba1cff225f960699a0da3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/1205ebec5b1296c38f6d287a8780c1561380ec2f",
-                "reference": "1205ebec5b1296c38f6d287a8780c1561380ec2f",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/3fe23dd6d9c692ec019ba1cff225f960699a0da3",
+                "reference": "3fe23dd6d9c692ec019ba1cff225f960699a0da3",
                 "shasum": ""
             },
             "conflict": {
@@ -7871,6 +7871,7 @@
                 "anchorcms/anchor-cms": "<=0.12.7",
                 "andreapollastri/cipi": "<=3.1.15",
                 "andrewhaine/silverstripe-form-capture": ">=0.2,<=0.2.3|>=1,<1.0.2|>=2,<2.2.5",
+                "aoe/restler": "<1.7.1",
                 "apache-solr-for-typo3/solr": "<2.8.3",
                 "apereo/phpcas": "<1.6",
                 "api-platform/core": "<3.4.17|>=4.0.0.0-alpha1,<4.0.22",
@@ -8230,6 +8231,7 @@
                 "livewire/volt": "<1.7",
                 "lms/routes": "<2.1.1",
                 "localizationteam/l10nmgr": "<7.4|>=8,<8.7|>=9,<9.2",
+                "luracast/restler": "<3.1",
                 "luyadev/yii-helpers": "<1.2.1",
                 "macropay-solutions/laravel-crud-wizard-free": "<3.4.17",
                 "maestroerror/php-heic-to-jpg": "<1.0.5",
@@ -8757,7 +8759,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-04-22T23:05:21+00:00"
+            "time": "2025-04-23T02:32:45+00:00"
         },
         {
             "name": "sanmai/later",
