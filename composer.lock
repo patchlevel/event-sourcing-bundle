@@ -7039,16 +7039,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.1.14",
+            "version": "2.1.15",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "8f2e03099cac24ff3b379864d171c5acbfc6b9a2"
+                "reference": "402d11c1aa40ae2e1c3a512e6a4edb957527b20b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/8f2e03099cac24ff3b379864d171c5acbfc6b9a2",
-                "reference": "8f2e03099cac24ff3b379864d171c5acbfc6b9a2",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/402d11c1aa40ae2e1c3a512e6a4edb957527b20b",
+                "reference": "402d11c1aa40ae2e1c3a512e6a4edb957527b20b",
                 "shasum": ""
             },
             "require": {
@@ -7093,20 +7093,20 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-05-02T15:32:28+00:00"
+            "time": "2025-05-14T11:16:08+00:00"
         },
         {
             "name": "phpstan/phpstan-symfony",
-            "version": "2.0.5",
+            "version": "2.0.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan-symfony.git",
-                "reference": "582ddbc641cee028386e985972c631d57ceef406"
+                "reference": "5005288e07583546ea00b52de4a9ac412eb869d7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan-symfony/zipball/582ddbc641cee028386e985972c631d57ceef406",
-                "reference": "582ddbc641cee028386e985972c631d57ceef406",
+                "url": "https://api.github.com/repos/phpstan/phpstan-symfony/zipball/5005288e07583546ea00b52de4a9ac412eb869d7",
+                "reference": "5005288e07583546ea00b52de4a9ac412eb869d7",
                 "shasum": ""
             },
             "require": {
@@ -7162,9 +7162,9 @@
             "description": "Symfony Framework extensions and rules for PHPStan",
             "support": {
                 "issues": "https://github.com/phpstan/phpstan-symfony/issues",
-                "source": "https://github.com/phpstan/phpstan-symfony/tree/2.0.5"
+                "source": "https://github.com/phpstan/phpstan-symfony/tree/2.0.6"
             },
-            "time": "2025-05-13T13:36:35+00:00"
+            "time": "2025-05-14T07:00:05+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
@@ -7847,12 +7847,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "5326c903c04c522c27d45dacfb6a521a448a399a"
+                "reference": "4aa0a0890ece3b361fc4179b1e30fdcc0d2c689b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/5326c903c04c522c27d45dacfb6a521a448a399a",
-                "reference": "5326c903c04c522c27d45dacfb6a521a448a399a",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/4aa0a0890ece3b361fc4179b1e30fdcc0d2c689b",
+                "reference": "4aa0a0890ece3b361fc4179b1e30fdcc0d2c689b",
                 "shasum": ""
             },
             "conflict": {
@@ -8347,7 +8347,7 @@
                 "oro/customer-portal": ">=4.1,<=4.1.13|>=4.2,<=4.2.10|>=5,<=5.0.11|>=5.1,<=5.1.3",
                 "oro/platform": ">=1.7,<1.7.4|>=3.1,<3.1.29|>=4.1,<4.1.17|>=4.2,<=4.2.10|>=5,<=5.0.12|>=5.1,<=5.1.3",
                 "oveleon/contao-cookiebar": "<1.16.3|>=2,<2.1.3",
-                "oxid-esales/oxideshop-ce": "<4.5",
+                "oxid-esales/oxideshop-ce": "<=7.0.5",
                 "oxid-esales/paymorrow-module": ">=1,<1.0.2|>=2,<2.0.1",
                 "packbackbooks/lti-1-3-php-library": "<5",
                 "padraic/humbug_get_contents": "<1.1.2",
@@ -8769,7 +8769,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-05-13T20:06:05+00:00"
+            "time": "2025-05-14T18:07:05+00:00"
         },
         {
             "name": "sanmai/later",
@@ -10990,16 +10990,16 @@
         },
         {
             "name": "thecodingmachine/safe",
-            "version": "3.3.0",
+            "version": "v3.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thecodingmachine/safe.git",
-                "reference": "51a45c524c0f074493565a9deaa39025f19b2b24"
+                "reference": "2cdd579eeaa2e78e51c7509b50cc9fb89a956236"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thecodingmachine/safe/zipball/51a45c524c0f074493565a9deaa39025f19b2b24",
-                "reference": "51a45c524c0f074493565a9deaa39025f19b2b24",
+                "url": "https://api.github.com/repos/thecodingmachine/safe/zipball/2cdd579eeaa2e78e51c7509b50cc9fb89a956236",
+                "reference": "2cdd579eeaa2e78e51c7509b50cc9fb89a956236",
                 "shasum": ""
             },
             "require": {
@@ -11109,7 +11109,7 @@
             "description": "PHP core functions that throw exceptions instead of returning FALSE on error",
             "support": {
                 "issues": "https://github.com/thecodingmachine/safe/issues",
-                "source": "https://github.com/thecodingmachine/safe/tree/3.3.0"
+                "source": "https://github.com/thecodingmachine/safe/tree/v3.3.0"
             },
             "funding": [
                 {
@@ -11125,7 +11125,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-05-13T20:06:28+00:00"
+            "time": "2025-05-14T06:15:44+00:00"
         },
         {
             "name": "theseer/tokenizer",
