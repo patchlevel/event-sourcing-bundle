@@ -16,6 +16,7 @@ use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
 use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
 use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
+use Doctrine\Migrations\Version\MigrationFactory;
 use Doctrine\ORM\Tools\ToolEvents;
 use Patchlevel\EventSourcing\Attribute\Aggregate;
 use Patchlevel\EventSourcing\Attribute\Event;
@@ -996,6 +997,10 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->addMethodCall('setService', [
                 SchemaProvider::class,
                 new Reference(DoctrineMigrationSchemaProvider::class),
+            ])
+            ->addMethodCall('setService', [
+                MigrationFactory::class,
+                new Reference('doctrine.migrations.migrations_factory'),
             ]);
 
         $container->register('event_sourcing.command.migration_diff', DiffCommand::class)
