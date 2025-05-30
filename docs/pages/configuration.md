@@ -383,6 +383,11 @@ patchlevel_event_sourcing:
     subscription:
         run_after_aggregate_save: true
 ```
+!!! warning
+
+    This only works reliable if the database supports schema changes in transactions like PostgreSQL does. 
+    Mysql / MariaDB will trip over the transactions.
+
 ### Auto Setup
 
 If you want to automatically setup the subscription engine, you can activate this option.
