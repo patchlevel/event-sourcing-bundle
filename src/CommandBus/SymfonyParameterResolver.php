@@ -5,16 +5,22 @@ declare(strict_types=1);
 namespace Patchlevel\EventSourcingBundle\CommandBus;
 
 use Patchlevel\EventSourcing\CommandBus\Handler\ParameterResolver;
+use Patchlevel\EventSourcing\CommandBus\Handler\ServiceNotResolvable;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use ReflectionMethod;
+use Symfony\Component\TypeInfo\TypeResolver\TypeResolver;
 
 use function strtolower;
 
 final class SymfonyParameterResolver implements ParameterResolver
 {
+    private readonly TypeResolver $typeResolver;
+
     public function __construct(
         private readonly ContainerInterface $container,
     ) {
+        $this->typeResolver = TypeResolver::create();
     }
 
     /** @return iterable<int, mixed> */
@@ -22,14 +28,29 @@ final class SymfonyParameterResolver implements ParameterResolver
     {
         $prefix = strtolower($method->getName()) . '.';
 
-        foreach ($method->getParameters() as $index => $parameter) {
-            if ($index === 0) {
-                yield $command; // first parameter is always the command
+        foreach ($method->getParameters() as $parameter) {
+            $reflectionType = $parameter->getType();
 
-                continue;
+            if ($reflectionType) {
+                $type = $this->typeResolver->resolve($reflectionType);
+
+                if ($type->isIdentifiedBy($command::class)) {
+                    yield $command;
+
+                    continue;
+                }
             }
 
-            yield $this->container->get($prefix . $parameter->getName());
+            try {
+                yield $this->container->get($prefix . $parameter->getName());
+            } catch (ContainerExceptionInterface $exception) {
+                throw ServiceNotResolvable::missingService(
+                    $method->getDeclaringClass()->getName(),
+                    $method->getName(),
+                    $parameter->getName(),
+                    $exception,
+                );
+            }
         }
     }
 }

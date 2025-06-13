@@ -9,7 +9,6 @@ use Patchlevel\EventSourcing\CommandBus\Handler\ServiceNotResolvable;
 use Patchlevel\EventSourcing\CommandBus\HandlerFinder;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcingBundle\CommandBus\SymfonyParameterResolver;
-use Psr\Container\ContainerInterface;
 use ReflectionAttribute;
 use ReflectionMethod;
 use Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument;
@@ -40,7 +39,10 @@ final class HandlerServiceLocatorCompilerPass implements CompilerPassInterface
             $services = [];
 
             foreach (HandlerFinder::findInClass($aggregateClass) as $aggregateHandler) {
-                $services += $this->services(new ReflectionMethod($aggregateClass, $aggregateHandler->method), $container);
+                $services += $this->services(
+                    new ReflectionMethod($aggregateClass, $aggregateHandler->method),
+                    $container,
+                );
             }
 
             $container->register($parameterResolverId, SymfonyParameterResolver::class)
@@ -51,16 +53,12 @@ final class HandlerServiceLocatorCompilerPass implements CompilerPassInterface
     }
 
     /** @return array<string, mixed> */
-    private function services(ReflectionMethod $method, ContainerInterface $container): array
+    private function services(ReflectionMethod $method, ContainerBuilder $container): array
     {
         $services = [];
         $prefix = strtolower($method->getName()) . '.';
 
-        foreach ($method->getParameters() as $index => $parameter) {
-            if ($index === 0) {
-                continue; // skip first parameter (command)
-            }
-
+        foreach ($method->getParameters() as $parameter) {
             $key = $prefix . $parameter->getName();
 
             $attributes = $parameter->getAttributes(Inject::class);

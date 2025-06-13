@@ -102,6 +102,7 @@ use Patchlevel\EventSourcingBundle\Tests\Fixtures\SnapshotableProfile;
 use Patchlevel\Hydrator\Cryptography\PayloadCryptographer;
 use Patchlevel\Hydrator\Cryptography\PersonalDataPayloadCryptographer;
 use PHPUnit\Framework\TestCase;
+use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Clock\ClockInterface;
@@ -115,6 +116,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\ServicesResetter;
+use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final class PatchlevelEventSourcingBundleTest extends TestCase
@@ -164,7 +166,11 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
             $definition = new ChildDefinition('');
             $attributes[$class]($definition);
 
-            $this->assertSame([['source' => sprintf('with #[%s] attribute', $class)]], $definition->getTag('container.excluded'));
+            $this->assertSame(
+                [['source' => sprintf('with #[%s] attribute', $class)]],
+                $definition->getTag('container.excluded')
+            );
+
             $this->assertTrue($definition->isAbstract());
         }
     }
@@ -614,6 +620,14 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
             ]
         );
 
+        $symfonyCommandBus = $this->prophesize(MessageBusInterface::class);
+        $symfonyCommandBus->dispatch(Argument::any())->willReturn(new Envelope(new \stdClass()));
+
+        $container->set(
+            'command.bus',
+            $symfonyCommandBus->reveal()
+        );
+
         $handler = $container->get('event_sourcing.handler.profile.create');
 
         self::assertInstanceOf(CreateAggregateHandler::class, $handler);
@@ -629,7 +643,16 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertEquals(CreateProfile::class, $tag['handles']);
         self::assertEquals('command.bus', $tag['bus']);
-        self::assertInstanceOf(SymfonyCommandBus::class, $container->get(CommandBus::class));
+
+        $commandBus = $container->get(CommandBus::class);
+
+        self::assertInstanceOf(SymfonyCommandBus::class, $commandBus);
+
+        $commandBus->dispatch(
+            new CreateProfile(
+                CustomId::fromString('2')
+            )
+        );
     }
 
     public function testQueryBus(): void
