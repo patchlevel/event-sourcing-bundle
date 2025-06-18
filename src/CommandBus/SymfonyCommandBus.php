@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Patchlevel\EventSourcingBundle\CommandBus;
 
 use Patchlevel\EventSourcing\CommandBus\CommandBus;
+use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final class SymfonyCommandBus implements CommandBus
@@ -16,6 +17,10 @@ final class SymfonyCommandBus implements CommandBus
 
     public function dispatch(object $command): void
     {
-        $this->messageBus->dispatch($command);
+        try {
+            $this->messageBus->dispatch($command);
+        } catch (HandlerFailedException $e) {
+            throw $e->getWrappedExceptions(null, true)[0] ?? $e;
+        }
     }
 }
