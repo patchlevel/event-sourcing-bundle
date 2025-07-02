@@ -39,7 +39,7 @@
     "phpspec/prophecy-phpunit": "^2.1.0",
     "phpstan/phpstan": "^2.1.0",
     "phpstan/phpstan-symfony": "^2.0",
-    "phpunit/phpunit": "^10.5.2",
+    "phpunit/phpunit": "^12.0.0",
     "psalm/plugin-symfony": "^5.2.7",
     "roave/security-advisories": "dev-master",
     "symfony/uid": "^6.4.0|^7.0.0",
