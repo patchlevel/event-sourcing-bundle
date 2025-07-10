@@ -5390,16 +5390,16 @@
         },
         {
             "name": "infection/infection",
-            "version": "0.30.1",
+            "version": "0.30.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/infection/infection.git",
-                "reference": "70cd94675f6372cf13962d9d52de86b02a909c09"
+                "reference": "edff4c9aaf0bdb2a6f36fffb2fb7672597818612"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/infection/infection/zipball/70cd94675f6372cf13962d9d52de86b02a909c09",
-                "reference": "70cd94675f6372cf13962d9d52de86b02a909c09",
+                "url": "https://api.github.com/repos/infection/infection/zipball/edff4c9aaf0bdb2a6f36fffb2fb7672597818612",
+                "reference": "edff4c9aaf0bdb2a6f36fffb2fb7672597818612",
                 "shasum": ""
             },
             "require": {
@@ -5431,8 +5431,7 @@
             },
             "conflict": {
                 "antecedent/patchwork": "<2.1.25",
-                "dg/bypass-finals": "<1.4.1",
-                "phpunit/php-code-coverage": ">9,<9.1.4 || >9.2.17,<9.2.21"
+                "dg/bypass-finals": "<1.4.1"
             },
             "require-dev": {
                 "ext-simplexml": "*",
@@ -5504,7 +5503,7 @@
             ],
             "support": {
                 "issues": "https://github.com/infection/infection/issues",
-                "source": "https://github.com/infection/infection/tree/0.30.1"
+                "source": "https://github.com/infection/infection/tree/0.30.2"
             },
             "funding": [
                 {
@@ -5516,7 +5515,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2025-07-03T22:10:25+00:00"
+            "time": "2025-07-09T23:00:20+00:00"
         },
         {
             "name": "infection/mutator",
@@ -7865,12 +7864,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "a76f62e135c8b583602bd99df737b5c20f4d7200"
+                "reference": "c4ed86478b4c2004245ec9d3a470dbe1790586a3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/a76f62e135c8b583602bd99df737b5c20f4d7200",
-                "reference": "a76f62e135c8b583602bd99df737b5c20f4d7200",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/c4ed86478b4c2004245ec9d3a470dbe1790586a3",
+                "reference": "c4ed86478b4c2004245ec9d3a470dbe1790586a3",
                 "shasum": ""
             },
             "conflict": {
@@ -8310,7 +8309,7 @@
                 "microsoft/microsoft-graph": ">=1.16,<1.109.1|>=2,<2.0.1",
                 "microsoft/microsoft-graph-beta": "<2.0.1",
                 "microsoft/microsoft-graph-core": "<2.0.2",
-                "microweber/microweber": "<=2.0.16",
+                "microweber/microweber": "<=2.0.19",
                 "mikehaertl/php-shellcommand": "<1.6.1",
                 "miniorange/miniorange-saml": "<1.4.3",
                 "mittwald/typo3_forum": "<1.2.1",
@@ -8811,7 +8810,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-07-04T13:13:44+00:00"
+            "time": "2025-07-09T19:05:36+00:00"
         },
         {
             "name": "sanmai/later",
