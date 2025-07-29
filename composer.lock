@@ -7058,16 +7058,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.1.20",
+            "version": "2.1.21",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "a9ccfef95210f92ba6feea6e8d1eef42b5605499"
+                "reference": "1ccf445757458c06a04eb3f803603cb118fe5fa6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/a9ccfef95210f92ba6feea6e8d1eef42b5605499",
-                "reference": "a9ccfef95210f92ba6feea6e8d1eef42b5605499",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/1ccf445757458c06a04eb3f803603cb118fe5fa6",
+                "reference": "1ccf445757458c06a04eb3f803603cb118fe5fa6",
                 "shasum": ""
             },
             "require": {
@@ -7112,7 +7112,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-07-26T20:45:26+00:00"
+            "time": "2025-07-28T19:35:08+00:00"
         },
         {
             "name": "phpstan/phpstan-symfony",
@@ -7866,12 +7866,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "81355a1946c1cb0d4dd1966161015b8522f30173"
+                "reference": "b18274f015885855abf3a5d7baa5f7a0fa803020"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/81355a1946c1cb0d4dd1966161015b8522f30173",
-                "reference": "81355a1946c1cb0d4dd1966161015b8522f30173",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/b18274f015885855abf3a5d7baa5f7a0fa803020",
+                "reference": "b18274f015885855abf3a5d7baa5f7a0fa803020",
                 "shasum": ""
             },
             "conflict": {
@@ -7981,7 +7981,7 @@
                 "cockpit-hq/cockpit": "<2.11.4",
                 "codeception/codeception": "<3.1.3|>=4,<4.1.22",
                 "codeigniter/framework": "<3.1.10",
-                "codeigniter4/framework": "<4.5.8",
+                "codeigniter4/framework": "<=4.6.2",
                 "codeigniter4/shield": "<1.0.0.0-beta8",
                 "codiad/codiad": "<=2.8.4",
                 "codingms/additional-tca": ">=1.7,<1.15.17|>=1.16,<1.16.9",
@@ -8817,7 +8817,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-07-25T21:05:39+00:00"
+            "time": "2025-07-28T17:07:49+00:00"
         },
         {
             "name": "sanmai/di-container",
@@ -9018,16 +9018,16 @@
         },
         {
             "name": "sanmai/pipeline",
-            "version": "6.22",
+            "version": "7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sanmai/pipeline.git",
-                "reference": "fb8d0c23b4ef085315a36d397fafa052203020ce"
+                "reference": "d01565ef9f5cd7d1019c5f8bee09497067511f36"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sanmai/pipeline/zipball/fb8d0c23b4ef085315a36d397fafa052203020ce",
-                "reference": "fb8d0c23b4ef085315a36d397fafa052203020ce",
+                "url": "https://api.github.com/repos/sanmai/pipeline/zipball/d01565ef9f5cd7d1019c5f8bee09497067511f36",
+                "reference": "d01565ef9f5cd7d1019c5f8bee09497067511f36",
                 "shasum": ""
             },
             "require": {
@@ -9074,7 +9074,7 @@
             "description": "General-purpose collections pipeline",
             "support": {
                 "issues": "https://github.com/sanmai/pipeline/issues",
-                "source": "https://github.com/sanmai/pipeline/tree/6.22"
+                "source": "https://github.com/sanmai/pipeline/tree/7.1"
             },
             "funding": [
                 {
@@ -9082,7 +9082,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-07-22T09:07:07+00:00"
+            "time": "2025-07-27T07:02:29+00:00"
         },
         {
             "name": "sebastian/cli-parser",
