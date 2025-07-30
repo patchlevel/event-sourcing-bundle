@@ -6,11 +6,19 @@ namespace Patchlevel\EventSourcingBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Throwable;
 
 /**
  * @psalm-type Config = array{
  *      event_bus: array{enabled: bool, type: string, service: string},
- *      command_bus: array{enabled: bool, service: string},
+ *      command_bus: array{
+ *          enabled: bool,
+ *          service: string,
+ *          instant_retry: array{
+ *              default_max_retries: positive-int|0,
+ *              default_exceptions: list<class-string<Throwable>>
+ *          },
+ *      },
  *      query_bus: array{enabled: bool, service: string},
  *      subscription: array{
  *          store: array{type: string, service: string|null},
@@ -69,6 +77,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  *      },
  *      clock: array{freeze: ?string, service: ?string},
  *      aggregate_handlers: array{enabled: bool, bus: string|null},
+ *      dcb: array{enabled: bool},
  * }
  */
 final class Configuration implements ConfigurationInterface
@@ -96,7 +105,7 @@ final class Configuration implements ConfigurationInterface
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->enumNode('type')
-                        ->values(['dbal_aggregate', 'dbal_stream', 'in_memory', 'custom'])
+                        ->values(['dbal_aggregate', 'dbal_stream', 'dbal_taggable', 'in_memory', 'custom'])
                         ->defaultValue('dbal_aggregate')
                     ->end()
                     ->scalarNode('service')->defaultNull()->end()
@@ -108,7 +117,7 @@ final class Configuration implements ConfigurationInterface
                         ->addDefaultsIfNotSet()
                         ->children()
                             ->enumNode('type')
-                                ->values(['dbal_aggregate', 'dbal_stream', 'in_memory', 'custom'])
+                                ->values(['dbal_aggregate', 'dbal_stream', 'dbal_taggable', 'in_memory', 'custom'])
                             ->end()
                             ->scalarNode('service')->defaultNull()->end()
                             ->arrayNode('options')->variablePrototype()->end()->end()
@@ -302,6 +311,18 @@ final class Configuration implements ConfigurationInterface
                 ->children()
                     ->scalarNode('service')->isRequired()->end()
                     ->booleanNode('register_aggregate_handlers')->defaultTrue()->end()
+                    ->arrayNode('instant_retry')
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->integerNode('default_max_retries')
+                                ->defaultValue(3)
+                            ->end()
+                            ->arrayNode('default_exceptions')
+                                ->defaultValue([])
+                                ->scalarPrototype()->end()
+                            ->end()
+                        ->end()
+                    ->end()
                 ->end()
             ->end()
 
@@ -311,6 +332,10 @@ final class Configuration implements ConfigurationInterface
                 ->children()
                     ->scalarNode('service')->isRequired()->end()
                 ->end()
+            ->end()
+
+            ->arrayNode('dcb')
+                ->canBeEnabled()
             ->end()
 
             ->arrayNode('aggregate_handlers')
