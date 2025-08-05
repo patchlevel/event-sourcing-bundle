@@ -5445,16 +5445,16 @@
         },
         {
             "name": "infection/infection",
-            "version": "0.31.0",
+            "version": "0.31.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/infection/infection.git",
-                "reference": "94ef40f9d469d2d0f20f82081f700b0754ad949a"
+                "reference": "210e22e670cc6c03ee7c20ce34ff63db3a99a6ea"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/infection/infection/zipball/94ef40f9d469d2d0f20f82081f700b0754ad949a",
-                "reference": "94ef40f9d469d2d0f20f82081f700b0754ad949a",
+                "url": "https://api.github.com/repos/infection/infection/zipball/210e22e670cc6c03ee7c20ce34ff63db3a99a6ea",
+                "reference": "210e22e670cc6c03ee7c20ce34ff63db3a99a6ea",
                 "shasum": ""
             },
             "require": {
@@ -5560,7 +5560,7 @@
             ],
             "support": {
                 "issues": "https://github.com/infection/infection/issues",
-                "source": "https://github.com/infection/infection/tree/0.31.0"
+                "source": "https://github.com/infection/infection/tree/0.31.1"
             },
             "funding": [
                 {
@@ -5572,7 +5572,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2025-07-28T16:45:25+00:00"
+            "time": "2025-08-04T09:59:16+00:00"
         },
         {
             "name": "infection/mutator",
@@ -7113,16 +7113,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.1.21",
+            "version": "2.1.22",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "1ccf445757458c06a04eb3f803603cb118fe5fa6"
+                "reference": "41600c8379eb5aee63e9413fe9e97273e25d57e4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/1ccf445757458c06a04eb3f803603cb118fe5fa6",
-                "reference": "1ccf445757458c06a04eb3f803603cb118fe5fa6",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/41600c8379eb5aee63e9413fe9e97273e25d57e4",
+                "reference": "41600c8379eb5aee63e9413fe9e97273e25d57e4",
                 "shasum": ""
             },
             "require": {
@@ -7167,7 +7167,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-07-28T19:35:08+00:00"
+            "time": "2025-08-04T19:17:37+00:00"
         },
         {
             "name": "phpstan/phpstan-symfony",
@@ -7921,19 +7921,19 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "3aaa2be71bcc17b49137b9e8ecd6619a5997b358"
+                "reference": "bbba44089fc15f183516c671398fc1547438c4d6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/3aaa2be71bcc17b49137b9e8ecd6619a5997b358",
-                "reference": "3aaa2be71bcc17b49137b9e8ecd6619a5997b358",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/bbba44089fc15f183516c671398fc1547438c4d6",
+                "reference": "bbba44089fc15f183516c671398fc1547438c4d6",
                 "shasum": ""
             },
             "conflict": {
                 "3f/pygmentize": "<1.2",
                 "adaptcms/adaptcms": "<=1.3",
                 "admidio/admidio": "<4.3.12",
-                "adodb/adodb-php": "<=5.22.8",
+                "adodb/adodb-php": "<=5.22.9",
                 "aheinze/cockpit": "<2.2",
                 "aimeos/ai-admin-graphql": ">=2022.04.1,<2022.10.10|>=2023.04.1,<2023.10.6|>=2024.04.1,<2024.07.2",
                 "aimeos/ai-admin-jsonadm": "<2020.10.13|>=2021.04.1,<2021.10.6|>=2022.04.1,<2022.10.3|>=2023.04.1,<2023.10.4|==2024.04.1",
@@ -8873,25 +8873,25 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-07-30T14:07:45+00:00"
+            "time": "2025-08-04T16:07:43+00:00"
         },
         {
             "name": "sanmai/di-container",
-            "version": "0.1.4",
+            "version": "0.1.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sanmai/di-container.git",
-                "reference": "7141a28f33d72dd7a9e3148e32a8b54b93050453"
+                "reference": "355534ad7970fc7dab4211ecaf2da5c546855ee8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sanmai/di-container/zipball/7141a28f33d72dd7a9e3148e32a8b54b93050453",
-                "reference": "7141a28f33d72dd7a9e3148e32a8b54b93050453",
+                "url": "https://api.github.com/repos/sanmai/di-container/zipball/355534ad7970fc7dab4211ecaf2da5c546855ee8",
+                "reference": "355534ad7970fc7dab4211ecaf2da5c546855ee8",
                 "shasum": ""
             },
             "require": {
                 "php": ">=8.2",
-                "psr/container": "^2.0",
+                "psr/container": "^1.1.2 || ^2.0",
                 "sanmai/pipeline": "^6.17 || ^7.0"
             },
             "require-dev": {
@@ -8931,10 +8931,16 @@
                     "homepage": "https://twitter.com/tfidry"
                 }
             ],
-            "description": "Straightforward DI container with autowiring",
+            "description": "dependency injection container with automatic constructor dependency resolution",
+            "keywords": [
+                "Autowiring",
+                "constructor di",
+                "di container",
+                "psr 11"
+            ],
             "support": {
                 "issues": "https://github.com/sanmai/di-container/issues",
-                "source": "https://github.com/sanmai/di-container/tree/0.1.4"
+                "source": "https://github.com/sanmai/di-container/tree/0.1.5"
             },
             "funding": [
                 {
@@ -8942,7 +8948,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-07-24T03:40:49+00:00"
+            "time": "2025-08-04T09:43:58+00:00"
         },
         {
             "name": "sanmai/duoclock",
