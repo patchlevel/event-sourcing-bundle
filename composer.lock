@@ -5071,25 +5071,22 @@
         },
         {
             "name": "doctrine/persistence",
-            "version": "4.0.0",
+            "version": "4.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/persistence.git",
-                "reference": "45004aca79189474f113cbe3a53847c2115a55fa"
+                "reference": "275afd6b2cbb1c8249d2c3af3d19054fc52f5dfd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/persistence/zipball/45004aca79189474f113cbe3a53847c2115a55fa",
-                "reference": "45004aca79189474f113cbe3a53847c2115a55fa",
+                "url": "https://api.github.com/repos/doctrine/persistence/zipball/275afd6b2cbb1c8249d2c3af3d19054fc52f5dfd",
+                "reference": "275afd6b2cbb1c8249d2c3af3d19054fc52f5dfd",
                 "shasum": ""
             },
             "require": {
                 "doctrine/event-manager": "^1 || ^2",
                 "php": "^8.1",
                 "psr/cache": "^1.0 || ^2.0 || ^3.0"
-            },
-            "conflict": {
-                "doctrine/common": "<2.10"
             },
             "require-dev": {
                 "doctrine/coding-standard": "^12",
@@ -5146,7 +5143,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/persistence/issues",
-                "source": "https://github.com/doctrine/persistence/tree/4.0.0"
+                "source": "https://github.com/doctrine/persistence/tree/4.0.1"
             },
             "funding": [
                 {
@@ -5162,7 +5159,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-11-01T21:49:07+00:00"
+            "time": "2025-08-01T06:23:10+00:00"
         },
         {
             "name": "felixfbecker/language-server-protocol",
@@ -5460,40 +5457,40 @@
         },
         {
             "name": "infection/infection",
-            "version": "0.31.1",
+            "version": "0.31.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/infection/infection.git",
-                "reference": "210e22e670cc6c03ee7c20ce34ff63db3a99a6ea"
+                "reference": "242785d48ac2dc00a1d3a77b2048b289dc82cbc9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/infection/infection/zipball/210e22e670cc6c03ee7c20ce34ff63db3a99a6ea",
-                "reference": "210e22e670cc6c03ee7c20ce34ff63db3a99a6ea",
+                "url": "https://api.github.com/repos/infection/infection/zipball/242785d48ac2dc00a1d3a77b2048b289dc82cbc9",
+                "reference": "242785d48ac2dc00a1d3a77b2048b289dc82cbc9",
                 "shasum": ""
             },
             "require": {
-                "colinodell/json5": "^2.2 || ^3.0",
+                "colinodell/json5": "^3.0",
                 "composer-runtime-api": "^2.0",
-                "composer/xdebug-handler": "^2.0 || ^3.0",
+                "composer/xdebug-handler": "^3.0",
                 "ext-dom": "*",
                 "ext-json": "*",
                 "ext-libxml": "*",
                 "ext-mbstring": "*",
-                "fidry/cpu-core-counter": "^0.4.0 || ^0.5.0 || ^1.0",
+                "fidry/cpu-core-counter": "^1.0",
                 "infection/abstract-testframework-adapter": "^0.5.0",
                 "infection/extension-installer": "^0.1.0",
                 "infection/include-interceptor": "^0.2.5",
                 "infection/mutator": "^0.4",
-                "justinrainbow/json-schema": "^5.3 || ^6.0",
+                "justinrainbow/json-schema": "^6.0",
                 "nikic/php-parser": "^5.3",
                 "ondram/ci-detector": "^4.1.0",
                 "php": "^8.2",
                 "sanmai/di-container": "^0.1.4",
                 "sanmai/duoclock": "^0.1.0",
                 "sanmai/later": "^0.1.7",
-                "sanmai/pipeline": "^6.22 || ^7.0",
-                "sebastian/diff": "^3.0.2 || ^4.0 || ^5.0 || ^6.0 || ^7.0",
+                "sanmai/pipeline": "^7.0",
+                "sebastian/diff": "^4.0 || ^5.0 || ^6.0 || ^7.0",
                 "symfony/console": "^6.4 || ^7.0",
                 "symfony/filesystem": "^6.4 || ^7.0",
                 "symfony/finder": "^6.4 || ^7.0",
@@ -5575,7 +5572,7 @@
             ],
             "support": {
                 "issues": "https://github.com/infection/infection/issues",
-                "source": "https://github.com/infection/infection/tree/0.31.1"
+                "source": "https://github.com/infection/infection/tree/0.31.2"
             },
             "funding": [
                 {
@@ -5587,7 +5584,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2025-08-04T09:59:16+00:00"
+            "time": "2025-08-21T06:43:51+00:00"
         },
         {
             "name": "infection/mutator",
@@ -7939,12 +7936,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "fca3081453f67915439c330713fed6676b995a81"
+                "reference": "afc1b5ea0233d87f958f1a73da7468f387da9022"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/fca3081453f67915439c330713fed6676b995a81",
-                "reference": "fca3081453f67915439c330713fed6676b995a81",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/afc1b5ea0233d87f958f1a73da7468f387da9022",
+                "reference": "afc1b5ea0233d87f958f1a73da7468f387da9022",
                 "shasum": ""
             },
             "conflict": {
@@ -8753,7 +8750,7 @@
                 "uasoft-indonesia/badaso": "<=2.9.7",
                 "unisharp/laravel-filemanager": "<2.9.1",
                 "universal-omega/dynamic-page-list3": "<3.6.4",
-                "unopim/unopim": "<0.1.5",
+                "unopim/unopim": "<=0.2",
                 "userfrosting/userfrosting": ">=0.3.1,<4.6.3",
                 "usmanhalalit/pixie": "<1.0.3|>=2,<2.0.2",
                 "uvdesk/community-skeleton": "<=1.1.1",
@@ -8894,7 +8891,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-08-20T19:04:41+00:00"
+            "time": "2025-08-21T15:06:11+00:00"
         },
         {
             "name": "sanmai/di-container",
