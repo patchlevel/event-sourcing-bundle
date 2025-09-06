@@ -36,7 +36,7 @@ jobs:
                   extensions: pdo_sqlite
 
             - name: "Cache dependencies"
-              uses: "actions/cache@v2"
+              uses: "actions/cache@v4"
               with:
                   path: |
                       ~/.composer/cache
