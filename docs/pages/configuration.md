@@ -213,8 +213,8 @@ patchlevel_event_sourcing:
 ```
 Following store types are available:
 
-- `dbal_aggregate` *default*
-- `dbal_stream` *experimental*
+- `dbal_aggregate` *default (deprecated)*
+- `dbal_stream` *recommended*
 - `in_memory`
 - `custom`
 
@@ -481,6 +481,24 @@ patchlevel_event_sourcing:
 
     You can find out more about the command bus and the aggregate handlers [here](https://event-sourcing.patchlevel.io/latest/command_bus/).
     
+### Instant Retry
+
+You can define the default instant retry configuration for the command bus.
+This will be used if you don't define a retry configuration for a specific command.
+
+```yaml
+patchlevel_event_sourcing:
+    command_bus:
+        instant_retry:
+            default_max_retries: 3
+            default_exceptions:
+                - Patchlevel\EventSourcing\Repository\AggregateOutdated
+```
+
+!!! note
+
+    You can find out more about instant retry [here](https://event-sourcing.patchlevel.io/latest/command_bus/#instant-retry).
+
 ## Query Bus
 
 You can enable the query bus integration to use queries to retrieve data from your system. For this bundle we provide
