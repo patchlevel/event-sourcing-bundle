@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\DependencyInjection;
 
+use Patchlevel\EventSourcing\Repository\AggregateOutdated;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Throwable;
@@ -317,7 +318,7 @@ final class Configuration implements ConfigurationInterface
                                 ->defaultValue(3)
                             ->end()
                             ->arrayNode('default_exceptions')
-                                ->defaultValue([])
+                                ->defaultValue([AggregateOutdated::class])
                                 ->scalarPrototype()->end()
                             ->end()
                         ->end()
