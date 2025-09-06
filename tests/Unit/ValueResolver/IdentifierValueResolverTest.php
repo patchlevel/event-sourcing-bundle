@@ -2,20 +2,20 @@
 
 namespace Patchlevel\EventSourcingBundle\Tests\Unit\ValueResolver;
 
-use Patchlevel\EventSourcing\Aggregate\CustomId;
-use Patchlevel\EventSourcingBundle\ValueResolver\AggregateRootIdValueResolver;
+use Patchlevel\EventSourcing\Identifier\CustomId;
+use Patchlevel\EventSourcingBundle\ValueResolver\IdentifierValueResolver;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 
 /**
- * @covers \Patchlevel\EventSourcingBundle\ValueResolver\AggregateRootIdValueResolver
+ * @covers \Patchlevel\EventSourcingBundle\ValueResolver\IdentifierValueResolver
  */
-final class AggregateRootIdValueResolverTest extends TestCase
+final class IdentifierValueResolverTest extends TestCase
 {
     public function testResolveValue(): void
     {
-        $valueResolver = new AggregateRootIdValueResolver();
+        $valueResolver = new IdentifierValueResolver();
 
         $request = new Request();
         $request->attributes->set('id', '1');
@@ -35,7 +35,7 @@ final class AggregateRootIdValueResolverTest extends TestCase
 
     public function testNoAggregateId(): void
     {
-        $valueResolver = new AggregateRootIdValueResolver();
+        $valueResolver = new IdentifierValueResolver();
 
         $request = new Request();
         $request->attributes->set('id', '1');
@@ -55,7 +55,7 @@ final class AggregateRootIdValueResolverTest extends TestCase
 
     public function testInvalidValue(): void
     {
-        $valueResolver = new AggregateRootIdValueResolver();
+        $valueResolver = new IdentifierValueResolver();
 
         $request = new Request();
         $request->attributes->set('id', 5);
