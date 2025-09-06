@@ -3,19 +3,20 @@
 namespace Patchlevel\EventSourcingBundle\Tests\Unit;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\Migrations\Tools\Console\Command\CurrentCommand;
 use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
 use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
 use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
 use InvalidArgumentException;
-use Patchlevel\EventSourcing\Aggregate\CustomId;
 use Patchlevel\EventSourcing\Attribute\Aggregate;
 use Patchlevel\EventSourcing\Attribute\Event;
 use Patchlevel\EventSourcing\Clock\FrozenClock;
 use Patchlevel\EventSourcing\Clock\SystemClock;
 use Patchlevel\EventSourcing\CommandBus\CommandBus;
 use Patchlevel\EventSourcing\CommandBus\Handler\CreateAggregateHandler;
+use Patchlevel\EventSourcing\CommandBus\InstantRetryCommandBus;
 use Patchlevel\EventSourcing\Console\Command\DatabaseCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\DatabaseDropCommand;
 use Patchlevel\EventSourcing\Console\Command\DebugCommand;
@@ -81,7 +82,6 @@ use Patchlevel\EventSourcing\Subscription\Store\InMemorySubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\SubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorRepository;
 use Patchlevel\EventSourcingBundle\Command\StoreMigrateCommand;
-use Patchlevel\EventSourcingBundle\CommandBus\SymfonyCommandBus;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
@@ -157,6 +157,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
         self::assertInstanceOf(SystemClock::class, $container->get('event_sourcing.clock'));
         self::assertInstanceOf(DefaultSubscriptionEngine::class, $container->get(SubscriptionEngine::class));
+
         self::assertFalse($container->has(EventBus::class));
 
         $attributes = $container->getAutoconfiguredAttributes();
@@ -164,7 +165,8 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
             $definition = new ChildDefinition('');
             $attributes[$class]($definition);
 
-            $this->assertSame([['source' => sprintf('with #[%s] attribute', $class)]], $definition->getTag('container.excluded'));
+            $this->assertSame([['source' => sprintf('with #[%s] attribute', $class)]],
+                $definition->getTag('container.excluded'));
             $this->assertTrue($definition->isAbstract());
         }
     }
@@ -556,8 +558,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertInstanceOf(CreateAggregateHandler::class, $handler);
 
-        $handler(new CreateProfile(CustomId::fromString('1')));
-
         $definition = $container->getDefinition('event_sourcing.handler.profile.create');
         $tags = $definition->getTag('messenger.message_handler');
 
@@ -618,8 +618,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertInstanceOf(CreateAggregateHandler::class, $handler);
 
-        $handler(new CreateProfile(CustomId::fromString('1')));
-
         $definition = $container->getDefinition('event_sourcing.handler.profile.create');
         $tags = $definition->getTag('messenger.message_handler');
 
@@ -629,7 +627,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertEquals(CreateProfile::class, $tag['handles']);
         self::assertEquals('command.bus', $tag['bus']);
-        self::assertInstanceOf(SymfonyCommandBus::class, $container->get(CommandBus::class));
+        self::assertInstanceOf(InstantRetryCommandBus::class, $container->get(CommandBus::class));
     }
 
     public function testQueryBus(): void
@@ -1517,7 +1515,10 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         $container->setParameter('kernel.project_dir', __DIR__);
 
-        $container->set('doctrine.dbal.eventstore_connection', $this->prophesize(Connection::class)->reveal());
+        $connection = $this->prophesize(Connection::class);
+        $connection->getDatabasePlatform()->willReturn(new PostgreSQLPlatform());
+
+        $container->set('doctrine.dbal.eventstore_connection', $connection->reveal());
         $container->set('event.bus', $this->prophesize(MessageBusInterface::class)->reveal());
         $container->set('command.bus', $this->prophesize(MessageBusInterface::class)->reveal());
         $container->set('query.bus', $this->prophesize(MessageBusInterface::class)->reveal());

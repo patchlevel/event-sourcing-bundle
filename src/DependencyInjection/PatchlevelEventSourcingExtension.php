@@ -25,6 +25,7 @@ use Patchlevel\EventSourcing\Attribute\Subscriber;
 use Patchlevel\EventSourcing\Clock\FrozenClock;
 use Patchlevel\EventSourcing\Clock\SystemClock;
 use Patchlevel\EventSourcing\CommandBus\CommandBus;
+use Patchlevel\EventSourcing\CommandBus\InstantRetryCommandBus;
 use Patchlevel\EventSourcing\Console\Command\DatabaseCreateCommand;
 use Patchlevel\EventSourcing\Console\Command\DatabaseDropCommand;
 use Patchlevel\EventSourcing\Console\Command\DebugCommand;
@@ -246,7 +247,14 @@ final class PatchlevelEventSourcingExtension extends Extension
                     new Reference($config['command_bus']['service']),
                 ]);
 
-            $container->setAlias(CommandBus::class, SymfonyCommandBus::class);
+            $container->register(InstantRetryCommandBus::class)
+                ->setArguments([
+                    new Reference(SymfonyCommandBus::class),
+                    $config['command_bus']['instant_retry']['default_max_retries'],
+                    $config['command_bus']['instant_retry']['default_exceptions'],
+                ]);
+
+            $container->setAlias(CommandBus::class, InstantRetryCommandBus::class);
 
             $container->setParameter(
                 'patchlevel_event_sourcing.aggregate_handlers.bus',

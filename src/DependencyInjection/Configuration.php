@@ -4,13 +4,22 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\DependencyInjection;
 
+use Patchlevel\EventSourcing\Repository\AggregateOutdated;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Throwable;
 
 /**
  * @psalm-type Config = array{
  *      event_bus: array{enabled: bool, type: string, service: string},
- *      command_bus: array{enabled: bool, service: string},
+ *      command_bus: array{
+ *          enabled: bool,
+ *          service: string,
+ *          instant_retry: array{
+ *              default_max_retries: positive-int|0,
+ *              default_exceptions: list<class-string<Throwable>>
+ *          },
+ *      },
  *      query_bus: array{enabled: bool, service: string},
  *      subscription: array{
  *          store: array{type: string, service: string|null},
@@ -302,6 +311,18 @@ final class Configuration implements ConfigurationInterface
                 ->children()
                     ->scalarNode('service')->isRequired()->end()
                     ->booleanNode('register_aggregate_handlers')->defaultTrue()->end()
+                    ->arrayNode('instant_retry')
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->integerNode('default_max_retries')
+                                ->defaultValue(3)
+                            ->end()
+                            ->arrayNode('default_exceptions')
+                                ->defaultValue([AggregateOutdated::class])
+                                ->scalarPrototype()->end()
+                            ->end()
+                        ->end()
+                    ->end()
                 ->end()
             ->end()
 
