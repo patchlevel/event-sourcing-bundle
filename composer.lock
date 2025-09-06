@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "376e3631e118d5dcb440448e2ba7b812",
+    "content-hash": "5b0e3b3687501c77865066cc74d3cac9",
     "packages": [
         {
             "name": "brick/math",
@@ -416,16 +416,16 @@
         },
         {
             "name": "patchlevel/event-sourcing",
-            "version": "dev-DCB",
+            "version": "3.12.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "e589cf208c23690554bd4a78bb262a689ac3d7a0"
+                "reference": "6f641dbd6bdbb25b9232ca5072edb5b489683bef"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/e589cf208c23690554bd4a78bb262a689ac3d7a0",
-                "reference": "e589cf208c23690554bd4a78bb262a689ac3d7a0",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/6f641dbd6bdbb25b9232ca5072edb5b489683bef",
+                "reference": "6f641dbd6bdbb25b9232ca5072edb5b489683bef",
                 "shasum": ""
             },
             "require": {
@@ -451,7 +451,6 @@
                 "infection/infection": "^0.29.12",
                 "league/commonmark": "^2.6.1",
                 "patchlevel/coding-standard": "^1.3.0",
-                "patchlevel/event-sourcing-phpstan-extension": "^1.0",
                 "patchlevel/event-sourcing-psalm-plugin": "^3.1.0",
                 "phpat/phpat": "^0.11.3",
                 "phpbench/phpbench": "^1.4.1",
@@ -495,9 +494,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
-                "source": "https://github.com/patchlevel/event-sourcing/tree/DCB"
+                "source": "https://github.com/patchlevel/event-sourcing/tree/3.12.0"
             },
-            "time": "2025-09-04T16:32:46+00:00"
+            "time": "2025-09-03T15:09:01+00:00"
         },
         {
             "name": "patchlevel/hydrator",
@@ -11821,17 +11820,9 @@
             "time": "2024-11-13T18:20:34+00:00"
         }
     ],
-    "aliases": [
-        {
-            "package": "patchlevel/event-sourcing",
-            "version": "dev-DCB",
-            "alias": "3.12.0",
-            "alias_normalized": "3.12.0.0"
-        }
-    ],
+    "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "patchlevel/event-sourcing": 20,
         "roave/security-advisories": 20
     },
     "prefer-stable": true,

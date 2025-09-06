@@ -34,12 +34,6 @@ use Patchlevel\EventSourcing\Console\Command\SubscriptionSetupCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionStatusCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionTeardownCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
-use Patchlevel\EventSourcing\DCB\AttributeEventTagExtractor;
-use Patchlevel\EventSourcing\DCB\DecisionModelBuilder;
-use Patchlevel\EventSourcing\DCB\EventAppender;
-use Patchlevel\EventSourcing\DCB\EventTagExtractor;
-use Patchlevel\EventSourcing\DCB\StoreDecisionModelBuilder;
-use Patchlevel\EventSourcing\DCB\StoreEventAppender;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\Psr14EventBus;
@@ -163,7 +157,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
         self::assertInstanceOf(SystemClock::class, $container->get('event_sourcing.clock'));
         self::assertInstanceOf(DefaultSubscriptionEngine::class, $container->get(SubscriptionEngine::class));
-        self::assertInstanceOf(AttributeEventTagExtractor::class, $container->get(EventTagExtractor::class));
 
         self::assertFalse($container->has(EventBus::class));
 
@@ -674,30 +667,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         $handler = $container->get(ProfileProjector::class);
 
         self::assertEquals('foo', $handler->{$tag['method']}(new QueryFoo('foo')));
-    }
-
-
-    public function testDCB(): void
-    {
-        $container = new ContainerBuilder();
-
-        $this->compileContainer(
-            $container,
-            [
-                'patchlevel_event_sourcing' => [
-                    'connection' => [
-                        'service' => 'doctrine.dbal.eventstore_connection',
-                    ],
-                    'store' => [
-                        'type' => 'dbal_taggable',
-                    ],
-                    'dcb' => true,
-                ],
-            ]
-        );
-
-        self::assertInstanceOf(StoreEventAppender::class, $container->get(EventAppender::class));
-        self::assertInstanceOf(StoreDecisionModelBuilder::class, $container->get(DecisionModelBuilder::class));
     }
 
     public function testMessageLoader(): void
