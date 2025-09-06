@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5b0e3b3687501c77865066cc74d3cac9",
+    "content-hash": "1188169a2587a89ce287cc533d84face",
     "packages": [
         {
             "name": "brick/math",
@@ -416,16 +416,16 @@
         },
         {
             "name": "patchlevel/event-sourcing",
-            "version": "3.12.0",
+            "version": "4.0.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "6f641dbd6bdbb25b9232ca5072edb5b489683bef"
+                "reference": "2aa2ddc4248110898b621885b03b1db096975511"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/6f641dbd6bdbb25b9232ca5072edb5b489683bef",
-                "reference": "6f641dbd6bdbb25b9232ca5072edb5b489683bef",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/2aa2ddc4248110898b621885b03b1db096975511",
+                "reference": "2aa2ddc4248110898b621885b03b1db096975511",
                 "shasum": ""
             },
             "require": {
@@ -494,9 +494,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
-                "source": "https://github.com/patchlevel/event-sourcing/tree/3.12.0"
+                "source": "https://github.com/patchlevel/event-sourcing/tree/4.0.x"
             },
-            "time": "2025-09-03T15:09:01+00:00"
+            "time": "2025-09-04T16:22:44+00:00"
         },
         {
             "name": "patchlevel/hydrator",
@@ -11823,6 +11823,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
+        "patchlevel/event-sourcing": 20,
         "roave/security-advisories": 20
     },
     "prefer-stable": true,

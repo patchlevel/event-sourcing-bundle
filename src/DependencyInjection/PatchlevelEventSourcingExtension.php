@@ -90,9 +90,7 @@ use Patchlevel\EventSourcing\Snapshot\Adapter\Psr16SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr6SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\DefaultSnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
-use Patchlevel\EventSourcing\Store\DoctrineDbalStore;
 use Patchlevel\EventSourcing\Store\InMemoryStore;
-use Patchlevel\EventSourcing\Store\ReadOnlyStore;
 use Patchlevel\EventSourcing\Store\Store;
 use Patchlevel\EventSourcing\Store\StreamDoctrineDbalStore;
 use Patchlevel\EventSourcing\Store\StreamReadOnlyStore;
@@ -128,7 +126,7 @@ use Patchlevel\EventSourcingBundle\RequestListener\AutoSetupListener;
 use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRebuildAfterFileChangeListener;
 use Patchlevel\EventSourcingBundle\Subscription\ResetServicesListener;
 use Patchlevel\EventSourcingBundle\Subscription\StaticInMemorySubscriptionStoreFactory;
-use Patchlevel\EventSourcingBundle\ValueResolver\AggregateRootIdValueResolver;
+use Patchlevel\EventSourcingBundle\ValueResolver\IdentifierValueResolver;
 use Patchlevel\Hydrator\Cryptography\Cipher\Cipher;
 use Patchlevel\Hydrator\Cryptography\Cipher\CipherKeyFactory;
 use Patchlevel\Hydrator\Cryptography\Cipher\OpensslCipher;
@@ -709,29 +707,6 @@ final class PatchlevelEventSourcingExtension extends Extension
             return;
         }
 
-        if ($config['store']['type'] === 'dbal_aggregate') {
-            $container->register(DoctrineDbalStore::class)
-                ->setArguments([
-                    new Reference('event_sourcing.dbal_connection'),
-                    new Reference(EventSerializer::class),
-                    new Reference(HeadersSerializer::class),
-                    $config['store']['options'],
-                ])
-                ->addTag('event_sourcing.doctrine_schema_configurator');
-
-            $container->setAlias(Store::class, DoctrineDbalStore::class);
-
-            if ($config['store']['read_only']) {
-                $container->register(ReadOnlyStore::class)
-                    ->setDecoratedService(Store::class)
-                    ->setArguments([
-                        new Reference('.inner'),
-                    ]);
-            }
-
-            return;
-        }
-
         if ($config['store']['type'] === 'dbal_stream') {
             $container->register(StreamDoctrineDbalStore::class)
                 ->setArguments([
@@ -791,19 +766,6 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         if ($config['store']['migrate_to_new_store']['type'] === 'in_memory') {
             $container->register($id, InMemoryStore::class);
-
-            return;
-        }
-
-        if ($config['store']['migrate_to_new_store']['type'] === 'dbal_aggregate') {
-            $container->register($id, DoctrineDbalStore::class)
-                ->setArguments([
-                    new Reference('event_sourcing.dbal_connection'),
-                    new Reference(EventSerializer::class),
-                    new Reference(HeadersSerializer::class),
-                    $config['store']['migrate_to_new_store']['options'],
-                ])
-                ->addTag('event_sourcing.doctrine_schema_configurator');
 
             return;
         }
@@ -1175,7 +1137,7 @@ final class PatchlevelEventSourcingExtension extends Extension
 
     private function configureValueResolver(ContainerBuilder $container): void
     {
-        $container->register(AggregateRootIdValueResolver::class)
+        $container->register(IdentifierValueResolver::class)
             ->addTag('controller.argument_value_resolver', ['priority' => 200]);
     }
 

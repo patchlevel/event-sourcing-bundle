@@ -37,7 +37,6 @@ use Patchlevel\EventSourcing\Console\Command\WatchCommand;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\Psr14EventBus;
-use Patchlevel\EventSourcing\Message\Translator\AggregateToStreamHeaderTranslator;
 use Patchlevel\EventSourcing\Message\Translator\ExcludeEventWithHeaderTranslator;
 use Patchlevel\EventSourcing\Message\Translator\RecalculatePlayheadTranslator;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
@@ -59,9 +58,7 @@ use Patchlevel\EventSourcing\Snapshot\Adapter\Psr6SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\DefaultSnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
 use Patchlevel\EventSourcing\Store\ArchivedHeader;
-use Patchlevel\EventSourcing\Store\DoctrineDbalStore;
 use Patchlevel\EventSourcing\Store\InMemoryStore;
-use Patchlevel\EventSourcing\Store\ReadOnlyStore;
 use Patchlevel\EventSourcing\Store\Store;
 use Patchlevel\EventSourcing\Store\StreamDoctrineDbalStore;
 use Patchlevel\EventSourcing\Store\StreamReadOnlyStore;
@@ -151,7 +148,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(Connection::class, $container->get('event_sourcing.dbal_connection'));
-        self::assertInstanceOf(DoctrineDbalStore::class, $container->get(Store::class));
+        self::assertInstanceOf(StreamDoctrineDbalStore::class, $container->get(Store::class));
         self::assertInstanceOf(AggregateRootRegistry::class, $container->get(AggregateRootRegistry::class));
         self::assertInstanceOf(DefaultRepositoryManager::class, $container->get(RepositoryManager::class));
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
@@ -186,7 +183,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(Connection::class, $container->get('event_sourcing.dbal_connection'));
-        self::assertInstanceOf(DoctrineDbalStore::class, $container->get(Store::class));
+        self::assertInstanceOf(StreamDoctrineDbalStore::class, $container->get(Store::class));
     }
 
     public function testProjectionConnection(): void
@@ -321,7 +318,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
             ]
         );
 
-        self::assertInstanceOf(ReadOnlyStore::class, $container->get(Store::class));
+        self::assertInstanceOf(StreamReadOnlyStore::class, $container->get(Store::class));
     }
 
     public function testMigrateStore(): void
@@ -344,7 +341,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                             'translators' => [
                                 'my_translator',
                                 RecalculatePlayheadTranslator::class,
-                                AggregateToStreamHeaderTranslator::class,
                             ],
                         ],
                     ]
@@ -352,7 +348,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
             ]
         );
 
-        self::assertInstanceOf(DoctrineDbalStore::class, $container->get(Store::class));
+        self::assertInstanceOf(StreamDoctrineDbalStore::class, $container->get(Store::class));
         self::assertInstanceOf(StreamDoctrineDbalStore::class, $container->get('event_sourcing.store.new_store'));
         self::assertInstanceOf(StoreMigrateCommand::class, $container->get(StoreMigrateCommand::class));
 
@@ -363,9 +359,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                 ],
                 RecalculatePlayheadTranslator::class => [
                     ['priority' => -1],
-                ],
-                AggregateToStreamHeaderTranslator::class => [
-                    ['priority' => -2],
                 ],
             ],
             $container->findTaggedServiceIds('event_sourcing.translator')
@@ -1474,7 +1467,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(Connection::class, $container->get('event_sourcing.dbal_connection'));
-        self::assertInstanceOf(DoctrineDbalStore::class, $container->get(Store::class));
+        self::assertInstanceOf(StreamDoctrineDbalStore::class, $container->get(Store::class));
         self::assertInstanceOf(DefaultEventBus::class, $container->get(EventBus::class));
         self::assertInstanceOf(AggregateRootRegistry::class, $container->get(AggregateRootRegistry::class));
         self::assertInstanceOf(RepositoryManager::class, $container->get(RepositoryManager::class));
