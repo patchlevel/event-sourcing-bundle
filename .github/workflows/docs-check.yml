@@ -25,10 +25,10 @@ jobs:
 
         steps:
             - name: "Checkout"
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
 
             - name: "Install PHP"
-              uses: "shivammathur/setup-php@2.35.4"
+              uses: "shivammathur/setup-php@2.35.5"
               with:
                   coverage: none
                   php-version: "${{ matrix.php-version }}"
