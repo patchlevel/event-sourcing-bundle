@@ -708,7 +708,12 @@ final class PatchlevelEventSourcingExtension extends Extension
         }
 
         if ($config['store']['type'] === 'in_memory') {
-            $service = $container->register(InMemoryStore::class);
+            $service = $container->register(InMemoryStore::class)
+                ->setArguments([
+                    [],
+                    new Reference(EventRegistry::class),
+                    new Reference('event_sourcing.clock'),
+                ]);
 
             if (($config['store']['options']['kernel_reset'] ?? false) === true) {
                 $service->addTag('kernel.reset', ['method' => 'clear']);
