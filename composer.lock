@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5b0e3b3687501c77865066cc74d3cac9",
+    "content-hash": "1b98531e8c544fb9d7d9edf5058f30d4",
     "packages": [
         {
             "name": "brick/math",
@@ -416,16 +416,16 @@
         },
         {
             "name": "patchlevel/event-sourcing",
-            "version": "3.12.0",
+            "version": "3.13.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "6f641dbd6bdbb25b9232ca5072edb5b489683bef"
+                "reference": "29f6737a44a13fc7885b55d6148f1f099fa9a0af"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/6f641dbd6bdbb25b9232ca5072edb5b489683bef",
-                "reference": "6f641dbd6bdbb25b9232ca5072edb5b489683bef",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/29f6737a44a13fc7885b55d6148f1f099fa9a0af",
+                "reference": "29f6737a44a13fc7885b55d6148f1f099fa9a0af",
                 "shasum": ""
             },
             "require": {
@@ -452,7 +452,7 @@
                 "league/commonmark": "^2.6.1",
                 "patchlevel/coding-standard": "^1.3.0",
                 "patchlevel/event-sourcing-psalm-plugin": "^3.1.0",
-                "phpat/phpat": "^0.11.3",
+                "phpat/phpat": "^0.12.0",
                 "phpbench/phpbench": "^1.4.1",
                 "phpstan/phpstan": "^2.1.11",
                 "phpstan/phpstan-phpunit": "^2.0",
@@ -494,9 +494,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
-                "source": "https://github.com/patchlevel/event-sourcing/tree/3.12.0"
+                "source": "https://github.com/patchlevel/event-sourcing/tree/3.13.0"
             },
-            "time": "2025-09-03T15:09:01+00:00"
+            "time": "2025-11-21T11:46:43+00:00"
         },
         {
             "name": "patchlevel/hydrator",
