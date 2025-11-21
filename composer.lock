@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5b0e3b3687501c77865066cc74d3cac9",
+    "content-hash": "1b98531e8c544fb9d7d9edf5058f30d4",
     "packages": [
         {
             "name": "brick/math",
@@ -416,16 +416,16 @@
         },
         {
             "name": "patchlevel/event-sourcing",
-            "version": "3.12.1",
+            "version": "3.13.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "f09640225ba860896947f03d6f16ed7e36b076c2"
+                "reference": "29f6737a44a13fc7885b55d6148f1f099fa9a0af"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/f09640225ba860896947f03d6f16ed7e36b076c2",
-                "reference": "f09640225ba860896947f03d6f16ed7e36b076c2",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/29f6737a44a13fc7885b55d6148f1f099fa9a0af",
+                "reference": "29f6737a44a13fc7885b55d6148f1f099fa9a0af",
                 "shasum": ""
             },
             "require": {
@@ -494,9 +494,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
-                "source": "https://github.com/patchlevel/event-sourcing/tree/3.12.1"
+                "source": "https://github.com/patchlevel/event-sourcing/tree/3.13.0"
             },
-            "time": "2025-09-19T10:57:51+00:00"
+            "time": "2025-11-21T11:46:43+00:00"
         },
         {
             "name": "patchlevel/hydrator",
@@ -11888,5 +11888,5 @@
     "platform-dev": {
         "ext-pdo_sqlite": "*"
     },
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }
