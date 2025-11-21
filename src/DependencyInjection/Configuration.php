@@ -78,6 +78,7 @@ use Throwable;
  *      },
  *      clock: array{freeze: ?string, service: ?string},
  *      aggregate_handlers: array{enabled: bool, bus: string|null},
+ *      dcb: array{enabled: bool},
  * }
  */
 final class Configuration implements ConfigurationInterface
@@ -105,8 +106,8 @@ final class Configuration implements ConfigurationInterface
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->enumNode('type')
-                        ->values(['dbal_aggregate', 'dbal_stream', 'in_memory', 'custom'])
-                        ->defaultValue('dbal_aggregate')
+                        ->values(['dbal_stream', 'dbal_taggable', 'in_memory', 'custom'])
+                        ->defaultValue('dbal_stream')
                     ->end()
                     ->scalarNode('service')->defaultNull()->end()
                     ->booleanNode('merge_orm_schema')->defaultFalse()->end()
@@ -117,7 +118,7 @@ final class Configuration implements ConfigurationInterface
                         ->addDefaultsIfNotSet()
                         ->children()
                             ->enumNode('type')
-                                ->values(['dbal_aggregate', 'dbal_stream', 'in_memory', 'custom'])
+                                ->values(['dbal_stream', 'dbal_taggable', 'in_memory', 'custom'])
                             ->end()
                             ->scalarNode('service')->defaultNull()->end()
                             ->arrayNode('options')->variablePrototype()->end()->end()
@@ -332,6 +333,10 @@ final class Configuration implements ConfigurationInterface
                 ->children()
                     ->scalarNode('service')->isRequired()->end()
                 ->end()
+            ->end()
+
+            ->arrayNode('dcb')
+                ->canBeEnabled()
             ->end()
 
             ->arrayNode('aggregate_handlers')

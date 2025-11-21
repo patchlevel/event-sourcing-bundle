@@ -34,10 +34,15 @@ use Patchlevel\EventSourcing\Console\Command\SubscriptionSetupCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionStatusCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionTeardownCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
+use Patchlevel\EventSourcing\Serializer\AttributeEventTagExtractor;
+use Patchlevel\EventSourcing\DecisionModel\DecisionModelBuilder;
+use Patchlevel\EventSourcing\DecisionModel\EventAppender;
+use Patchlevel\EventSourcing\Serializer\EventTagExtractor;
+use Patchlevel\EventSourcing\DecisionModel\StoreDecisionModelBuilder;
+use Patchlevel\EventSourcing\DecisionModel\StoreEventAppender;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\Psr14EventBus;
-use Patchlevel\EventSourcing\Message\Translator\AggregateToStreamHeaderTranslator;
 use Patchlevel\EventSourcing\Message\Translator\ExcludeEventWithHeaderTranslator;
 use Patchlevel\EventSourcing\Message\Translator\RecalculatePlayheadTranslator;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
@@ -59,13 +64,10 @@ use Patchlevel\EventSourcing\Snapshot\Adapter\Psr6SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\DefaultSnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
 use Patchlevel\EventSourcing\Store\ArchivedHeader;
-use Patchlevel\EventSourcing\Store\DoctrineDbalStore;
 use Patchlevel\EventSourcing\Store\InMemoryStore;
-use Patchlevel\EventSourcing\Store\ReadOnlyStore;
 use Patchlevel\EventSourcing\Store\Store;
 use Patchlevel\EventSourcing\Store\StreamDoctrineDbalStore;
-use Patchlevel\EventSourcing\Store\StreamReadOnlyStore;
-use Patchlevel\EventSourcing\Store\StreamStore;
+use Patchlevel\EventSourcing\Store\ReadOnlyStore;
 use Patchlevel\EventSourcing\Subscription\Engine\CatchUpSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\DefaultSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\GapResolverStoreMessageLoader;
@@ -151,12 +153,13 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(Connection::class, $container->get('event_sourcing.dbal_connection'));
-        self::assertInstanceOf(DoctrineDbalStore::class, $container->get(Store::class));
+        self::assertInstanceOf(StreamDoctrineDbalStore::class, $container->get(Store::class));
         self::assertInstanceOf(AggregateRootRegistry::class, $container->get(AggregateRootRegistry::class));
         self::assertInstanceOf(DefaultRepositoryManager::class, $container->get(RepositoryManager::class));
         self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
         self::assertInstanceOf(SystemClock::class, $container->get('event_sourcing.clock'));
         self::assertInstanceOf(DefaultSubscriptionEngine::class, $container->get(SubscriptionEngine::class));
+        self::assertInstanceOf(AttributeEventTagExtractor::class, $container->get(EventTagExtractor::class));
 
         self::assertFalse($container->has(EventBus::class));
 
@@ -186,7 +189,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(Connection::class, $container->get('event_sourcing.dbal_connection'));
-        self::assertInstanceOf(DoctrineDbalStore::class, $container->get(Store::class));
+        self::assertInstanceOf(StreamDoctrineDbalStore::class, $container->get(Store::class));
     }
 
     public function testProjectionConnection(): void
@@ -281,7 +284,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
             ]
         );
 
-        self::assertInstanceOf(StreamStore::class, $container->get(Store::class));
+        self::assertInstanceOf(StreamDoctrineDbalStore::class, $container->get(Store::class));
     }
 
     public function testInMemoryStore(): void
@@ -344,7 +347,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                             'translators' => [
                                 'my_translator',
                                 RecalculatePlayheadTranslator::class,
-                                AggregateToStreamHeaderTranslator::class,
                             ],
                         ],
                     ]
@@ -352,7 +354,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
             ]
         );
 
-        self::assertInstanceOf(DoctrineDbalStore::class, $container->get(Store::class));
+        self::assertInstanceOf(StreamDoctrineDbalStore::class, $container->get(Store::class));
         self::assertInstanceOf(StreamDoctrineDbalStore::class, $container->get('event_sourcing.store.new_store'));
         self::assertInstanceOf(StoreMigrateCommand::class, $container->get(StoreMigrateCommand::class));
 
@@ -364,33 +366,9 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                 RecalculatePlayheadTranslator::class => [
                     ['priority' => -1],
                 ],
-                AggregateToStreamHeaderTranslator::class => [
-                    ['priority' => -2],
-                ],
             ],
             $container->findTaggedServiceIds('event_sourcing.translator')
         );
-    }
-
-    public function testStreamReadOnlyStore(): void
-    {
-        $container = new ContainerBuilder();
-        $this->compileContainer(
-            $container,
-            [
-                'patchlevel_event_sourcing' => [
-                    'connection' => [
-                        'service' => 'doctrine.dbal.eventstore_connection',
-                    ],
-                    'store' => [
-                        'type' => 'dbal_stream',
-                        'read_only' => true,
-                    ]
-                ],
-            ]
-        );
-
-        self::assertInstanceOf(StreamReadOnlyStore::class, $container->get(Store::class));
     }
 
     public function testSymfonyEventBus(): void
@@ -667,6 +645,30 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         $handler = $container->get(ProfileProjector::class);
 
         self::assertEquals('foo', $handler->{$tag['method']}(new QueryFoo('foo')));
+    }
+
+
+    public function testDCB(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'store' => [
+                        'type' => 'dbal_taggable',
+                    ],
+                    'dcb' => true,
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(StoreEventAppender::class, $container->get(EventAppender::class));
+        self::assertInstanceOf(StoreDecisionModelBuilder::class, $container->get(DecisionModelBuilder::class));
     }
 
     public function testMessageLoader(): void
@@ -1474,7 +1476,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(Connection::class, $container->get('event_sourcing.dbal_connection'));
-        self::assertInstanceOf(DoctrineDbalStore::class, $container->get(Store::class));
+        self::assertInstanceOf(StreamDoctrineDbalStore::class, $container->get(Store::class));
         self::assertInstanceOf(DefaultEventBus::class, $container->get(EventBus::class));
         self::assertInstanceOf(AggregateRootRegistry::class, $container->get(AggregateRootRegistry::class));
         self::assertInstanceOf(RepositoryManager::class, $container->get(RepositoryManager::class));
