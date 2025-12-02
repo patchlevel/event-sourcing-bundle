@@ -1,16 +1,17 @@
 # https://help.github.com/en/categories/automating-your-workflow-with-github-actions
 
-name: "Check Docs"
+name: "Mutation tests"
 
 on:
     pull_request:
     push:
         branches:
             - "[0-9]+.[0-9]+.x"
+            - "renovate/*"
 
 jobs:
-    checkdocs:
-        name: "Check Docs"
+    mutation-tests:
+        name: "Mutation tests"
 
         runs-on: ${{ matrix.operating-system }}
 
@@ -19,7 +20,7 @@ jobs:
                 dependencies:
                     - "locked"
                 php-version:
-                    - "8.4"
+                    - "8.5"
                 operating-system:
                     - "ubuntu-latest"
 
@@ -30,19 +31,16 @@ jobs:
             - name: "Install PHP"
               uses: "shivammathur/setup-php@2.36.0"
               with:
-                  coverage: none
+                  coverage: "pcov"
                   php-version: "${{ matrix.php-version }}"
-                  ini-values: memory_limit=-1, opcache.enable_cli=1
+                  ini-values: memory_limit=-1
+                  extensions: pdo_sqlite
 
             - uses: ramsey/composer-install@3.1.1
               with:
                 dependency-versions: ${{ matrix.dependencies }}
 
-            - name: "extract php code"
-              run: "bin/docs-extract-php-code"
-
-            - name: "lint php"
-              run: "php -l docs_php/*.php"
-
-            - name: "docs code style"
-              run: "vendor/bin/phpcbf docs_php --exclude=SlevomatCodingStandard.TypeHints.DeclareStrictTypes"
+            - name: "Infection"
+              run: "vendor/bin/infection --threads=max"
+              env:
+                  STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}

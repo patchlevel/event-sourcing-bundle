@@ -17,18 +17,6 @@ use Throwable;
 use function array_map;
 
 /**
- * @psalm-type MessageType = array{
- *     event_class: class-string,
- *     event_name: string,
- *     event: Data,
- *     headers: list<Data>
- * }
- * @psalm-type DataType = array{
- *    messages: list<MessageType>,
- *    aggregates: array<string, class-string<AggregateRoot>>,
- *    events: array<string, class-string>
- * }
- * @psalm-property DataType|array{} $data
  * @phpstan-type MessageType = array{
  *      event_class: class-string,
  *      event_name: string,
