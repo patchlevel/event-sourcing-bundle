@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1c75d38e785534064af75151cb317294",
+    "content-hash": "c9107847f5836dc26077ad33dc2e96cf",
     "packages": [
         {
             "name": "brick/math",
@@ -416,16 +416,16 @@
         },
         {
             "name": "patchlevel/event-sourcing",
-            "version": "3.14.0",
+            "version": "4.0.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "c14a953147050d1c6e2b45bbeb9566206915d771"
+                "reference": "8dd45305c7dde2daf5e337b9704fd20c2afe2604"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/c14a953147050d1c6e2b45bbeb9566206915d771",
-                "reference": "c14a953147050d1c6e2b45bbeb9566206915d771",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/8dd45305c7dde2daf5e337b9704fd20c2afe2604",
+                "reference": "8dd45305c7dde2daf5e337b9704fd20c2afe2604",
                 "shasum": ""
             },
             "require": {
@@ -451,6 +451,7 @@
                 "infection/infection": "^0.31.9",
                 "league/commonmark": "^2.6.1",
                 "patchlevel/coding-standard": "^1.3.0",
+                "patchlevel/event-sourcing-phpstan-extension": "dev-event-sourcing-4.0",
                 "phpat/phpat": "^0.12.0",
                 "phpbench/phpbench": "^1.4.1",
                 "phpstan/phpstan": "^2.1.11",
@@ -491,9 +492,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
-                "source": "https://github.com/patchlevel/event-sourcing/tree/3.14.0"
+                "source": "https://github.com/patchlevel/event-sourcing/tree/4.0.x"
             },
-            "time": "2025-11-29T19:12:18+00:00"
+            "time": "2025-12-01T17:19:55+00:00"
         },
         {
             "name": "patchlevel/hydrator",
@@ -4544,21 +4545,21 @@
         },
         {
             "name": "justinrainbow/json-schema",
-            "version": "6.6.2",
+            "version": "6.6.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jsonrainbow/json-schema.git",
-                "reference": "3c25fe750c1599716ef26aa997f7c026cee8c4b7"
+                "reference": "134e98916fa2f663afa623970af345cd788e8967"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jsonrainbow/json-schema/zipball/3c25fe750c1599716ef26aa997f7c026cee8c4b7",
-                "reference": "3c25fe750c1599716ef26aa997f7c026cee8c4b7",
+                "url": "https://api.github.com/repos/jsonrainbow/json-schema/zipball/134e98916fa2f663afa623970af345cd788e8967",
+                "reference": "134e98916fa2f663afa623970af345cd788e8967",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
-                "marc-mabe/php-enum": "^4.0",
+                "marc-mabe/php-enum": "^4.4",
                 "php": "^7.2 || ^8.0"
             },
             "require-dev": {
@@ -4613,9 +4614,9 @@
             ],
             "support": {
                 "issues": "https://github.com/jsonrainbow/json-schema/issues",
-                "source": "https://github.com/jsonrainbow/json-schema/tree/6.6.2"
+                "source": "https://github.com/jsonrainbow/json-schema/tree/6.6.3"
             },
-            "time": "2025-11-28T15:24:03+00:00"
+            "time": "2025-12-02T10:21:33+00:00"
         },
         {
             "name": "league/commonmark",
@@ -9822,6 +9823,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
+        "patchlevel/event-sourcing": 20,
         "roave/security-advisories": 20
     },
     "prefer-stable": true,

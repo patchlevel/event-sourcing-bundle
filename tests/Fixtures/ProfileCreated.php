@@ -2,7 +2,7 @@
 
 namespace Patchlevel\EventSourcingBundle\Tests\Fixtures;
 
-use Patchlevel\EventSourcing\Aggregate\CustomId;
+use Patchlevel\EventSourcing\Identifier\CustomId;
 use Patchlevel\EventSourcing\Attribute\Event;
 use Patchlevel\EventSourcing\Serializer\Normalizer\IdNormalizer;
 
