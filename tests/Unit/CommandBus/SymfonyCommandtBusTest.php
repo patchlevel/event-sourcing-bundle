@@ -8,7 +8,6 @@ use Patchlevel\EventSourcing\Identifier\CustomId;
 use Patchlevel\EventSourcingBundle\CommandBus\SymfonyCommandBus;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\CreateProfile;
 use PHPUnit\Framework\TestCase;
-use Prophecy\PhpUnit\ProphecyTrait;
 use RuntimeException;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
@@ -17,21 +16,21 @@ use Symfony\Component\Messenger\MessageBusInterface;
 /** @covers \Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus */
 final class SymfonyCommandtBusTest extends TestCase
 {
-    use ProphecyTrait;
-
     public function testDispatch(): void
     {
         $command = new CreateProfile(
             CustomId::fromString('1'),
         );
-
-        $symfony = $this->prophesize(MessageBusInterface::class);
-
         $envelope = new Envelope($command);
 
-        $symfony->dispatch($command)->willReturn($envelope)->shouldBeCalled();
+        $messageBus = $this->createMock(MessageBusInterface::class);
+        $messageBus
+            ->expects($this->once())
+            ->method('dispatch')
+            ->with($command)
+            ->willReturn($envelope);
 
-        $commandBus = new SymfonyCommandBus($symfony->reveal());
+        $commandBus = new SymfonyCommandBus($messageBus);
         $commandBus->dispatch($command);
     }
 
@@ -40,20 +39,18 @@ final class SymfonyCommandtBusTest extends TestCase
         $command = new CreateProfile(
             CustomId::fromString('1'),
         );
-
-        $symfony = $this->prophesize(MessageBusInterface::class);
-
         $internalException = new class extends RuntimeException {
         };
-
         $envelope = new Envelope($command);
 
-        $symfony
-            ->dispatch($command)
-            ->willThrow(new HandlerFailedException($envelope, [$internalException]))
-            ->shouldBeCalled();
+        $messageBus = $this->createMock(MessageBusInterface::class);
+        $messageBus
+            ->expects($this->once())
+            ->method('dispatch')
+            ->with($command)
+            ->willThrowException(new HandlerFailedException($envelope, [$internalException]));
 
-        $commandBus = new SymfonyCommandBus($symfony->reveal());
+        $commandBus = new SymfonyCommandBus($messageBus);
 
         $this->expectException($internalException::class);
 
@@ -66,21 +63,21 @@ final class SymfonyCommandtBusTest extends TestCase
         $command = new CreateProfile(
             CustomId::fromString('1'),
         );
-
-        $symfony = $this->prophesize(MessageBusInterface::class);
-
         $internalException = new class extends RuntimeException {
         };
-
         $envelope = new Envelope($command);
 
-        $symfony
-            ->dispatch($command)
-            ->willThrow(new HandlerFailedException($envelope, [new HandlerFailedException($envelope, [$internalException])]))
-            ->shouldBeCalled();
+        $messageBus = $this->createMock(MessageBusInterface::class);
+        $messageBus
+            ->expects($this->once())
+            ->method('dispatch')
+            ->with($command)
+            ->willThrowException(new HandlerFailedException(
+                $envelope,
+                [new HandlerFailedException($envelope, [$internalException])]
+            ));
 
-        $commandBus = new SymfonyCommandBus($symfony->reveal());
-
+        $commandBus = new SymfonyCommandBus($messageBus);
         $this->expectException($internalException::class);
 
         $commandBus->dispatch($command);

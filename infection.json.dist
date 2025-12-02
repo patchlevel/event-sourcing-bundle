@@ -1,0 +1,22 @@
+{
+  "source": {
+    "directories": [
+      "src"
+    ]
+  },
+  "staticAnalysisTool": "phpstan",
+  "staticAnalysisToolOptions": "--memory-limit=-1",
+  "logs": {
+    "text": "infection.log",
+    "html": "infection.html",
+    "stryker": {
+      "report": "/[0-9]+.[0-9]+.x/"
+    }
+  },
+  "mutators": {
+    "@default": true
+  },
+  "minMsi": 81,
+  "minCoveredMsi": 81,
+  "testFrameworkOptions": "--testsuite=unit"
+}
