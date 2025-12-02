@@ -20,21 +20,20 @@ phpstan: vendor                                                                 
 phpstan-baseline: vendor                                                        ## run phpstan static code analyser
 	php -d memory_limit=312M vendor/bin/phpstan analyse --generate-baseline
 
-.PHONY: psalm
-psalm: vendor                                                                   ## run psalm static code analyser
-	vendor/bin/psalm
-
-.PHONY: psalm-baseline
-psalm-baseline: vendor                                                          ## run psalm static code analyser
-	vendor/bin/psalm --update-baseline --set-baseline=baseline.xml
-
-
 .PHONY: phpunit
 phpunit: vendor                                                                 ## run phpunit tests
 	XDEBUG_MODE=coverage vendor/bin/phpunit
 
+.PHONY: infection
+infection: vendor                                                               ## run infection
+	php -d memory_limit=312M vendor/bin/infection --threads=5
+
+.PHONY: infection-diff
+infection-diff: vendor                                                          ## run infection on differences
+	php -d memory_limit=312M vendor/bin/infection --threads=max --git-diff-lines --git-diff-base=origin/HEAD --ignore-msi-with-no-mutations --only-covered --min-msi=80 --min-covered-msi=95
+
 .PHONY: static
-static: psalm phpstan phpcs-check                                               ## run static analyser
+static: phpstan phpcs-check                                               ## run static analyser
 
 test: phpunit                                                                   ## run tests
 
@@ -67,7 +66,3 @@ docs-php-lint: docs-extract-php
 .PHONY: docs-phpcs
 docs-phpcs: docs-extract-php
 	vendor/bin/phpcbf docs_php --exclude=SlevomatCodingStandard.TypeHints.DeclareStrictTypes || true
-
-.PHONY: docs-psalm
-docs-psalm: docs-extract-php
-	vendor/bin/psalm --config=psalm_docs.xml

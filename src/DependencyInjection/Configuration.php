@@ -82,10 +82,7 @@ use Throwable;
  */
 final class Configuration implements ConfigurationInterface
 {
-    /**
-     * @psalm-suppress MixedMethodCall
-     * @psalm-suppress PossiblyUndefinedMethod
-     */
+    /** @return TreeBuilder<'array'> */
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('patchlevel_event_sourcing');

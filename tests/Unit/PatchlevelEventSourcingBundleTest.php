@@ -2,6 +2,7 @@
 
 namespace Patchlevel\EventSourcingBundle\Tests\Unit;
 
+use ArrayObject;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\Migrations\Tools\Console\Command\CurrentCommand;
@@ -101,8 +102,8 @@ use Patchlevel\EventSourcingBundle\Tests\Fixtures\QueryFoo;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\SnapshotableProfile;
 use Patchlevel\Hydrator\Cryptography\PayloadCryptographer;
 use Patchlevel\Hydrator\Cryptography\PersonalDataPayloadCryptographer;
+use PHPUnit\Framework\Attributes\RequiresMethod;
 use PHPUnit\Framework\TestCase;
-use Prophecy\PhpUnit\ProphecyTrait;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Clock\ClockInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -119,8 +120,6 @@ use Symfony\Component\Messenger\MessageBusInterface;
 
 final class PatchlevelEventSourcingBundleTest extends TestCase
 {
-    use ProphecyTrait;
-
     public function testEmptyConfig(): void
     {
         $container = new ContainerBuilder();
@@ -136,7 +135,49 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertFalse($container->has(Store::class));
     }
 
+    #[RequiresMethod(ContainerBuilder::class, 'getAttributeAutoconfigurators')]
     public function testMinimalConfig(): void
+    {
+        $container = new ContainerBuilder();
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'url' => 'sqlite3:///:memory:',
+                    ],
+                ],
+            ]
+        );
+
+        self::assertInstanceOf(Connection::class, $container->get('event_sourcing.dbal_connection'));
+        self::assertInstanceOf(DoctrineDbalStore::class, $container->get(Store::class));
+        self::assertInstanceOf(AggregateRootRegistry::class, $container->get(AggregateRootRegistry::class));
+        self::assertInstanceOf(DefaultRepositoryManager::class, $container->get(RepositoryManager::class));
+        self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
+        self::assertInstanceOf(SystemClock::class, $container->get('event_sourcing.clock'));
+        self::assertInstanceOf(DefaultSubscriptionEngine::class, $container->get(SubscriptionEngine::class));
+
+        self::assertFalse($container->has(EventBus::class));
+
+        $attributes = $container->getAttributeAutoconfigurators();
+        foreach ([Aggregate::class, Event::class] as $class) {
+            $definition = new ChildDefinition('');
+
+            foreach ($attributes[$class] as $attributeCallable) {
+                $attributeCallable($definition);
+            }
+
+            $this->assertSame(
+                [['source' => sprintf('with #[%s] attribute', $class)]],
+                $definition->getTag('container.excluded')
+            );
+            $this->assertTrue($definition->isAbstract());
+        }
+    }
+
+    #[RequiresMethod(ContainerBuilder::class, 'getAutoconfiguredAttributes')]
+    public function testMinimalConfigPreSymf8(): void
     {
         $container = new ContainerBuilder();
         $this->compileContainer(
@@ -165,8 +206,10 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
             $definition = new ChildDefinition('');
             $attributes[$class]($definition);
 
-            $this->assertSame([['source' => sprintf('with #[%s] attribute', $class)]],
-                $definition->getTag('container.excluded'));
+            $this->assertSame(
+                [['source' => sprintf('with #[%s] attribute', $class)]],
+                $definition->getTag('container.excluded')
+            );
             $this->assertTrue($definition->isAbstract());
         }
     }
@@ -215,7 +258,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
     public function testCustomStore(): void
     {
-        $store = $this->prophesize(Store::class)->reveal();
+        $store = $this->createMock(Store::class);
 
         $container = new ContainerBuilder();
 
@@ -243,7 +286,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
     {
         $this->expectException(InvalidConfigurationException::class);
 
-        $store = $this->prophesize(Store::class)->reveal();
+        $store = $this->createMock(Store::class);
 
         $container = new ContainerBuilder();
 
@@ -395,7 +438,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
     public function testSymfonyEventBus(): void
     {
-        $eventBus = $this->prophesize(MessageBusInterface::class)->reveal();
+        $eventBus = $this->createMock(MessageBusInterface::class);
 
         $container = new ContainerBuilder();
         $container->set('my_event_bus', $eventBus);
@@ -420,7 +463,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
     public function testPsr14EventBus(): void
     {
-        $eventBus = $this->prophesize(EventDispatcherInterface::class)->reveal();
+        $eventBus = $this->createMock(EventDispatcherInterface::class);
 
         $container = new ContainerBuilder();
         $container->set('my_event_bus', $eventBus);
@@ -445,7 +488,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
     public function testCustomEventBus(): void
     {
-        $eventBus = $this->prophesize(EventBus::class)->reveal();
+        $eventBus = $this->createMock(EventBus::class);
 
         $container = new ContainerBuilder();
         $container->set('my_event_bus', $eventBus);
@@ -796,7 +839,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
     public function testPsr16SnapshotAdapter(): void
     {
-        $simpleCache = $this->prophesize(CacheInterface::class)->reveal();
+        $simpleCache = $this->createMock(CacheInterface::class);
 
         $container = new ContainerBuilder();
         $container->set('simple_cache', $simpleCache);
@@ -824,7 +867,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
     public function testCustomSnapshotAdapter(): void
     {
-        $customSnapshotStore = $this->prophesize(SnapshotStore::class)->reveal();
+        $customSnapshotStore = $this->createMock(SnapshotStore::class);
 
         $container = new ContainerBuilder();
         $container->set('my_snapshot_store', $customSnapshotStore);
@@ -1042,7 +1085,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
     public function testPsrClock(): void
     {
-        $psrClock = $this->prophesize(ClockInterface::class)->reveal();
+        $psrClock = $this->createMock(ClockInterface::class);
 
         $container = new ContainerBuilder();
         $container->set('clock', $psrClock);
@@ -1348,7 +1391,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
     public function testRetryStrategyCustom(): void
     {
-        $retryStrategy = $this->prophesize(RetryStrategy::class)->reveal();
+        $retryStrategy = $this->createMock(RetryStrategy::class);
 
         $container = new ContainerBuilder();
         $container->set('my_retry_strategy', $retryStrategy);
@@ -1426,7 +1469,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
     public function testFullBuild(): void
     {
-        $psrClock = $this->prophesize(ClockInterface::class)->reveal();
+        $psrClock = $this->createMock(ClockInterface::class);
 
         $container = new ContainerBuilder();
         $container->set('clock', $psrClock);
@@ -1515,17 +1558,20 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         $container->setParameter('kernel.project_dir', __DIR__);
 
-        $connection = $this->prophesize(Connection::class);
-        $connection->getDatabasePlatform()->willReturn(new PostgreSQLPlatform());
+        $connection = $this->createMock(Connection::class);
+        $connection
+            ->expects($this->never())
+            ->method('getDatabasePlatform')
+            ->willReturn(new PostgreSQLPlatform());
 
-        $container->set('doctrine.dbal.eventstore_connection', $connection->reveal());
-        $container->set('event.bus', $this->prophesize(MessageBusInterface::class)->reveal());
-        $container->set('command.bus', $this->prophesize(MessageBusInterface::class)->reveal());
-        $container->set('query.bus', $this->prophesize(MessageBusInterface::class)->reveal());
-        $container->set('cache.default', $this->prophesize(CacheItemPoolInterface::class)->reveal());
-        $container->set('event_dispatcher', $this->prophesize(EventDispatcherInterface::class)->reveal());
-        $container->set('services_resetter', $this->prophesize(ServicesResetter::class)->reveal());
-        $container->set(LoggerInterface::class, $this->prophesize(LoggerInterface::class)->reveal());
+        $container->set('doctrine.dbal.eventstore_connection', $connection);
+        $container->set('event.bus', $this->createMock(MessageBusInterface::class));
+        $container->set('command.bus', $this->createMock(MessageBusInterface::class));
+        $container->set('query.bus', $this->createMock(MessageBusInterface::class));
+        $container->set('cache.default', $this->createMock(CacheItemPoolInterface::class));
+        $container->set('event_dispatcher', $this->createMock(EventDispatcherInterface::class));
+        $container->set('services_resetter', new ServicesResetter(new ArrayObject(), []));
+        $container->set(LoggerInterface::class, $this->createMock(LoggerInterface::class));
 
         $extension = new PatchlevelEventSourcingExtension();
         $extension->load($config, $container);

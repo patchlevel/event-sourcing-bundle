@@ -10,23 +10,17 @@ use Patchlevel\EventSourcing\Aggregate\CustomId;
 use Patchlevel\EventSourcing\Message\Message;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
-use Patchlevel\EventSourcing\Serializer\Encoder\Encoder;
-use Patchlevel\EventSourcing\Serializer\EventSerializer;
-use Patchlevel\EventSourcing\Serializer\SerializedEvent;
 use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
 use Patchlevel\EventSourcingBundle\DataCollector\MessageCollectorEventBus;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Profile;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileCreated;
 use PHPUnit\Framework\TestCase;
-use Prophecy\PhpUnit\ProphecyTrait;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\VarDumper\Cloner\Data;
 
 final class EventSourcingCollectorTest extends TestCase
 {
-    use ProphecyTrait;
-
     public function testCollectData(): void
     {
         $eventBus = new MessageCollectorEventBus();
@@ -48,12 +42,6 @@ final class EventSourcingCollectorTest extends TestCase
                 new DateTimeImmutable('2022-07-07T18:55:50+02:00'),
             )
         ]);
-
-        $eventSerializer = $this->prophesize(EventSerializer::class);
-
-        $eventSerializer->serialize($event, [
-            Encoder::OPTION_PRETTY_PRINT => true
-        ])->willReturn(new SerializedEvent('profile.created', '{}'));
 
         $collector = new EventSourcingCollector(
             $eventBus,
