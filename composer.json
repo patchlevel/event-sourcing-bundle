@@ -20,14 +20,14 @@
   "require": {
     "php": "~8.2.0 || ~8.3.0 || ~8.4.0",
     "patchlevel/event-sourcing": "^3.13.0",
-    "symfony/cache": "^6.4.0|^7.0.0",
-    "symfony/config": "^6.4.0|^7.0.0",
-    "symfony/console": "^6.4.1|^7.0.1",
-    "symfony/dependency-injection": "^6.4.1|^7.0.1",
-    "symfony/event-dispatcher": "^6.4.1|^7.0.1",
-    "symfony/finder": "^6.4.0|^7.0.0",
-    "symfony/http-kernel": "^6.4.1|^7.0.1",
-    "symfony/messenger": "^6.4.0|^7.0.0"
+    "symfony/cache": "^6.4.0|^7.0.0 || 8.0.0",
+    "symfony/config": "^6.4.0|^7.0.0 || 8.0.0",
+    "symfony/console": "^6.4.1|^7.0.1 || 8.0.0",
+    "symfony/dependency-injection": "^6.4.1|^7.0.1 || 8.0.0",
+    "symfony/event-dispatcher": "^6.4.1|^7.0.1 || 8.0.0",
+    "symfony/finder": "^6.4.0|^7.0.0 || 8.0.0",
+    "symfony/http-kernel": "^6.4.1|^7.0.1 || 8.0.0",
+    "symfony/messenger": "^6.4.0|^7.0.0 || 8.0.0"
   },
   "require-dev": {
     "ext-pdo_sqlite": "*",
@@ -42,9 +42,9 @@
     "phpunit/phpunit": "^10.5.2",
     "psalm/plugin-symfony": "^5.2.7",
     "roave/security-advisories": "dev-master",
-    "symfony/uid": "^6.4.0|^7.0.0",
-    "symfony/var-dumper": "^6.4.0|^7.0.0",
-    "symfony/web-profiler-bundle": "^6.4.0|^7.0.0",
+    "symfony/uid": "8.0.0",
+    "symfony/var-dumper": "8.0.0",
+    "symfony/web-profiler-bundle": "8.0.0",
     "vimeo/psalm": "^6.0.0",
     "wnx/commonmark-markdown-renderer": "^1.4"
   },
