@@ -340,6 +340,8 @@ patchlevel_event_sourcing:
     store: 
       type: 'custom' # default is 'dbal'
       service: 'my_subscription_store'
+      options:
+        table_name: 'my_subscription_store'
 ```
 !!! tip
 

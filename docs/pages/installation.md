@@ -37,6 +37,14 @@ patchlevel_event_sourcing:
     connection:
       url: '%env(EVENTSTORE_URL)%'
       provide_dedicated_connection: true
+    store:
+      type: dbal_stream
+      merge_orm_schema: true
+    command_bus:
+      service: messenger.bus.default
+    query_bus:
+      service: messenger.bus.default
+    cryptography: ~
 
 when@dev:
   patchlevel_event_sourcing:
@@ -50,6 +58,8 @@ when@dev:
 when@test:
   patchlevel_event_sourcing:
     subscription:
+      store:
+        type: 'static_in_memory'
       catch_up: true
       throw_on_error: true
       run_after_aggregate_save: true

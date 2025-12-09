@@ -22,7 +22,11 @@ use Throwable;
  *      },
  *      query_bus: array{enabled: bool, service: string},
  *      subscription: array{
- *          store: array{type: string, service: string|null},
+ *          store: array{
+ *              type: string,
+ *              service: string|null,
+ *              options: array{table_name: string}
+ *          },
  *          retry_strategy?: array{base_delay: int, delay_factor: int, max_attempts: int},
  *          retry_strategies: array<string, array{type: string, service: string, options: array<string, mixed>}>,
  *          default_retry_strategy: string,
@@ -197,6 +201,12 @@ final class Configuration implements ConfigurationInterface
                                 ->defaultValue('dbal')
                             ->end()
                             ->scalarNode('service')->defaultNull()->end()
+                            ->arrayNode('options')
+                                ->addDefaultsIfNotSet()
+                                ->children()
+                                    ->scalarNode('table_name')->defaultValue('subscriptions')->end()
+                                ->end()
+                            ->end()
                         ->end()
                     ->end()
 

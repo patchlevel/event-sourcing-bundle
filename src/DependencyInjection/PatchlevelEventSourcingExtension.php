@@ -488,6 +488,8 @@ final class PatchlevelEventSourcingExtension extends Extension
             $container->register(DoctrineSubscriptionStore::class)
                 ->setArguments([
                     new Reference('event_sourcing.dbal_connection'),
+                    new Reference('event_sourcing.clock'),
+                    $config['subscription']['store']['options']['table_name'],
                 ])
                 ->addTag('event_sourcing.doctrine_schema_configurator');
 
