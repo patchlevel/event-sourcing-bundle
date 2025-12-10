@@ -24,15 +24,15 @@ for [event-sourcing](https://github.com/patchlevel/event-sourcing) library.
 ```bash
 composer require patchlevel/event-sourcing-bundle
 ```
-!!! info
+:::info
+If you don't use the symfony flex recipe for this bundle, you need to follow
+this [installation documentation](installation.md).
+:::
 
-    If you don't use the symfony flex recipe for this bundle, you need to follow
-    this [installation documentation](installation.md).
-    
-!!! tip
+:::tip
+Start with the [quickstart](./getting_started.md) to get a feeling for the bundle.
+:::
 
-    Start with the [quickstart](./getting_started.md) to get a feeling for the bundle.
-    
 ## Integration
 
 * [Psalm](https://github.com/patchlevel/event-sourcing-psalm-plugin)
