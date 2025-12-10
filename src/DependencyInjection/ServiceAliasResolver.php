@@ -6,9 +6,7 @@ namespace Patchlevel\EventSourcingBundle\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
-/**
- * @interal
- */
+/** @interal */
 final readonly class ServiceAliasResolver
 {
     public static function resolve(ContainerBuilder $container, string $id): string
