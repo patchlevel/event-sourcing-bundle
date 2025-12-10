@@ -672,7 +672,7 @@ For this you need to enable the crypto shredding.
 ```yaml
 patchlevel_event_sourcing:
     cryptography:
-      use_encrypted_field_name: true,
+      use_encrypted_field_name: true
 ```
 
 !!! tip

@@ -39,12 +39,18 @@ patchlevel_event_sourcing:
       provide_dedicated_connection: true
     store:
       type: dbal_stream
-      merge_orm_schema: true
+      # if you are using doctrine bundle you should enable this
+      #merge_orm_schema: true
     command_bus:
-      service: messenger.bus.default
+      service: messenger.default_bus
     query_bus:
-      service: messenger.bus.default
-    cryptography: ~
+      service: messenger.default_bus
+    subscription:
+      gap_detection: ~
+
+    # enable this if you want to use sensitive data encryption
+    #cryptography: ~ 
+    #  use_encrypted_field_name: true
 
 when@dev:
   patchlevel_event_sourcing:
