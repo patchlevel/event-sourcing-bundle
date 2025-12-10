@@ -3,12 +3,12 @@
 Here you will find some examples of how to use the bundle.
 But we provide only examples for specific symfo
 
-!!! info
+:::info
+You can find out more about event sourcing in the library
+[documentation](https://event-sourcing.patchlevel.io/latest/).
+This documentation is limited to bundle integration and configuration.
+:::
 
-    You can find out more about event sourcing in the library 
-    [documentation](https://event-sourcing.patchlevel.io/latest/). 
-    This documentation is limited to bundle integration and configuration.
-    
 ## Repository
 
 You can access the specific repositories using the `RepositoryManager::get`. Or inject directly the right repository via
@@ -140,19 +140,19 @@ services:
         - name: event_sourcing.listener
           priority: 16
 ```
-!!! warning
+:::warning
+You have to deactivate the `autoconfigure` for this service,
+otherwise the service will be added twice.
+:::
 
-    You have to deactivate the `autoconfigure` for this service, 
-    otherwise the service will be added twice.
-    
 ## Normalizer
 
 This bundle adds more Symfony specific normalizers in addition to the existing built-in normalizers.
 
-!!! note
+:::note
+You can find the other build-in normalizers [here](https://event-sourcing.patchlevel.io/latest/normalizer/#built-in-normalizer)
+:::
 
-    You can find the other build-in normalizers [here](https://event-sourcing.patchlevel.io/latest/normalizer/#built-in-normalizer)
-    
 ### Uuid
 
 With the `Uuid` Normalizer, as the name suggests, you can convert Symfony Uuid objects to a string and back again.
@@ -167,14 +167,14 @@ final class DTO
     public Uuid $id;
 }
 ```
-!!! warning
+:::warning
+The symfony uuid don't implement the `AggregateId` interface, so it can be used as aggregate id.
+:::
 
-    The symfony uuid don't implement the `AggregateId` interface, so it can be used as aggregate id.
-    
-!!! tip
+:::tip
+Use the `Uuid` implementation and `IdNormalizer` from the library to use it as an aggregate id.
+:::
 
-    Use the `Uuid` implementation and `IdNormalizer` from the library to use it as an aggregate id.
-    
 ## Upcasting
 
 ```php
