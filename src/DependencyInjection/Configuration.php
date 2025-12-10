@@ -74,9 +74,6 @@ use Throwable;
  *              translators: list<string>
  *          }
  *      },
- *      aggregates: list<string>,
- *      events: list<string>,
- *      headers: list<string>,
  *      snapshot_stores: array<string, array{type: string, service: string}>,
  *      migration: array{path: string, namespace: string},
  *      clock: array{freeze: ?string, service: ?string},
@@ -154,24 +151,6 @@ final class Configuration implements ConfigurationInterface
                     ->end()
                     ->scalarNode('service')->defaultNull()->end()
                 ->end()
-            ->end()
-
-            ->arrayNode('events')
-                ->beforeNormalization()->castToArray()->end()
-                ->defaultValue([])
-                ->scalarPrototype()->end()
-            ->end()
-
-            ->arrayNode('aggregates')
-                ->beforeNormalization()->castToArray()->end()
-                ->defaultValue([])
-                ->scalarPrototype()->end()
-            ->end()
-
-            ->arrayNode('headers')
-                ->beforeNormalization()->castToArray()->end()
-                ->defaultValue([])
-                ->scalarPrototype()->end()
             ->end()
 
             ->arrayNode('clock')

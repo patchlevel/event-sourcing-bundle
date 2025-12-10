@@ -14,8 +14,6 @@ use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
 use Doctrine\Persistence\ManagerRegistry;
 use InvalidArgumentException;
-use Patchlevel\EventSourcing\Attribute\Aggregate;
-use Patchlevel\EventSourcing\Attribute\Event;
 use Patchlevel\EventSourcing\Clock\FrozenClock;
 use Patchlevel\EventSourcing\Clock\SystemClock;
 use Patchlevel\EventSourcing\CommandBus\CommandBus;
@@ -118,7 +116,6 @@ use Patchlevel\Hydrator\Extension\Lifecycle\LifecycleExtension;
 use Patchlevel\Hydrator\Extension\Upcast\UpcastExtension;
 use Patchlevel\Hydrator\Hydrator;
 use Patchlevel\Hydrator\StackHydrator;
-use PHPUnit\Framework\Attributes\RequiresMethod;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Clock\ClockInterface;
@@ -127,15 +124,12 @@ use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
-use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Dumper\XmlDumper;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\ServicesResetter;
 use Symfony\Component\Messenger\MessageBusInterface;
-
-use function sprintf;
 
 final class PatchlevelEventSourcingBundleTest extends TestCase
 {
@@ -154,7 +148,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertFalse($container->has(Store::class));
     }
 
-    #[RequiresMethod(ContainerBuilder::class, 'getAttributeAutoconfigurators')]
     public function testMinimalConfig(): void
     {
         $container = new ContainerBuilder();
@@ -177,57 +170,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(AttributeEventTagExtractor::class, $container->get(EventTagExtractor::class));
 
         self::assertFalse($container->has(EventBus::class));
-
-        $attributes = $container->getAttributeAutoconfigurators();
-        foreach ([Aggregate::class, Event::class] as $class) {
-            $definition = new ChildDefinition('');
-
-            foreach ($attributes[$class] as $attributeCallable) {
-                $attributeCallable($definition);
-            }
-
-            $this->assertSame(
-                [['source' => sprintf('with #[%s] attribute', $class)]],
-                $definition->getTag('container.excluded'),
-            );
-            $this->assertTrue($definition->isAbstract());
-        }
-    }
-
-    #[RequiresMethod(ContainerBuilder::class, 'getAutoconfiguredAttributes')]
-    public function testMinimalConfigPreSymf8(): void
-    {
-        $container = new ContainerBuilder();
-        $this->compileContainer(
-            $container,
-            [
-                'patchlevel_event_sourcing' => [
-                    'connection' => ['url' => 'sqlite3:///:memory:'],
-                ],
-            ],
-        );
-
-        self::assertInstanceOf(Connection::class, $container->get('event_sourcing.dbal_connection'));
-        self::assertInstanceOf(StreamDoctrineDbalStore::class, $container->get(Store::class));
-        self::assertInstanceOf(AggregateRootRegistry::class, $container->get(AggregateRootRegistry::class));
-        self::assertInstanceOf(DefaultRepositoryManager::class, $container->get(RepositoryManager::class));
-        self::assertInstanceOf(EventRegistry::class, $container->get(EventRegistry::class));
-        self::assertInstanceOf(SystemClock::class, $container->get('event_sourcing.clock'));
-        self::assertInstanceOf(DefaultSubscriptionEngine::class, $container->get(SubscriptionEngine::class));
-
-        self::assertFalse($container->has(EventBus::class));
-
-        $attributes = $container->getAutoconfiguredAttributes();
-        foreach ([Aggregate::class, Event::class] as $class) {
-            $definition = new ChildDefinition('');
-            $attributes[$class]($definition);
-
-            $this->assertSame(
-                [['source' => sprintf('with #[%s] attribute', $class)]],
-                $definition->getTag('container.excluded'),
-            );
-            $this->assertTrue($definition->isAbstract());
-        }
     }
 
     public function testConnectionService(): void
@@ -539,12 +481,14 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
     {
         $container = new ContainerBuilder();
 
+        $container->setDefinition(Profile::class, new Definition(Profile::class))
+            ->setAutoconfigured(true);
+
         $this->compileContainer(
             $container,
             [
                 'patchlevel_event_sourcing' => [
                     'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
-                    'aggregates' => [__DIR__ . '/../Fixtures'],
                     'command_bus' => ['service' => 'command.bus'],
                 ],
             ],
@@ -569,12 +513,14 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
     {
         $container = new ContainerBuilder();
 
+        $container->setDefinition(Profile::class, new Definition(Profile::class))
+            ->setAutoconfigured(true);
+
         $this->compileContainer(
             $container,
             [
                 'patchlevel_event_sourcing' => [
                     'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
-                    'aggregates' => [__DIR__ . '/../Fixtures'],
                     'command_bus' => ['service' => 'command.bus'],
                 ],
             ],
@@ -608,7 +554,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
             [
                 'patchlevel_event_sourcing' => [
                     'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
-                    'aggregates' => [__DIR__ . '/../Fixtures'],
                     'query_bus' => ['service' => 'query.bus'],
                 ],
             ],
@@ -874,12 +819,14 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
     {
         $container = new ContainerBuilder();
 
+        $container->setDefinition(ProfileCreated::class, new Definition(ProfileCreated::class))
+            ->setAutoconfigured(true);
+
         $this->compileContainer(
             $container,
             [
                 'patchlevel_event_sourcing' => [
                     'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
-                    'events' => [__DIR__ . '/../Fixtures'],
                 ],
             ],
         );
@@ -894,12 +841,14 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
     {
         $container = new ContainerBuilder();
 
+        $container->setDefinition(Profile::class, new Definition(Profile::class))
+            ->setAutoconfigured(true);
+
         $this->compileContainer(
             $container,
             [
                 'patchlevel_event_sourcing' => [
                     'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
-                    'aggregates' => [__DIR__ . '/../Fixtures'],
                 ],
             ],
         );
@@ -914,12 +863,14 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
     {
         $container = new ContainerBuilder();
 
+        $container->setDefinition(CustomHeader::class, new Definition(CustomHeader::class))
+            ->setAutoconfigured(true);
+
         $this->compileContainer(
             $container,
             [
                 'patchlevel_event_sourcing' => [
                     'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
-                    'headers' => [__DIR__ . '/../Fixtures'],
                 ],
             ],
         );
@@ -935,12 +886,14 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
     {
         $container = new ContainerBuilder();
 
+        $container->setDefinition(Profile::class, new Definition(Profile::class))
+            ->setAutoconfigured(true);
+
         $this->compileContainer(
             $container,
             [
                 'patchlevel_event_sourcing' => [
                     'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
-                    'aggregates' => [__DIR__ . '/../Fixtures'],
                 ],
             ],
         );
@@ -1425,6 +1378,9 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         $container = new ContainerBuilder();
         $container->set('clock', $psrClock);
 
+        $container->setDefinition(Profile::class, new Definition(Profile::class))
+            ->setAutoconfigured(true);
+
         $this->compileContainer(
             $container,
             [
@@ -1435,7 +1391,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                     ],
                     'clock' => ['service' => 'clock'],
                     'event_bus' => ['type' => 'default'],
-                    'aggregates' => [__DIR__ . '/../Fixtures'],
                     'migration' => [
                         'namespace' => 'Foo',
                         'path' => 'src',
@@ -1468,12 +1423,14 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
     {
         $container = new ContainerBuilder();
 
+        $container->setDefinition(Profile::class, new Definition(Profile::class))
+            ->setAutoconfigured(true);
+
         $this->compileContainer(
             $container,
             [
                 'patchlevel_event_sourcing' => [
                     'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
-                    'aggregates' => [__DIR__ . '/../Fixtures'],
                 ],
             ],
         );
