@@ -7,7 +7,6 @@ namespace Patchlevel\EventSourcingBundle\DependencyInjection;
 use Patchlevel\EventSourcing\Attribute\Inject;
 use Patchlevel\EventSourcing\CommandBus\Handler\ServiceNotResolvable;
 use Patchlevel\EventSourcing\CommandBus\HandlerFinder;
-use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcingBundle\CommandBus\SymfonyParameterResolver;
 use Psr\Container\ContainerInterface;
 use ReflectionAttribute;
@@ -32,10 +31,7 @@ final class HandlerServiceLocatorCompilerPass implements CompilerPassInterface
             return;
         }
 
-        /** @var AggregateRootRegistry $aggregateRootRegistry */
-        $aggregateRootRegistry = $container->get(AggregateRootRegistry::class);
-
-        foreach ($aggregateRootRegistry->aggregateClasses() as $aggregateName => $aggregateClass) {
+        foreach ($container->getParameter('event_sourcing.aggregates') as $aggregateName => $aggregateClass) {
             $parameterResolverId = sprintf('.event_sourcing.handler_parameter_resolver.%s', $aggregateName);
             $services = [];
 
