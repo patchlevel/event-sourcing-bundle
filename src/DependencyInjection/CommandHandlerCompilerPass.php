@@ -7,7 +7,6 @@ namespace Patchlevel\EventSourcingBundle\DependencyInjection;
 use Patchlevel\EventSourcing\CommandBus\Handler\CreateAggregateHandler;
 use Patchlevel\EventSourcing\CommandBus\Handler\UpdateAggregateHandler;
 use Patchlevel\EventSourcing\CommandBus\HandlerFinder;
-use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -27,10 +26,7 @@ final class CommandHandlerCompilerPass implements CompilerPassInterface
 
         $bus = $container->getParameter('patchlevel_event_sourcing.aggregate_handlers.bus');
 
-        /** @var AggregateRootRegistry $aggregateRootRegistry */
-        $aggregateRootRegistry = $container->get(AggregateRootRegistry::class);
-
-        foreach ($aggregateRootRegistry->aggregateClasses() as $aggregateName => $aggregateClass) {
+        foreach ($container->getParameter('event_sourcing.aggregates') as $aggregateName => $aggregateClass) {
             $parameterResolverId = sprintf('.event_sourcing.handler_parameter_resolver.%s', $aggregateName);
 
             foreach (HandlerFinder::findInClass($aggregateClass) as $aggregateHandler) {
