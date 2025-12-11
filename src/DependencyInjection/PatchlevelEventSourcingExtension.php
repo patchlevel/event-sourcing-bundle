@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\DependencyInjection;
 
-use DateInterval;
-use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
 use Doctrine\Migrations\Configuration\Connection\ExistingConnection;
 use Doctrine\Migrations\Configuration\Migration\ConfigurationArray;
@@ -123,6 +121,7 @@ use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorR
 use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberAccessorRepository;
 use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberHelper;
 use Patchlevel\EventSourcingBundle\Attribute\AsListener;
+use Patchlevel\EventSourcingBundle\Clock\FrozenClockFactory;
 use Patchlevel\EventSourcingBundle\Command\StoreMigrateCommand;
 use Patchlevel\EventSourcingBundle\CommandBus\SymfonyCommandBus;
 use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
@@ -132,6 +131,7 @@ use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\QueryBus\SymfonyQueryBus;
 use Patchlevel\EventSourcingBundle\RequestListener\AutoSetupListener;
 use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRebuildAfterFileChangeListener;
+use Patchlevel\EventSourcingBundle\Subscription\Engine\GapResolverMessageLoaderFactory;
 use Patchlevel\EventSourcingBundle\Subscription\ResetServicesListener;
 use Patchlevel\EventSourcingBundle\Subscription\StaticInMemorySubscriptionStoreFactory;
 use Patchlevel\EventSourcingBundle\ValueResolver\IdentifierValueResolver;
@@ -364,11 +364,12 @@ final class PatchlevelEventSourcingExtension extends Extension
         }
 
         $container->register(GapResolverStoreMessageLoader::class)
+            ->setFactory([GapResolverMessageLoaderFactory::class, 'create'])
             ->setArguments([
                 new Reference(Store::class),
                 new Reference('event_sourcing.clock'),
                 $config['subscription']['gap_detection']['retries_in_ms'],
-                new DateInterval($config['subscription']['gap_detection']['detection_window']),
+                $config['subscription']['gap_detection']['detection_window'],
             ]);
 
         $container->setAlias(MessageLoader::class, GapResolverStoreMessageLoader::class);
@@ -1081,7 +1082,8 @@ final class PatchlevelEventSourcingExtension extends Extension
     {
         if ($config['clock']['freeze'] !== null) {
             $container->register(FrozenClock::class)
-                ->setArguments([new DateTimeImmutable($config['clock']['freeze'])]);
+                ->setFactory([FrozenClockFactory::class, 'create'])
+                ->setArguments([$config['clock']['freeze']]);
 
             $container->setAlias('event_sourcing.clock', FrozenClock::class);
 
