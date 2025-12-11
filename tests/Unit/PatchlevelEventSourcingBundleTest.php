@@ -115,6 +115,7 @@ use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Dumper\XmlDumper;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\ServicesResetter;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -1585,5 +1586,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         $compilerPassConfig->addPass(new TestCaseAllPublicCompilerPass());
 
         $container->compile();
+
+        (new XmlDumper($container))->dump();
     }
 }
