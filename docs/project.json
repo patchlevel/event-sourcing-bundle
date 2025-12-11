@@ -1,0 +1,24 @@
+{
+  "navigation": [
+    {
+      "title": "Introduction",
+      "file": "index.md"
+    },
+    {
+      "title": "Installation",
+      "file": "installation.md"
+    },
+    {
+      "title": "Getting Started",
+      "file": "getting-started.md"
+    },
+    {
+      "title": "Configuration",
+      "file": "configuration.md"
+    },
+    {
+      "title": "Usage",
+      "file": "usage.md"
+    }
+  ]
+}

@@ -45,6 +45,10 @@ use Patchlevel\EventSourcing\Console\Command\SubscriptionTeardownCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
 use Patchlevel\EventSourcing\Console\DoctrineHelper;
 use Patchlevel\EventSourcing\Cryptography\DoctrineCipherKeyStore;
+use Patchlevel\EventSourcing\DecisionModel\DecisionModelBuilder;
+use Patchlevel\EventSourcing\DecisionModel\EventAppender;
+use Patchlevel\EventSourcing\DecisionModel\StoreDecisionModelBuilder;
+use Patchlevel\EventSourcing\DecisionModel\StoreEventAppender;
 use Patchlevel\EventSourcing\EventBus\AttributeListenerProvider;
 use Patchlevel\EventSourcing\EventBus\Consumer;
 use Patchlevel\EventSourcing\EventBus\DefaultConsumer;
@@ -70,6 +74,7 @@ use Patchlevel\EventSourcing\Metadata\Subscriber\SubscriberMetadataFactory;
 use Patchlevel\EventSourcing\QueryBus\QueryBus;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\ChainMessageDecorator;
+use Patchlevel\EventSourcing\Repository\MessageDecorator\EventTagDecorator;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\MessageDecorator;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\SplitStreamDecorator;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
@@ -80,22 +85,23 @@ use Patchlevel\EventSourcing\Schema\DoctrineSchemaDirector;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaListener;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaProvider;
 use Patchlevel\EventSourcing\Schema\SchemaDirector;
+use Patchlevel\EventSourcing\Serializer\AttributeEventTagExtractor;
 use Patchlevel\EventSourcing\Serializer\DefaultEventSerializer;
 use Patchlevel\EventSourcing\Serializer\Encoder\Encoder;
 use Patchlevel\EventSourcing\Serializer\Encoder\JsonEncoder;
 use Patchlevel\EventSourcing\Serializer\EventSerializer;
+use Patchlevel\EventSourcing\Serializer\EventTagExtractor;
 use Patchlevel\EventSourcing\Serializer\Upcast\Upcaster;
 use Patchlevel\EventSourcing\Serializer\Upcast\UpcasterChain;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr16SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr6SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\DefaultSnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
-use Patchlevel\EventSourcing\Store\DoctrineDbalStore;
 use Patchlevel\EventSourcing\Store\InMemoryStore;
 use Patchlevel\EventSourcing\Store\ReadOnlyStore;
 use Patchlevel\EventSourcing\Store\Store;
 use Patchlevel\EventSourcing\Store\StreamDoctrineDbalStore;
-use Patchlevel\EventSourcing\Store\StreamReadOnlyStore;
+use Patchlevel\EventSourcing\Store\TaggableDoctrineDbalStore;
 use Patchlevel\EventSourcing\Subscription\Engine\CatchUpSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\DefaultSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\GapResolverStoreMessageLoader;
@@ -128,7 +134,7 @@ use Patchlevel\EventSourcingBundle\RequestListener\AutoSetupListener;
 use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRebuildAfterFileChangeListener;
 use Patchlevel\EventSourcingBundle\Subscription\ResetServicesListener;
 use Patchlevel\EventSourcingBundle\Subscription\StaticInMemorySubscriptionStoreFactory;
-use Patchlevel\EventSourcingBundle\ValueResolver\AggregateRootIdValueResolver;
+use Patchlevel\EventSourcingBundle\ValueResolver\IdentifierValueResolver;
 use Patchlevel\Hydrator\Cryptography\Cipher\Cipher;
 use Patchlevel\Hydrator\Cryptography\Cipher\CipherKeyFactory;
 use Patchlevel\Hydrator\Cryptography\Cipher\OpensslCipher;
@@ -190,6 +196,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureMigration($config, $container);
         $this->configureValueResolver($container);
         $this->configureStoreMigration($config, $container);
+        $this->configureDCB($config, $container);
     }
 
     /** @param Config $config */
@@ -232,6 +239,9 @@ final class PatchlevelEventSourcingExtension extends Extension
             ]);
 
         $container->setAlias(HeadersSerializer::class, DefaultHeadersSerializer::class);
+
+        $container->register(AttributeEventTagExtractor::class);
+        $container->setAlias(EventTagExtractor::class, AttributeEventTagExtractor::class);
     }
 
     /** @param Config $config */
@@ -631,6 +641,10 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->setArguments([new Reference(EventMetadataFactory::class)])
             ->addTag('event_sourcing.message_decorator');
 
+        $container->register(EventTagDecorator::class)
+            ->setArguments([new Reference(EventTagExtractor::class)])
+            ->addTag('event_sourcing.message_decorator');
+
         $container->registerForAutoconfiguration(MessageDecorator::class)
             ->addTag('event_sourcing.message_decorator');
 
@@ -716,29 +730,6 @@ final class PatchlevelEventSourcingExtension extends Extension
             return;
         }
 
-        if ($config['store']['type'] === 'dbal_aggregate') {
-            $container->register(DoctrineDbalStore::class)
-                ->setArguments([
-                    new Reference('event_sourcing.dbal_connection'),
-                    new Reference(EventSerializer::class),
-                    new Reference(HeadersSerializer::class),
-                    $config['store']['options'],
-                ])
-                ->addTag('event_sourcing.doctrine_schema_configurator');
-
-            $container->setAlias(Store::class, DoctrineDbalStore::class);
-
-            if ($config['store']['read_only']) {
-                $container->register(ReadOnlyStore::class)
-                    ->setDecoratedService(Store::class)
-                    ->setArguments([
-                        new Reference('.inner'),
-                    ]);
-            }
-
-            return;
-        }
-
         if ($config['store']['type'] === 'dbal_stream') {
             $container->register(StreamDoctrineDbalStore::class)
                 ->setArguments([
@@ -753,11 +744,32 @@ final class PatchlevelEventSourcingExtension extends Extension
             $container->setAlias(Store::class, StreamDoctrineDbalStore::class);
 
             if ($config['store']['read_only']) {
-                $container->register(StreamReadOnlyStore::class)
+                $container->register(ReadOnlyStore::class)
                     ->setDecoratedService(Store::class)
                     ->setArguments([
                         new Reference('.inner'),
                     ]);
+            }
+
+            return;
+        }
+
+        if ($config['store']['type'] === 'dbal_taggable') {
+            $container->register(TaggableDoctrineDbalStore::class)
+                ->setArguments([
+                    new Reference('event_sourcing.dbal_connection'),
+                    new Reference(EventSerializer::class),
+                    new Reference(EventRegistry::class),
+                    new Reference(HeadersSerializer::class),
+                    new Reference('event_sourcing.clock'),
+                    $config['store']['options'],
+                ])
+                ->addTag('event_sourcing.doctrine_schema_configurator');
+
+            $container->setAlias(Store::class, TaggableDoctrineDbalStore::class);
+
+            if ($config['store']['read_only']) {
+                throw new InvalidArgumentException('Taggable store does not support read only');
             }
 
             return;
@@ -802,12 +814,13 @@ final class PatchlevelEventSourcingExtension extends Extension
             return;
         }
 
-        if ($config['store']['migrate_to_new_store']['type'] === 'dbal_aggregate') {
-            $container->register($id, DoctrineDbalStore::class)
+        if ($config['store']['migrate_to_new_store']['type'] === 'dbal_stream') {
+            $container->register($id, StreamDoctrineDbalStore::class)
                 ->setArguments([
                     new Reference('event_sourcing.dbal_connection'),
                     new Reference(EventSerializer::class),
                     new Reference(HeadersSerializer::class),
+                    new Reference('event_sourcing.clock'),
                     $config['store']['migrate_to_new_store']['options'],
                 ])
                 ->addTag('event_sourcing.doctrine_schema_configurator');
@@ -815,8 +828,8 @@ final class PatchlevelEventSourcingExtension extends Extension
             return;
         }
 
-        if ($config['store']['migrate_to_new_store']['type'] === 'dbal_stream') {
-            $container->register($id, StreamDoctrineDbalStore::class)
+        if ($config['store']['migrate_to_new_store']['type'] === 'dbal_taggable') {
+            $container->register($id, TaggableDoctrineDbalStore::class)
                 ->setArguments([
                     new Reference('event_sourcing.dbal_connection'),
                     new Reference(EventSerializer::class),
@@ -1180,9 +1193,34 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->setAlias(PayloadCryptographer::class, PersonalDataPayloadCryptographer::class);
     }
 
+    /** @param Config $config */
+    private function configureDCB(array $config, ContainerBuilder $container): void
+    {
+        if (!$config['dcb']['enabled']) {
+            return;
+        }
+
+        if ($config['store']['type'] !== 'dbal_taggable') {
+            throw new InvalidArgumentException(
+                'DCB requires a taggable store, please use "dbal_taggable" as store type.',
+            );
+        }
+
+        $container->register(StoreDecisionModelBuilder::class)
+            ->setArguments([new Reference(TaggableDoctrineDbalStore::class)]);
+        $container->setAlias(DecisionModelBuilder::class, StoreDecisionModelBuilder::class);
+
+        $container->register(StoreEventAppender::class)
+            ->setArguments([
+                new Reference(TaggableDoctrineDbalStore::class),
+                new Reference(EventTagExtractor::class),
+            ]);
+        $container->setAlias(EventAppender::class, StoreEventAppender::class);
+    }
+
     private function configureValueResolver(ContainerBuilder $container): void
     {
-        $container->register(AggregateRootIdValueResolver::class)
+        $container->register(IdentifierValueResolver::class)
             ->addTag('controller.argument_value_resolver', ['priority' => 200]);
     }
 

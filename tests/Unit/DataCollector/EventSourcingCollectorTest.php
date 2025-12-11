@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Patchlevel\EventSourcingBundle\Tests\Unit\DataCollector;
 
 use DateTimeImmutable;
-use Patchlevel\EventSourcing\Aggregate\AggregateHeader;
-use Patchlevel\EventSourcing\Aggregate\CustomId;
+use Patchlevel\EventSourcing\Identifier\CustomId;
 use Patchlevel\EventSourcing\Message\Message;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
+use Patchlevel\EventSourcing\Store\Header\PlayheadHeader;
+use Patchlevel\EventSourcing\Store\Header\RecordedOnHeader;
+use Patchlevel\EventSourcing\Store\Header\StreamNameHeader;
 use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
 use Patchlevel\EventSourcingBundle\DataCollector\MessageCollectorEventBus;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Profile;
@@ -35,12 +37,9 @@ final class EventSourcingCollectorTest extends TestCase
         $event = new ProfileCreated(new CustomId('1'));
 
         $message = Message::createWithHeaders($event, [
-            new AggregateHeader(
-                'profile',
-                '1',
-                1,
-                new DateTimeImmutable('2022-07-07T18:55:50+02:00'),
-            )
+            new StreamNameHeader('profile-1'),
+            new PlayheadHeader(1),
+            new RecordedOnHeader(new DateTimeImmutable('2022-07-07T18:55:50+02:00'))
         ]);
 
         $collector = new EventSourcingCollector(
@@ -68,7 +67,7 @@ final class EventSourcingCollectorTest extends TestCase
         self::assertEquals(ProfileCreated::class, $message['event_class']);
         self::assertEquals('profile.created', $message['event_name']);
         self::assertInstanceOf(Data::class, $message['event']);
-        self::assertCount(1, $message['headers']);
+        self::assertCount(3, $message['headers']);
         self::assertInstanceOf(Data::class, $message['headers'][0]);
     }
 }
