@@ -1,7 +1,7 @@
 # Usage
 
 Here you will find some examples of how to use the bundle.
-But we provide only examples for specific symfo
+But we provide only examples for specific symfony features.
 
 !!! info
 

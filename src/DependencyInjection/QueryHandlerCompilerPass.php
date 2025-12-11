@@ -19,7 +19,10 @@ final class QueryHandlerCompilerPass implements CompilerPassInterface
             return;
         }
 
-        $bus = $container->getParameter('patchlevel_event_sourcing.query_handlers.bus');
+        $bus = ServiceAliasResolver::resolve(
+            $container,
+            $container->getParameter('patchlevel_event_sourcing.query_handlers.bus'),
+        );
         $subscribers = $container->findTaggedServiceIds('event_sourcing.subscriber');
 
         foreach (array_keys($subscribers) as $subscriberServiceName) {

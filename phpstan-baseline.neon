@@ -1,7 +1,67 @@
 parameters:
 	ignoreErrors:
 		-
+			message: '#^Parameter \#2 \$id of static method Patchlevel\\EventSourcingBundle\\DependencyInjection\\ServiceAliasResolver\:\:resolve\(\) expects string, array\|bool\|float\|int\|string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/DependencyInjection/CommandHandlerCompilerPass.php
+
+		-
 			message: '#^Parameter \#1 \$classString of static method Patchlevel\\EventSourcing\\QueryBus\\HandlerFinder\:\:findInClass\(\) expects class\-string, string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/DependencyInjection/QueryHandlerCompilerPass.php
+
+		-
+			message: '#^Parameter \#2 \$id of static method Patchlevel\\EventSourcingBundle\\DependencyInjection\\ServiceAliasResolver\:\:resolve\(\) expects string, array\|bool\|float\|int\|string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/DependencyInjection/QueryHandlerCompilerPass.php
+
+		-
+			message: '#^Property Patchlevel\\EventSourcingBundle\\Tests\\Fixtures\\Profile\:\:\$id is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: tests/Fixtures/Profile.php
+
+		-
+			message: '#^Property Patchlevel\\EventSourcingBundle\\Tests\\Fixtures\\SnapshotableProfile\:\:\$id is unused\.$#'
+			identifier: property.unused
+			count: 1
+			path: tests/Fixtures/SnapshotableProfile.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\DependencyInjection\\ContainerBuilder\:\:getAutoconfiguredAttributes\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Unit/PatchlevelEventSourcingBundleTest.php
+
+		-
+			message: '#^Cannot access offset ''Patchlevel\\\\EventSourcing\\\\Attribute\\\\Aggregate''\|''Patchlevel\\\\EventSourcing\\\\Attribute\\\\Event'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Unit/PatchlevelEventSourcingBundleTest.php
+
+		-
+			message: '#^Cannot access offset ''bus'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 3
+			path: tests/Unit/PatchlevelEventSourcingBundleTest.php
+
+		-
+			message: '#^Cannot access offset ''handles'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 3
+			path: tests/Unit/PatchlevelEventSourcingBundleTest.php
+
+		-
+			message: '#^Cannot access offset ''method'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: tests/Unit/PatchlevelEventSourcingBundleTest.php
+
+		-
+			message: '#^Trying to invoke mixed but it''s not a callable\.$#'
+			identifier: callable.nonCallable
+			count: 1
+			path: tests/Unit/PatchlevelEventSourcingBundleTest.php

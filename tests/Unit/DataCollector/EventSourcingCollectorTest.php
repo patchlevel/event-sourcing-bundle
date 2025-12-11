@@ -68,7 +68,6 @@ final class EventSourcingCollectorTest extends TestCase
         self::assertEquals(ProfileCreated::class, $message['event_class']);
         self::assertEquals('profile.created', $message['event_name']);
         self::assertInstanceOf(Data::class, $message['event']);
-        self::assertIsArray($message['headers']);
         self::assertCount(1, $message['headers']);
         self::assertInstanceOf(Data::class, $message['headers'][0]);
     }

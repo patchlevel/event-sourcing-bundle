@@ -37,6 +37,20 @@ patchlevel_event_sourcing:
     connection:
       url: '%env(EVENTSTORE_URL)%'
       provide_dedicated_connection: true
+    store:
+      type: dbal_stream
+      # if you are using doctrine bundle you should enable this
+      #merge_orm_schema: true
+    command_bus:
+      service: messenger.default_bus
+    query_bus:
+      service: messenger.default_bus
+    subscription:
+      gap_detection: ~
+
+    # enable this if you want to use sensitive data encryption
+    #cryptography: ~ 
+    #  use_encrypted_field_name: true
 
 when@dev:
   patchlevel_event_sourcing:
@@ -50,6 +64,8 @@ when@dev:
 when@test:
   patchlevel_event_sourcing:
     subscription:
+      store:
+        type: 'static_in_memory'
       catch_up: true
       throw_on_error: true
       run_after_aggregate_save: true
