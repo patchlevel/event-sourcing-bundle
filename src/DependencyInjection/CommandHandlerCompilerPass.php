@@ -25,7 +25,10 @@ final class CommandHandlerCompilerPass implements CompilerPassInterface
             return;
         }
 
-        $bus = $container->getParameter('patchlevel_event_sourcing.aggregate_handlers.bus');
+        $bus = ServiceAliasResolver::resolve(
+            $container,
+            $container->getParameter('patchlevel_event_sourcing.aggregate_handlers.bus'),
+        );
 
         /** @var AggregateRootRegistry $aggregateRootRegistry */
         $aggregateRootRegistry = $container->get(AggregateRootRegistry::class);

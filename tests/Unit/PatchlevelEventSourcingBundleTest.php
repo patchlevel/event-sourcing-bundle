@@ -85,6 +85,7 @@ use Patchlevel\EventSourcing\Subscription\Store\InMemorySubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\SubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorRepository;
 use Patchlevel\EventSourcingBundle\Command\StoreMigrateCommand;
+use Patchlevel\EventSourcingBundle\DependencyInjection\Configuration;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
@@ -1553,6 +1554,9 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertSame($profileRepository, $namedArgumentProfileRepository);
     }
 
+    /**
+     * @param array{patchlevel_event_sourcing: array<string, mixed>} $config
+     */
     private function compileContainer(ContainerBuilder $container, array $config): void
     {
         $bundle = new PatchlevelEventSourcingBundle();

@@ -16,6 +16,7 @@ class Profile extends BasicAggregateRoot
     #[Id]
     private CustomId $id;
 
+    /**  @param Repository<self> $profileRepository */
     #[Handle]
     public static function create(
         CreateProfile $command,

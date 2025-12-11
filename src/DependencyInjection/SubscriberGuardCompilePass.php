@@ -34,7 +34,7 @@ final class SubscriberGuardCompilePass implements CompilerPassInterface
             );
         }
 
-        $subscriptionConnection = $this->resolveService($container, (string)$argument);
+        $subscriptionConnection = ServiceAliasResolver::resolve($container, (string)$argument);
 
         $subscribers = $container->findTaggedServiceIds('event_sourcing.subscriber');
 
@@ -48,7 +48,7 @@ final class SubscriberGuardCompilePass implements CompilerPassInterface
                     continue;
                 }
 
-                if ($subscriptionConnection !== $this->resolveService($container, (string)$argument)) {
+                if ($subscriptionConnection !== ServiceAliasResolver::resolve($container, (string)$argument)) {
                     continue;
                 }
 
@@ -67,17 +67,5 @@ final class SubscriberGuardCompilePass implements CompilerPassInterface
                 );
             }
         }
-    }
-
-    private function resolveService(ContainerBuilder $container, string $id): string
-    {
-        if ($container->hasAlias($id)) {
-            return $this->resolveService(
-                $container,
-                (string)$container->getAlias($id),
-            );
-        }
-
-        return $id;
     }
 }

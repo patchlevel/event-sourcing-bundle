@@ -343,6 +343,8 @@ patchlevel_event_sourcing:
     store: 
       type: 'custom' # default is 'dbal'
       service: 'my_subscription_store'
+      options:
+        table_name: 'my_subscription_store'
 ```
 :::tip
 If you are using the [doctrine-test-bundle](https://github.com/dmaicher/doctrine-test-bundle),
@@ -672,7 +674,7 @@ For this you need to enable the crypto shredding.
 ```yaml
 patchlevel_event_sourcing:
     cryptography:
-      use_encrypted_field_name: true,
+      use_encrypted_field_name: true
 ```
 :::tip
 You should activate `use_encrypted_field_name` to mark the fields that are encrypted.
