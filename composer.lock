@@ -6023,12 +6023,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "4400137eb61cd0db3192a409353ae83e811395fe"
+                "reference": "415fded4fc00cd3df267d36e384e3e7454b39c40"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/4400137eb61cd0db3192a409353ae83e811395fe",
-                "reference": "4400137eb61cd0db3192a409353ae83e811395fe",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/415fded4fc00cd3df267d36e384e3e7454b39c40",
+                "reference": "415fded4fc00cd3df267d36e384e3e7454b39c40",
                 "shasum": ""
             },
             "conflict": {
@@ -6081,7 +6081,7 @@
                 "automattic/jetpack": "<9.8",
                 "awesome-support/awesome-support": "<=6.0.7",
                 "aws/aws-sdk-php": "<3.288.1",
-                "azuracast/azuracast": "<0.18.3",
+                "azuracast/azuracast": "<=0.23.1",
                 "b13/seo_basics": "<0.8.2",
                 "backdrop/backdrop": "<=1.32",
                 "backpack/crud": "<3.4.9",
@@ -7016,7 +7016,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-12-10T19:05:59+00:00"
+            "time": "2025-12-11T17:09:09+00:00"
         },
         {
             "name": "sanmai/di-container",
