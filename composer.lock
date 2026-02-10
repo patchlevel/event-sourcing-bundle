@@ -4353,16 +4353,16 @@
         },
         {
             "name": "infection/infection",
-            "version": "0.32.3",
+            "version": "0.32.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/infection/infection.git",
-                "reference": "3654db483619b63b9bcb04c24caeb03677c6d057"
+                "reference": "a2b0a3e47b56bd2f27ca13caecae47baa7e5abe8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/infection/infection/zipball/3654db483619b63b9bcb04c24caeb03677c6d057",
-                "reference": "3654db483619b63b9bcb04c24caeb03677c6d057",
+                "url": "https://api.github.com/repos/infection/infection/zipball/a2b0a3e47b56bd2f27ca13caecae47baa7e5abe8",
+                "reference": "a2b0a3e47b56bd2f27ca13caecae47baa7e5abe8",
                 "shasum": ""
             },
             "require": {
@@ -4383,11 +4383,11 @@
                 "ondram/ci-detector": "^4.1.0",
                 "php": "^8.2",
                 "psr/log": "^2.0 || ^3.0",
-                "sanmai/di-container": "^0.1.4",
+                "sanmai/di-container": "^0.1.12",
                 "sanmai/duoclock": "^0.1.0",
                 "sanmai/later": "^0.1.7",
-                "sanmai/pipeline": "^7.0",
-                "sebastian/diff": "^4.0 || ^5.0 || ^6.0 || ^7.0",
+                "sanmai/pipeline": "^7.2",
+                "sebastian/diff": "^4.0 || ^5.0 || ^6.0 || ^7.0 || ^8.0",
                 "symfony/console": "^6.4 || ^7.0 || ^8.0",
                 "symfony/filesystem": "^6.4 || ^7.0 || ^8.0",
                 "symfony/finder": "^6.4 || ^7.0 || ^8.0",
@@ -4473,7 +4473,7 @@
             ],
             "support": {
                 "issues": "https://github.com/infection/infection/issues",
-                "source": "https://github.com/infection/infection/tree/0.32.3"
+                "source": "https://github.com/infection/infection/tree/0.32.4"
             },
             "funding": [
                 {
@@ -4485,7 +4485,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2026-01-13T14:23:38+00:00"
+            "time": "2026-02-09T13:24:18+00:00"
         },
         {
             "name": "infection/mutator",
@@ -6034,12 +6034,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "7ea2d110787f6807213e27a1255c6b858ad99d89"
+                "reference": "495dd245daf97837671d36aabe17849edfb1e7b1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/7ea2d110787f6807213e27a1255c6b858ad99d89",
-                "reference": "7ea2d110787f6807213e27a1255c6b858ad99d89",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/495dd245daf97837671d36aabe17849edfb1e7b1",
+                "reference": "495dd245daf97837671d36aabe17849edfb1e7b1",
                 "shasum": ""
             },
             "conflict": {
@@ -6070,6 +6070,7 @@
                 "amphp/artax": "<1.0.6|>=2,<2.0.6",
                 "amphp/http": "<=1.7.2|>=2,<=2.1",
                 "amphp/http-client": ">=4,<4.4",
+                "amphp/http-server": ">=2.0.0.0-RC1-dev,<2.1.10|>=3.0.0.0-beta1,<3.4.4",
                 "anchorcms/anchor-cms": "<=0.12.7",
                 "andreapollastri/cipi": "<=3.1.15",
                 "andrewhaine/silverstripe-form-capture": ">=0.2,<=0.2.3|>=1,<1.0.2|>=2,<2.2.5",
@@ -6180,9 +6181,10 @@
                 "cosenary/instagram": "<=2.3",
                 "couleurcitron/tarteaucitron-wp": "<0.3",
                 "cpsit/typo3-mailqueue": "<0.4.3|>=0.5,<0.5.1",
-                "craftcms/cms": "<=4.16.16|>=5,<=5.8.20",
+                "craftcms/cms": "<4.17.0.0-beta1|>=5,<5.9.0.0-beta1",
                 "craftcms/commerce": ">=4.0.0.0-RC1-dev,<=4.10|>=5,<=5.5.1",
                 "craftcms/composer": ">=4.0.0.0-RC1-dev,<=4.10|>=5.0.0.0-RC1-dev,<=5.5.1",
+                "craftcms/craft": ">=3.5,<=4.16.17|>=5.0.0.0-RC1-dev,<=5.8.21",
                 "croogo/croogo": "<=4.0.7",
                 "cuyz/valinor": "<0.12",
                 "czim/file-handling": "<1.5|>=2,<2.3",
@@ -7044,7 +7046,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-02-05T22:08:29+00:00"
+            "time": "2026-02-09T22:13:28+00:00"
         },
         {
             "name": "sanmai/di-container",
