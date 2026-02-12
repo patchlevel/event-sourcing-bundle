@@ -313,16 +313,16 @@
         },
         {
             "name": "doctrine/migrations",
-            "version": "3.9.5",
+            "version": "3.9.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/migrations.git",
-                "reference": "1b823afbc40f932dae8272574faee53f2755eac5"
+                "reference": "ffd8355cdd8505fc650d9604f058bf62aedd80a1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/migrations/zipball/1b823afbc40f932dae8272574faee53f2755eac5",
-                "reference": "1b823afbc40f932dae8272574faee53f2755eac5",
+                "url": "https://api.github.com/repos/doctrine/migrations/zipball/ffd8355cdd8505fc650d9604f058bf62aedd80a1",
+                "reference": "ffd8355cdd8505fc650d9604f058bf62aedd80a1",
                 "shasum": ""
             },
             "require": {
@@ -396,7 +396,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/migrations/issues",
-                "source": "https://github.com/doctrine/migrations/tree/3.9.5"
+                "source": "https://github.com/doctrine/migrations/tree/3.9.6"
             },
             "funding": [
                 {
@@ -412,7 +412,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-11-20T11:15:36+00:00"
+            "time": "2026-02-11T06:46:11+00:00"
         },
         {
             "name": "patchlevel/event-sourcing",
@@ -497,16 +497,16 @@
         },
         {
             "name": "patchlevel/hydrator",
-            "version": "1.13.0",
+            "version": "1.14.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/hydrator.git",
-                "reference": "dc6fe9a835edaa2d6972ad148738eaeb95a6cb35"
+                "reference": "cec72c5372e7014605be5a853f0f404715dd763a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/hydrator/zipball/dc6fe9a835edaa2d6972ad148738eaeb95a6cb35",
-                "reference": "dc6fe9a835edaa2d6972ad148738eaeb95a6cb35",
+                "url": "https://api.github.com/repos/patchlevel/hydrator/zipball/cec72c5372e7014605be5a853f0f404715dd763a",
+                "reference": "cec72c5372e7014605be5a853f0f404715dd763a",
                 "shasum": ""
             },
             "require": {
@@ -518,7 +518,7 @@
                 "symfony/type-info": "^7.3.0 || ^8.0.0"
             },
             "require-dev": {
-                "infection/infection": "^0.31.9",
+                "infection/infection": "^0.32.0",
                 "patchlevel/coding-standard": "^1.3.0",
                 "phpat/phpat": "^0.12.0",
                 "phpbench/phpbench": "^1.2.15",
@@ -555,9 +555,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/hydrator/issues",
-                "source": "https://github.com/patchlevel/hydrator/tree/1.13.0"
+                "source": "https://github.com/patchlevel/hydrator/tree/1.14.0"
             },
-            "time": "2025-11-27T16:58:40+00:00"
+            "time": "2026-02-11T10:32:51+00:00"
         },
         {
             "name": "patchlevel/worker",
@@ -5449,11 +5449,11 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.1.38",
+            "version": "2.1.39",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/dfaf1f530e1663aa167bc3e52197adb221582629",
-                "reference": "dfaf1f530e1663aa167bc3e52197adb221582629",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/c6f73a2af4cbcd99c931d0fb8f08548cc0fa8224",
+                "reference": "c6f73a2af4cbcd99c931d0fb8f08548cc0fa8224",
                 "shasum": ""
             },
             "require": {
@@ -5498,20 +5498,20 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-01-30T17:12:46+00:00"
+            "time": "2026-02-11T14:48:56+00:00"
         },
         {
             "name": "phpstan/phpstan-symfony",
-            "version": "2.0.13",
+            "version": "2.0.14",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan-symfony.git",
-                "reference": "6feadf70de5fa2c8a106c443bd04e16ed0b17d64"
+                "reference": "678136545a552a33b07f1a59a013f76df286cc34"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan-symfony/zipball/6feadf70de5fa2c8a106c443bd04e16ed0b17d64",
-                "reference": "6feadf70de5fa2c8a106c443bd04e16ed0b17d64",
+                "url": "https://api.github.com/repos/phpstan/phpstan-symfony/zipball/678136545a552a33b07f1a59a013f76df286cc34",
+                "reference": "678136545a552a33b07f1a59a013f76df286cc34",
                 "shasum": ""
             },
             "require": {
@@ -5570,9 +5570,9 @@
             ],
             "support": {
                 "issues": "https://github.com/phpstan/phpstan-symfony/issues",
-                "source": "https://github.com/phpstan/phpstan-symfony/tree/2.0.13"
+                "source": "https://github.com/phpstan/phpstan-symfony/tree/2.0.14"
             },
-            "time": "2026-02-10T08:55:32+00:00"
+            "time": "2026-02-11T12:27:30+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
@@ -6037,12 +6037,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "0c751a6ae38247a99675c8210d6a9d570314c87f"
+                "reference": "0827484199a3d7d67a4f0f72637f235ca29b48d6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/0c751a6ae38247a99675c8210d6a9d570314c87f",
-                "reference": "0c751a6ae38247a99675c8210d6a9d570314c87f",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/0827484199a3d7d67a4f0f72637f235ca29b48d6",
+                "reference": "0827484199a3d7d67a4f0f72637f235ca29b48d6",
                 "shasum": ""
             },
             "conflict": {
@@ -6645,6 +6645,7 @@
                 "phpwhois/phpwhois": "<=4.2.5",
                 "phpxmlrpc/extras": "<0.6.1",
                 "phpxmlrpc/phpxmlrpc": "<4.9.2",
+                "phraseanet/phraseanet": "==4.0.3",
                 "pi/pi": "<=2.5",
                 "pimcore/admin-ui-classic-bundle": "<=1.7.15|>=2.0.0.0-RC1-dev,<=2.2.2",
                 "pimcore/customer-management-framework-bundle": "<4.2.1",
@@ -6782,7 +6783,7 @@
                 "starcitizentools/short-description": ">=4,<4.0.1",
                 "starcitizentools/tabber-neue": ">=1.9.1,<2.7.2|>=3,<3.1.1",
                 "starcitizenwiki/embedvideo": "<=4",
-                "statamic/cms": "<=5.22",
+                "statamic/cms": "<5.73.6|>=6,<6.2.5",
                 "stormpath/sdk": "<9.9.99",
                 "studio-42/elfinder": "<=2.1.64",
                 "studiomitte/friendlycaptcha": "<0.1.4",
@@ -7050,7 +7051,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-02-10T00:36:12+00:00"
+            "time": "2026-02-11T19:25:13+00:00"
         },
         {
             "name": "sanmai/di-container",
