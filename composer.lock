@@ -497,16 +497,16 @@
         },
         {
             "name": "patchlevel/hydrator",
-            "version": "1.14.0",
+            "version": "1.15.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/hydrator.git",
-                "reference": "cec72c5372e7014605be5a853f0f404715dd763a"
+                "reference": "be341387c1017d64cbb5da3e60322b6a8436da8a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/hydrator/zipball/cec72c5372e7014605be5a853f0f404715dd763a",
-                "reference": "cec72c5372e7014605be5a853f0f404715dd763a",
+                "url": "https://api.github.com/repos/patchlevel/hydrator/zipball/be341387c1017d64cbb5da3e60322b6a8436da8a",
+                "reference": "be341387c1017d64cbb5da3e60322b6a8436da8a",
                 "shasum": ""
             },
             "require": {
@@ -518,13 +518,13 @@
                 "symfony/type-info": "^7.3.0 || ^8.0.0"
             },
             "require-dev": {
-                "infection/infection": "^0.32.0",
+                "infection/infection": "^0.32.4",
                 "patchlevel/coding-standard": "^1.3.0",
-                "phpat/phpat": "^0.12.0",
-                "phpbench/phpbench": "^1.2.15",
-                "phpstan/phpstan": "^2.1.32",
-                "phpstan/phpstan-phpunit": "^2.0.8",
-                "phpunit/phpunit": "^11.5.17",
+                "phpat/phpat": "^0.12.2",
+                "phpbench/phpbench": "^1.4.3",
+                "phpstan/phpstan": "^2.1.39",
+                "phpstan/phpstan-phpunit": "^2.0.15",
+                "phpunit/phpunit": "^11.5.53",
                 "symfony/var-dumper": "^5.4.29 || ^6.4.0 || ^7.0.0 || ^8.0.0"
             },
             "type": "library",
@@ -555,9 +555,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/hydrator/issues",
-                "source": "https://github.com/patchlevel/hydrator/tree/1.14.0"
+                "source": "https://github.com/patchlevel/hydrator/tree/1.15.0"
             },
-            "time": "2026-02-11T10:32:51+00:00"
+            "time": "2026-02-14T12:19:22+00:00"
         },
         {
             "name": "patchlevel/worker",
