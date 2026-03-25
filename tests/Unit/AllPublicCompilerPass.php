@@ -9,7 +9,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 use function str_starts_with;
 
-final class TestCaseAllPublicCompilerPass implements CompilerPassInterface
+final class AllPublicCompilerPass implements CompilerPassInterface
 {
     private const SERVICE_PREFIX = 'event_sourcing.';
     private const NAMESPACE_PREFIX = 'Patchlevel\\';
@@ -25,11 +25,9 @@ final class TestCaseAllPublicCompilerPass implements CompilerPassInterface
         }
 
         foreach ($container->getAliases() as $id => $alias) {
-            if (!$this->isOwnService($id)) {
-                continue;
+            if ($this->isOwnService($id) || $this->isOwnService((string)$alias)) {
+                $alias->setPublic(true);
             }
-
-            $alias->setPublic(true);
         }
     }
 
