@@ -10,6 +10,7 @@ use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
 use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
 use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
+use Doctrine\Persistence\ManagerRegistry;
 use InvalidArgumentException;
 use Patchlevel\EventSourcing\Attribute\Aggregate;
 use Patchlevel\EventSourcing\Attribute\Event;
@@ -26,9 +27,11 @@ use Patchlevel\EventSourcing\Console\Command\SchemaDropCommand;
 use Patchlevel\EventSourcing\Console\Command\SchemaUpdateCommand;
 use Patchlevel\EventSourcing\Console\Command\ShowAggregateCommand;
 use Patchlevel\EventSourcing\Console\Command\ShowCommand;
+use Patchlevel\EventSourcing\Console\Command\StoreMigrateCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionBootCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionPauseCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionReactivateCommand;
+use Patchlevel\EventSourcing\Console\Command\SubscriptionRefreshCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionRemoveCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionRunCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionSetupCommand;
@@ -67,6 +70,9 @@ use Patchlevel\EventSourcing\Store\Store;
 use Patchlevel\EventSourcing\Store\StreamDoctrineDbalStore;
 use Patchlevel\EventSourcing\Store\StreamReadOnlyStore;
 use Patchlevel\EventSourcing\Store\StreamStore;
+use Patchlevel\EventSourcing\Subscription\Cleanup\Cleaner;
+use Patchlevel\EventSourcing\Subscription\Cleanup\Dbal\DbalCleanupTaskHandler;
+use Patchlevel\EventSourcing\Subscription\Cleanup\DefaultCleaner;
 use Patchlevel\EventSourcing\Subscription\Engine\CatchUpSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\DefaultSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\GapResolverStoreMessageLoader;
@@ -82,8 +88,6 @@ use Patchlevel\EventSourcing\Subscription\Store\DoctrineSubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\InMemorySubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\SubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorRepository;
-use Patchlevel\EventSourcingBundle\Command\StoreMigrateCommand;
-use Patchlevel\EventSourcingBundle\DependencyInjection\Configuration;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
@@ -786,6 +790,66 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(GapResolverStoreMessageLoader::class, $messageLoader);
     }
 
+    public function testSubscriptionCleanupWithDoctrine(): void
+    {
+        $registry = $this->createMock(ManagerRegistry::class);
+
+        $container = new ContainerBuilder();
+        $container->set('doctrine', $registry);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'service' => 'doctrine.dbal.eventstore_connection',
+                    ],
+                    'store' => [
+                        'merge_orm_schema' => true,
+                    ],
+                ],
+            ]
+        );
+
+        $definition = $container->getDefinition(DbalCleanupTaskHandler::class);
+        $tags = $definition->getTag('event_sourcing.cleanup_task_handler');
+
+        self::assertCount(1, $tags);
+
+        $cleaner = $container->get(Cleaner::class);
+        self::assertInstanceOf(DefaultCleaner::class, $cleaner);
+
+        $cleanupTaskHandler = $container->get(DbalCleanupTaskHandler::class);
+        self::assertInstanceOf(DbalCleanupTaskHandler::class, $cleanupTaskHandler);
+    }
+
+    public function testSubscriptionCleanupWithProjectionConnection(): void
+    {
+        $container = new ContainerBuilder();
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => [
+                        'url' => 'sqlite3:///:memory:',
+                        'provide_dedicated_connection' => true,
+                    ],
+                ],
+            ]
+        );
+
+        $definition = $container->getDefinition(DbalCleanupTaskHandler::class);
+        $tags = $definition->getTag('event_sourcing.cleanup_task_handler');
+
+        self::assertCount(1, $tags);
+
+        $cleaner = $container->get(Cleaner::class);
+        self::assertInstanceOf(DefaultCleaner::class, $cleaner);
+
+        $cleanupTaskHandler = $container->get(DbalCleanupTaskHandler::class);
+        self::assertInstanceOf(DbalCleanupTaskHandler::class, $cleanupTaskHandler);
+    }
+
     public function testSnapshotStore(): void
     {
         $container = new ContainerBuilder();
@@ -1013,6 +1077,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(SubscriptionSetupCommand::class, $container->get(SubscriptionSetupCommand::class));
         self::assertInstanceOf(SubscriptionStatusCommand::class, $container->get(SubscriptionStatusCommand::class));
         self::assertInstanceOf(SubscriptionTeardownCommand::class, $container->get(SubscriptionTeardownCommand::class));
+        self::assertInstanceOf(SubscriptionRefreshCommand::class, $container->get(SubscriptionRefreshCommand::class));
         self::assertInstanceOf(SchemaCreateCommand::class, $container->get(SchemaCreateCommand::class));
         self::assertInstanceOf(SchemaUpdateCommand::class, $container->get(SchemaUpdateCommand::class));
         self::assertInstanceOf(SchemaDropCommand::class, $container->get(SchemaDropCommand::class));

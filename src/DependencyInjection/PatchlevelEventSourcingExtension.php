@@ -32,9 +32,11 @@ use Patchlevel\EventSourcing\Console\Command\SchemaDropCommand;
 use Patchlevel\EventSourcing\Console\Command\SchemaUpdateCommand;
 use Patchlevel\EventSourcing\Console\Command\ShowAggregateCommand;
 use Patchlevel\EventSourcing\Console\Command\ShowCommand;
+use Patchlevel\EventSourcing\Console\Command\StoreMigrateCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionBootCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionPauseCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionReactivateCommand;
+use Patchlevel\EventSourcing\Console\Command\SubscriptionRefreshCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionRemoveCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionRunCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionSetupCommand;
@@ -94,6 +96,9 @@ use Patchlevel\EventSourcing\Store\ReadOnlyStore;
 use Patchlevel\EventSourcing\Store\Store;
 use Patchlevel\EventSourcing\Store\StreamDoctrineDbalStore;
 use Patchlevel\EventSourcing\Store\StreamReadOnlyStore;
+use Patchlevel\EventSourcing\Subscription\Cleanup\Cleaner;
+use Patchlevel\EventSourcing\Subscription\Cleanup\CleanupTaskHandler;
+use Patchlevel\EventSourcing\Subscription\Cleanup\DefaultCleaner;
 use Patchlevel\EventSourcing\Subscription\Engine\CatchUpSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\DefaultSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\GapResolverStoreMessageLoader;
@@ -116,7 +121,6 @@ use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberAccessorRepositor
 use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberHelper;
 use Patchlevel\EventSourcingBundle\Attribute\AsListener;
 use Patchlevel\EventSourcingBundle\Clock\FrozenClockFactory;
-use Patchlevel\EventSourcingBundle\Command\StoreMigrateCommand;
 use Patchlevel\EventSourcingBundle\CommandBus\SymfonyCommandBus;
 use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
 use Patchlevel\EventSourcingBundle\DataCollector\MessageCollectorEventBus;
@@ -516,6 +520,16 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->setAlias(SubscriberAccessorRepository::class, MetadataSubscriberAccessorRepository::class);
 
+        $container->registerForAutoconfiguration(CleanupTaskHandler::class)
+            ->addTag('event_sourcing.cleanup_task_handler');
+
+        $container->register(DefaultCleaner::class)
+            ->setArguments([
+                new TaggedIteratorArgument('event_sourcing.cleanup_task_handler'),
+            ]);
+
+        $container->setAlias(Cleaner::class, DefaultCleaner::class);
+
         $container->register(DefaultSubscriptionEngine::class)
             ->setArguments([
                 new Reference(MessageLoader::class),
@@ -523,6 +537,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(SubscriberAccessorRepository::class),
                 new Reference(RetryStrategyRepository::class),
                 new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                new Reference(Cleaner::class),
             ])
             ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
 
@@ -977,6 +992,12 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->addTag('console.command');
 
         $container->register(SubscriptionReactivateCommand::class)
+            ->setArguments([
+                new Reference(SubscriptionEngine::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(SubscriptionRefreshCommand::class)
             ->setArguments([
                 new Reference(SubscriptionEngine::class),
             ])

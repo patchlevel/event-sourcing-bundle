@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Patchlevel\EventSourcingBundle;
 
 use Patchlevel\EventSourcingBundle\DependencyInjection\CommandHandlerCompilerPass;
+use Patchlevel\EventSourcingBundle\DependencyInjection\DoctrineCleanupCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\HandlerServiceLocatorCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\QueryHandlerCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\RepositoryCompilerPass;
@@ -23,5 +24,6 @@ final class PatchlevelEventSourcingBundle extends Bundle
         $container->addCompilerPass(new QueryHandlerCompilerPass(), priority: 100);
         $container->addCompilerPass(new HandlerServiceLocatorCompilerPass(), priority: -100);
         $container->addCompilerPass(new TranslatorCompilerPass());
+        $container->addCompilerPass(new DoctrineCleanupCompilerPass());
     }
 }

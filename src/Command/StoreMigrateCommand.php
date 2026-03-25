@@ -17,6 +17,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 use function count;
 
+/** @deprecated since version 3.15.0, to be removed in 4.0.0. Use the StoreMigrateCommand from the patchlevel/event-sourcing package instead. */
 #[AsCommand(
     'event-sourcing:store:migrate',
     'migrate events from one store to another',
