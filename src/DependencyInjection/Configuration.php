@@ -42,8 +42,13 @@ use Throwable;
  *               enabled: bool,
  *               ids: list<string>,
  *               groups: list<string>,
+ *               exclude_url: string|null
  *           },
- *          rebuild_after_file_change: array{enabled: bool, cache_pool: string},
+ *          rebuild_after_file_change: array{
+ *              enabled: bool,
+ *              cache_pool: string,
+ *              exclude_url: string|null
+ *          },
  *          gap_detection: array{
  *              enabled: bool,
  *              retries_in_ms: list<int>,
@@ -277,6 +282,7 @@ final class Configuration implements ConfigurationInterface
                         ->children()
                             ->arrayNode('ids')->scalarPrototype()->end()->end()
                             ->arrayNode('groups')->scalarPrototype()->end()->end()
+                            ->scalarNode('exclude_url')->defaultValue('^/_(wdt|profiler|error)')->end()
                         ->end()
                     ->end()
 
@@ -285,6 +291,7 @@ final class Configuration implements ConfigurationInterface
                         ->addDefaultsIfNotSet()
                         ->children()
                             ->scalarNode('cache_pool')->defaultValue('cache.app')->end()
+                            ->scalarNode('exclude_url')->defaultValue('^/_(wdt|profiler|error)')->end()
                         ->end()
                     ->end()
 

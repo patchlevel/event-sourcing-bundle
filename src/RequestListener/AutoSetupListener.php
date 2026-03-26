@@ -9,6 +9,8 @@ use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngineCriteria;
 use Patchlevel\EventSourcing\Subscription\Status;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 
+use function preg_match;
+
 final class AutoSetupListener
 {
     /**
@@ -19,12 +21,20 @@ final class AutoSetupListener
         private readonly SubscriptionEngine $subscriptionEngine,
         private readonly array|null $ids,
         private readonly array|null $groups,
+        private readonly string|null $excludeUrl = null,
     ) {
     }
 
     public function onKernelRequest(RequestEvent $event): void
     {
         if (!$event->isMainRequest()) {
+            return;
+        }
+
+        if (
+            $this->excludeUrl !== null
+            && preg_match('#' . $this->excludeUrl . '#', $event->getRequest()->getRequestUri())
+        ) {
             return;
         }
 

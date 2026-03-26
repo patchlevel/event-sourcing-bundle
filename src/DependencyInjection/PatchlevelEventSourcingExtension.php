@@ -587,6 +587,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                     new Reference(SubscriptionEngine::class),
                     $config['subscription']['auto_setup']['ids'] ?: null,
                     $config['subscription']['auto_setup']['groups'] ?: null,
+                    $config['subscription']['auto_setup']['exclude_url'] ?: null,
                 ])
                 ->addTag('kernel.event_listener', [
                     'event' => 'kernel.request',
@@ -605,6 +606,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new TaggedIteratorArgument('event_sourcing.subscriber'),
                 new Reference($config['subscription']['rebuild_after_file_change']['cache_pool']),
                 new Reference(SubscriberMetadataFactory::class),
+                $config['subscription']['rebuild_after_file_change']['exclude_url'] ?: null,
             ])
             ->addTag('kernel.event_listener', [
                 'event' => 'kernel.request',

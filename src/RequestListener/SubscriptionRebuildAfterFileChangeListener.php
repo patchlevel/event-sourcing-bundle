@@ -14,6 +14,7 @@ use ReflectionClass;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 
 use function filemtime;
+use function preg_match;
 
 final class SubscriptionRebuildAfterFileChangeListener
 {
@@ -23,12 +24,20 @@ final class SubscriptionRebuildAfterFileChangeListener
         private readonly iterable $subscribers,
         private readonly CacheItemPoolInterface $cache,
         private readonly SubscriberMetadataFactory $metadataFactory = new AttributeSubscriberMetadataFactory(),
+        private readonly string|null $excludeUrl = null,
     ) {
     }
 
     public function onKernelRequest(RequestEvent $event): void
     {
         if (!$event->isMainRequest()) {
+            return;
+        }
+
+        if (
+            $this->excludeUrl !== null
+            && preg_match('#' . $this->excludeUrl . '#', $event->getRequest()->getRequestUri())
+        ) {
             return;
         }
 
