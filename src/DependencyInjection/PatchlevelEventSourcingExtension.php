@@ -126,6 +126,7 @@ use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
 use Patchlevel\EventSourcingBundle\DataCollector\MessageCollectorEventBus;
 use Patchlevel\EventSourcingBundle\Doctrine\DbalConnectionFactory;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
+use Patchlevel\EventSourcingBundle\Normalizer\SymfonyGuesser;
 use Patchlevel\EventSourcingBundle\QueryBus\SymfonyQueryBus;
 use Patchlevel\EventSourcingBundle\RequestListener\AutoSetupListener;
 use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRebuildAfterFileChangeListener;
@@ -140,6 +141,9 @@ use Patchlevel\Hydrator\Cryptography\Cipher\OpensslCipherKeyFactory;
 use Patchlevel\Hydrator\Cryptography\PayloadCryptographer;
 use Patchlevel\Hydrator\Cryptography\PersonalDataPayloadCryptographer;
 use Patchlevel\Hydrator\Cryptography\Store\CipherKeyStore;
+use Patchlevel\Hydrator\Guesser\BuiltInGuesser;
+use Patchlevel\Hydrator\Guesser\ChainGuesser;
+use Patchlevel\Hydrator\Guesser\Guesser;
 use Patchlevel\Hydrator\Hydrator;
 use Patchlevel\Hydrator\Metadata\AttributeMetadataFactory;
 use Patchlevel\Hydrator\Metadata\MetadataFactory;
@@ -463,7 +467,10 @@ final class PatchlevelEventSourcingExtension extends Extension
                     continue;
                 }
 
-                throw new InvalidArgumentException(sprintf('Unknown retry strategy type "%s"', $strategyConfig['type']));
+                throw new InvalidArgumentException(sprintf(
+                    'Unknown retry strategy type "%s"',
+                    $strategyConfig['type'],
+                ));
             }
         }
 
@@ -617,7 +624,24 @@ final class PatchlevelEventSourcingExtension extends Extension
 
     private function configureHydrator(ContainerBuilder $container): void
     {
-        $container->register(AttributeMetadataFactory::class);
+        $container->register(ChainGuesser::class)
+            ->setArguments([new TaggedIteratorArgument('event_sourcing.hydrator.guesser')]);
+
+        $container->register(BuiltInGuesser::class)
+            ->addTag('event_sourcing.hydrator.guesser', ['priority' => -100]);
+
+        $container->register(SymfonyGuesser::class)
+            ->addTag('event_sourcing.hydrator.guesser', ['priority' => -50]);
+
+        $container->registerForAutoconfiguration(Guesser::class)
+            ->addTag('event_sourcing.hydrator.guesser');
+
+        $container->register(AttributeMetadataFactory::class)
+            ->setArguments([
+                null,
+                new Reference(ChainGuesser::class),
+            ]);
+
         $container->setAlias(MetadataFactory::class, AttributeMetadataFactory::class);
 
         $container->register(MetadataHydrator::class)

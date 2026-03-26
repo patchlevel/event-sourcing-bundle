@@ -153,28 +153,48 @@ This bundle adds more Symfony specific normalizers in addition to the existing b
 
     You can find the other build-in normalizers [here](https://event-sourcing.patchlevel.io/latest/normalizer/#built-in-normalizer)
     
-### Uuid
+!!! tip
 
-With the `Uuid` Normalizer, as the name suggests, you can convert Symfony Uuid objects to a string and back again.
+    The Hydrator can automatically determine the appropriate normalizer based on the data type and annotations.
+    You don't have to specify the normalizer manually like in the example below.
+    
+### Uid
+
+With the `Uid` Normalizer, as the name suggests, you can convert Symfony Uuid and Ulid objects to a string and back again.
 
 ```php
-use Patchlevel\EventSourcingBundle\Normalizer\SymfonyUuidNormalizer;
+use Patchlevel\EventSourcingBundle\Normalizer\UidNormalizer;
 use Symfony\Component\Uid\Uuid;
 
 final class DTO
 {
-    #[SymfonyUuidNormalizer]
+    #[UidNormalizer]
     public Uuid $id;
 }
 ```
 !!! warning
 
-    The symfony uuid don't implement the `AggregateId` interface, so it can be used as aggregate id.
+    The symfony uuid don't implement the `AggregateId` interface, so it can not be used as an aggregate id directly.
+    Use instead the `Patchlevel\EventSourcing\Aggregate\Uuid` class.
     
 !!! tip
 
     Use the `Uuid` implementation and `IdNormalizer` from the library to use it as an aggregate id.
     
+### DatePoint
+
+With the `DatePoint` Normalizer, you can convert a `DatePoint` object to a string and back again.
+
+```php
+use Patchlevel\EventSourcingBundle\Normalizer\DatePointNormalizer;
+use Symfony\Component\Clock\DatePoint;
+
+final class DTO
+{
+    #[DatePointNormalizer]
+    public DatePoint $createdAt;
+}
+```
 ## Upcasting
 
 ```php

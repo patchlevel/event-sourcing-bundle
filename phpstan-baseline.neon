@@ -19,6 +19,30 @@ parameters:
 			path: src/DependencyInjection/QueryHandlerCompilerPass.php
 
 		-
+			message: '#^Method Patchlevel\\EventSourcingBundle\\Normalizer\\SymfonyGuesser\:\:guess\(\) has parameter \$type with generic class Symfony\\Component\\TypeInfo\\Type\\ObjectType but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Normalizer/SymfonyGuesser.php
+
+		-
+			message: '#^Parameter \#1 \$uidClass of class Patchlevel\\EventSourcingBundle\\Normalizer\\UidNormalizer constructor expects class\-string\<Symfony\\Component\\Uid\\AbstractUid\>\|null, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Normalizer/SymfonyGuesser.php
+
+		-
+			message: '#^Property Patchlevel\\EventSourcingBundle\\Normalizer\\UidNormalizer\:\:\$uidClass \(class\-string\<Symfony\\Component\\Uid\\AbstractUid\>\|null\) does not accept string\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/Normalizer/UidNormalizer.php
+
+		-
+			message: '#^Method Fixtures\\DummyGuesser\:\:guess\(\) has parameter \$type with generic class Symfony\\Component\\TypeInfo\\Type\\ObjectType but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: tests/Fixtures/DummyGuesser.php
+
+		-
 			message: '#^Property Patchlevel\\EventSourcingBundle\\Tests\\Fixtures\\Profile\:\:\$id is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1

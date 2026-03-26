@@ -20,6 +20,7 @@
   "require": {
     "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
     "patchlevel/event-sourcing": "^3.18.0",
+    "patchlevel/hydrator": "^1.18.0",
     "symfony/cache": "^6.4.0 || ^7.0.0 || ^8.0.0",
     "symfony/config": "^6.4.0 || ^7.0.0 || ^8.0.0",
     "symfony/console": "^6.4.1 || ^7.0.1 || ^8.0.0",
@@ -40,6 +41,7 @@
     "phpstan/phpstan-symfony": "^2.0.8",
     "phpunit/phpunit": "^11.5.45",
     "roave/security-advisories": "dev-master",
+    "symfony/clock": "^6.4.0 || ^7.0.0 || ^8.0.0",
     "symfony/uid": "^6.4.0 || ^7.0.0 || ^8.0.0",
     "symfony/var-dumper": "^6.4.0 || ^7.0.0 || ^8.0.0",
     "symfony/web-profiler-bundle": "^6.4.0 || ^7.0.0 || ^8.0.0",

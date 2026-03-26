@@ -57,7 +57,6 @@ final class SymfonyCommandtBusTest extends TestCase
         $commandBus->dispatch($command);
     }
 
-
     public function testRecursiveException(): void
     {
         $command = new CreateProfile(
@@ -74,7 +73,7 @@ final class SymfonyCommandtBusTest extends TestCase
             ->with($command)
             ->willThrowException(new HandlerFailedException(
                 $envelope,
-                [new HandlerFailedException($envelope, [$internalException])]
+                [new HandlerFailedException($envelope, [$internalException])],
             ));
 
         $commandBus = new SymfonyCommandBus($messageBus);

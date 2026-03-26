@@ -40,7 +40,7 @@ final class EventSourcingCollectorTest extends TestCase
                 '1',
                 1,
                 new DateTimeImmutable('2022-07-07T18:55:50+02:00'),
-            )
+            ),
         ]);
 
         $collector = new EventSourcingCollector(
@@ -53,7 +53,7 @@ final class EventSourcingCollectorTest extends TestCase
 
         $collector->collect(
             new Request(),
-            new Response()
+            new Response(),
         );
 
         self::assertSame(['profile' => Profile::class], $collector->getAggregates());

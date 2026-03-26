@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Patchlevel\EventSourcingBundle\Tests\Fixtures;
 
 use Patchlevel\EventSourcing\Message\Message;
@@ -17,5 +19,4 @@ class DummyArgumentResolver implements ArgumentResolver
     {
         return false;
     }
-
 }

@@ -14,9 +14,12 @@ use Patchlevel\EventSourcingBundle\Tests\Fixtures\FromNowSubscriber;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
+use ReflectionClass;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+
+use function filemtime;
 
 /** @covers \Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRebuildAfterFileChangeListener */
 final class SubscriptionRebuildAfterFileChangeListenerTest extends TestCase
@@ -88,7 +91,7 @@ final class SubscriptionRebuildAfterFileChangeListenerTest extends TestCase
 
     public function testNoRebuildWhenFileDidNotChange(): void
     {
-        $subscriberFile = (new \ReflectionClass(FromBeginningSubscriber::class))->getFileName();
+        $subscriberFile = (new ReflectionClass(FromBeginningSubscriber::class))->getFileName();
         self::assertIsString($subscriberFile);
 
         $currentModified = filemtime($subscriberFile);
