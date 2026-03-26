@@ -11,6 +11,7 @@ use Symfony\Component\Uid\Uuid;
 
 use function is_string;
 
+/** @deprecated Use SymfonyUidNormalizer instead, which supports all Uid types, not just Uuid. */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final class SymfonyUuidNormalizer implements Normalizer
 {

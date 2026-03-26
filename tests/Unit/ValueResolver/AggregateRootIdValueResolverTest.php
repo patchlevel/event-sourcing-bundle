@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Patchlevel\EventSourcingBundle\Tests\Unit\ValueResolver;
 
 use Patchlevel\EventSourcing\Aggregate\CustomId;
@@ -8,9 +10,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 
-/**
- * @covers \Patchlevel\EventSourcingBundle\ValueResolver\AggregateRootIdValueResolver
- */
+/** @covers \Patchlevel\EventSourcingBundle\ValueResolver\AggregateRootIdValueResolver */
 final class AggregateRootIdValueResolverTest extends TestCase
 {
     public function testResolveValue(): void
@@ -25,7 +25,7 @@ final class AggregateRootIdValueResolverTest extends TestCase
             CustomId::class,
             false,
             false,
-            null
+            null,
         );
 
         $result = $valueResolver->resolve($request, $argument);
@@ -45,7 +45,7 @@ final class AggregateRootIdValueResolverTest extends TestCase
             'string',
             false,
             false,
-            null
+            null,
         );
 
         $result = $valueResolver->resolve($request, $argument);
@@ -65,7 +65,7 @@ final class AggregateRootIdValueResolverTest extends TestCase
             CustomId::class,
             false,
             false,
-            null
+            null,
         );
 
         $result = $valueResolver->resolve($request, $argument);

@@ -496,11 +496,10 @@ patchlevel_event_sourcing:
             default_exceptions:
                 - Patchlevel\EventSourcing\Repository\AggregateOutdated
 ```
-
 !!! note
 
     You can find out more about instant retry [here](https://event-sourcing.patchlevel.io/latest/command_bus/#instant-retry).
-
+    
 ## Query Bus
 
 You can enable the query bus integration to use queries to retrieve data from your system. For this bundle we provide
@@ -675,13 +674,12 @@ patchlevel_event_sourcing:
     cryptography:
       use_encrypted_field_name: true
 ```
-
 !!! tip
 
     You should activate `use_encrypted_field_name` to mark the fields that are encrypted.
     That allows you later to migrate not encrypted fields to encrypted fields.
     If you have already encrypted fields, you can activate `fallback_to_field_name` to use the old field name as fallback.
-
+    
 If you want to use another algorithm, you can specify this here:
 
 ```yaml

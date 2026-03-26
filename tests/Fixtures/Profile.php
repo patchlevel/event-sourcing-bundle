@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Patchlevel\EventSourcingBundle\Tests\Fixtures;
 
 use Patchlevel\EventSourcing\Aggregate\BasicAggregateRoot;
@@ -20,9 +22,8 @@ class Profile extends BasicAggregateRoot
     #[Handle]
     public static function create(
         CreateProfile $command,
-        Repository $profileRepository
-    ): self
-    {
+        Repository $profileRepository,
+    ): self {
         $profile = new self();
         $profile->recordThat(new ProfileCreated($command->id));
 
