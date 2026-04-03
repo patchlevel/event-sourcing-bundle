@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Patchlevel\EventSourcingBundle\DependencyInjection;
 
 use Patchlevel\EventSourcing\Repository\AggregateOutdated;
+use Patchlevel\Hydrator\Extension\Cryptography\Cipher\OpensslCipherKeyFactory;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Throwable;
@@ -87,6 +88,17 @@ use Throwable;
  *      },
  *      clock: array{freeze: ?string, service: ?string},
  *      aggregate_handlers: array{enabled: bool, bus: string|null},
+ *      hydrator: array{
+ *          enabled: bool,
+ *          default_lazy: bool,
+ *          cryptography: array{
+ *              enabled: bool,
+ *              algorithm: string,
+ *          },
+ *          lifecycle: array{
+ *              enabled: bool,
+ *          },
+ *      },
  * }
  */
 final class Configuration implements ConfigurationInterface
@@ -359,6 +371,25 @@ final class Configuration implements ConfigurationInterface
                     '3.9',
                     'The "%node%" option is deprecated and will be removed in 4.0. Use "patchlevel_event_sourcing.command_bus" instead.'
                 )
+            ->end()
+
+            ->arrayNode('hydrator')
+                ->canBeEnabled()
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->booleanNode('default_lazy')->defaultFalse()->end()
+                    ->arrayNode('cryptography')
+                        ->canBeEnabled()
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->scalarNode('algorithm')->defaultValue(OpensslCipherKeyFactory::DEFAULT_METHOD)->end()
+                        ->end()
+                    ->end()
+                    ->arrayNode('lifecycle')
+                        ->canBeEnabled()
+                        ->addDefaultsIfNotSet()
+                    ->end()
+                ->end()
             ->end()
 
         ->end();
