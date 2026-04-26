@@ -1543,6 +1543,36 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(ResetServicesListener::class, $container->get(ResetServicesListener::class));
     }
 
+    public function testWorkerResetExcludesDebugDispatcher(): void
+    {
+        $container = new ContainerBuilder();
+
+        $container->register('debug.event_dispatcher', \stdClass::class)
+            ->addTag('kernel.reset', ['method' => 'reset'])
+            ->setPublic(true);
+
+        $container->register('some.resettable.service', \stdClass::class)
+            ->addTag('kernel.reset', ['method' => 'reset'])
+            ->setPublic(true);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
+                ],
+            ],
+        );
+
+        self::assertTrue($container->has('patchlevel.worker.services_resetter'));
+
+        $listenerDef = $container->getDefinition(ResetServicesListener::class);
+        self::assertEquals(
+            new Reference('patchlevel.worker.services_resetter'),
+            $listenerDef->getArgument(0),
+        );
+    }
+
     public function testNamedRepository(): void
     {
         $container = new ContainerBuilder();
