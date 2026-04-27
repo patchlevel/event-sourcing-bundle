@@ -53,7 +53,8 @@
     "patchlevel/event-sourcing-phpstan-extension": "for phpstan integration"
   },
   "conflict": {
-    "doctrine/doctrine-bundle": "<2.8"
+    "doctrine/doctrine-bundle": "<2.8",
+    "symfony/event-dispatcher": "6.4.36 || 7.4.8 || 8.0.8"
   },
   "config": {
     "preferred-install": {
