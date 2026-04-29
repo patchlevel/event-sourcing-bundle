@@ -39,7 +39,7 @@ final class EventSourcingCollectorTest extends TestCase
         $message = Message::createWithHeaders($event, [
             new StreamNameHeader('profile-1'),
             new PlayheadHeader(1),
-            new RecordedOnHeader(new DateTimeImmutable('2022-07-07T18:55:50+02:00'))
+            new RecordedOnHeader(new DateTimeImmutable('2022-07-07T18:55:50+02:00')),
         ]);
 
         $collector = new EventSourcingCollector(
@@ -52,7 +52,7 @@ final class EventSourcingCollectorTest extends TestCase
 
         $collector->collect(
             new Request(),
-            new Response()
+            new Response(),
         );
 
         self::assertSame(['profile' => Profile::class], $collector->getAggregates());

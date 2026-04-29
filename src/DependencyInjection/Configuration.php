@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Patchlevel\EventSourcingBundle\DependencyInjection;
 
 use Patchlevel\EventSourcing\Repository\AggregateOutdated;
+use Patchlevel\Hydrator\Extension\Cryptography\Cipher\OpensslCipherKeyFactory;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Throwable;
@@ -42,8 +43,13 @@ use Throwable;
  *               enabled: bool,
  *               ids: list<string>,
  *               groups: list<string>,
+ *               exclude_url: string|null
  *           },
- *          rebuild_after_file_change: array{enabled: bool, cache_pool: string},
+ *          rebuild_after_file_change: array{
+ *              enabled: bool,
+ *              cache_pool: string,
+ *              exclude_url: string|null
+ *          },
  *          gap_detection: array{
  *              enabled: bool,
  *              retries_in_ms: list<int>,
@@ -83,6 +89,17 @@ use Throwable;
  *      clock: array{freeze: ?string, service: ?string},
  *      aggregate_handlers: array{enabled: bool, bus: string|null},
  *      dcb: array{enabled: bool},
+ *      hydrator: array{
+ *          enabled: bool,
+ *          default_lazy: bool,
+ *          cryptography: array{
+ *              enabled: bool,
+ *              algorithm: string,
+ *          },
+ *          lifecycle: array{
+ *              enabled: bool,
+ *          },
+ *      },
  * }
  */
 final class Configuration implements ConfigurationInterface
@@ -278,6 +295,7 @@ final class Configuration implements ConfigurationInterface
                         ->children()
                             ->arrayNode('ids')->scalarPrototype()->end()->end()
                             ->arrayNode('groups')->scalarPrototype()->end()->end()
+                            ->scalarNode('exclude_url')->defaultValue('^/_(wdt|profiler|error)')->end()
                         ->end()
                     ->end()
 
@@ -286,6 +304,7 @@ final class Configuration implements ConfigurationInterface
                         ->addDefaultsIfNotSet()
                         ->children()
                             ->scalarNode('cache_pool')->defaultValue('cache.app')->end()
+                            ->scalarNode('exclude_url')->defaultValue('^/_(wdt|profiler|error)')->end()
                         ->end()
                     ->end()
 
@@ -357,6 +376,25 @@ final class Configuration implements ConfigurationInterface
                     '3.9',
                     'The "%node%" option is deprecated and will be removed in 4.0. Use "patchlevel_event_sourcing.command_bus" instead.'
                 )
+            ->end()
+
+            ->arrayNode('hydrator')
+                ->canBeEnabled()
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->booleanNode('default_lazy')->defaultFalse()->end()
+                    ->arrayNode('cryptography')
+                        ->canBeEnabled()
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->scalarNode('algorithm')->defaultValue(OpensslCipherKeyFactory::DEFAULT_METHOD)->end()
+                        ->end()
+                    ->end()
+                    ->arrayNode('lifecycle')
+                        ->canBeEnabled()
+                        ->addDefaultsIfNotSet()
+                    ->end()
+                ->end()
             ->end()
 
         ->end();

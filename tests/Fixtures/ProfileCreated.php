@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Patchlevel\EventSourcingBundle\Tests\Fixtures;
 
-use Patchlevel\EventSourcing\Identifier\CustomId;
 use Patchlevel\EventSourcing\Attribute\Event;
+use Patchlevel\EventSourcing\Identifier\CustomId;
 use Patchlevel\EventSourcing\Serializer\Normalizer\IdNormalizer;
 
 #[Event('profile.created')]
@@ -11,8 +13,7 @@ class ProfileCreated
 {
     public function __construct(
         #[IdNormalizer(CustomId::class)]
-        public CustomId $id
+        public CustomId $id,
     ) {
-
     }
 }

@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Patchlevel\EventSourcingBundle\Tests\Fixtures;
 
 use Patchlevel\EventSourcing\Aggregate\BasicAggregateRoot;
-use Patchlevel\EventSourcing\Identifier\CustomId;
 use Patchlevel\EventSourcing\Attribute\Aggregate;
 use Patchlevel\EventSourcing\Attribute\Apply;
 use Patchlevel\EventSourcing\Attribute\Id;
 use Patchlevel\EventSourcing\Attribute\Snapshot;
+use Patchlevel\EventSourcing\Identifier\CustomId;
 use Patchlevel\EventSourcing\Serializer\Normalizer\IdNormalizer;
 
 #[Aggregate('snapshotable_profile')]

@@ -572,6 +572,7 @@ We can then use this messenger or event bus in event sourcing:
 ```yaml
 patchlevel_event_sourcing:
     event_bus:
+        type: symfony
         service: event.bus
 ```
 Since the event bus was replaced, event sourcing own attributes no longer work.

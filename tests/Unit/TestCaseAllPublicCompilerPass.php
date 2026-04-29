@@ -7,6 +7,8 @@ namespace Patchlevel\EventSourcingBundle\Tests\Unit;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
+use function str_starts_with;
+
 final class TestCaseAllPublicCompilerPass implements CompilerPassInterface
 {
     private const SERVICE_PREFIX = 'event_sourcing.';
@@ -15,15 +17,19 @@ final class TestCaseAllPublicCompilerPass implements CompilerPassInterface
     public function process(ContainerBuilder $container): void
     {
         foreach ($container->getDefinitions() as $id => $definition) {
-            if ($this->isOwnService($id)) {
-                $definition->setPublic(true);
+            if (!$this->isOwnService($id)) {
+                continue;
             }
+
+            $definition->setPublic(true);
         }
 
         foreach ($container->getAliases() as $id => $alias) {
-            if ($this->isOwnService($id)) {
-                $alias->setPublic(true);
+            if (!$this->isOwnService($id)) {
+                continue;
             }
+
+            $alias->setPublic(true);
         }
     }
 

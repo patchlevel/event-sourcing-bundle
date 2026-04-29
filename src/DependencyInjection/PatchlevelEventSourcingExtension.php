@@ -32,9 +32,11 @@ use Patchlevel\EventSourcing\Console\Command\SchemaDropCommand;
 use Patchlevel\EventSourcing\Console\Command\SchemaUpdateCommand;
 use Patchlevel\EventSourcing\Console\Command\ShowAggregateCommand;
 use Patchlevel\EventSourcing\Console\Command\ShowCommand;
+use Patchlevel\EventSourcing\Console\Command\StoreMigrateCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionBootCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionPauseCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionReactivateCommand;
+use Patchlevel\EventSourcing\Console\Command\SubscriptionRefreshCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionRemoveCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionRunCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionSetupCommand;
@@ -43,6 +45,7 @@ use Patchlevel\EventSourcing\Console\Command\SubscriptionTeardownCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
 use Patchlevel\EventSourcing\Console\DoctrineHelper;
 use Patchlevel\EventSourcing\Cryptography\DoctrineCipherKeyStore;
+use Patchlevel\EventSourcing\Cryptography\ExtensionDoctrineCipherKeyStore;
 use Patchlevel\EventSourcing\DecisionModel\DecisionModelBuilder;
 use Patchlevel\EventSourcing\DecisionModel\EventAppender;
 use Patchlevel\EventSourcing\DecisionModel\StoreDecisionModelBuilder;
@@ -100,6 +103,9 @@ use Patchlevel\EventSourcing\Store\ReadOnlyStore;
 use Patchlevel\EventSourcing\Store\Store;
 use Patchlevel\EventSourcing\Store\StreamDoctrineDbalStore;
 use Patchlevel\EventSourcing\Store\TaggableDoctrineDbalStore;
+use Patchlevel\EventSourcing\Subscription\Cleanup\Cleaner;
+use Patchlevel\EventSourcing\Subscription\Cleanup\CleanupTaskHandler;
+use Patchlevel\EventSourcing\Subscription\Cleanup\DefaultCleaner;
 use Patchlevel\EventSourcing\Subscription\Engine\CatchUpSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\DefaultSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\GapResolverStoreMessageLoader;
@@ -119,15 +125,15 @@ use Patchlevel\EventSourcing\Subscription\Subscriber\ArgumentResolver\ArgumentRe
 use Patchlevel\EventSourcing\Subscription\Subscriber\ArgumentResolver\LookupResolver;
 use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorRepository;
 use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberAccessorRepository;
-use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberHelper;
 use Patchlevel\EventSourcingBundle\Attribute\AsListener;
 use Patchlevel\EventSourcingBundle\Clock\FrozenClockFactory;
-use Patchlevel\EventSourcingBundle\Command\StoreMigrateCommand;
 use Patchlevel\EventSourcingBundle\CommandBus\SymfonyCommandBus;
 use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
 use Patchlevel\EventSourcingBundle\DataCollector\MessageCollectorEventBus;
 use Patchlevel\EventSourcingBundle\Doctrine\DbalConnectionFactory;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
+use Patchlevel\EventSourcingBundle\Normalizer\SymfonyExtension;
+use Patchlevel\EventSourcingBundle\Normalizer\SymfonyGuesser;
 use Patchlevel\EventSourcingBundle\QueryBus\SymfonyQueryBus;
 use Patchlevel\EventSourcingBundle\RequestListener\AutoSetupListener;
 use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRebuildAfterFileChangeListener;
@@ -135,6 +141,7 @@ use Patchlevel\EventSourcingBundle\Subscription\Engine\GapResolverMessageLoaderF
 use Patchlevel\EventSourcingBundle\Subscription\ResetServicesListener;
 use Patchlevel\EventSourcingBundle\Subscription\StaticInMemorySubscriptionStoreFactory;
 use Patchlevel\EventSourcingBundle\ValueResolver\IdentifierValueResolver;
+use Patchlevel\Hydrator\CoreExtension;
 use Patchlevel\Hydrator\Cryptography\Cipher\Cipher;
 use Patchlevel\Hydrator\Cryptography\Cipher\CipherKeyFactory;
 use Patchlevel\Hydrator\Cryptography\Cipher\OpensslCipher;
@@ -142,10 +149,20 @@ use Patchlevel\Hydrator\Cryptography\Cipher\OpensslCipherKeyFactory;
 use Patchlevel\Hydrator\Cryptography\PayloadCryptographer;
 use Patchlevel\Hydrator\Cryptography\PersonalDataPayloadCryptographer;
 use Patchlevel\Hydrator\Cryptography\Store\CipherKeyStore;
+use Patchlevel\Hydrator\Extension as HydratorExtension;
+use Patchlevel\Hydrator\Extension\Cryptography\BaseCryptographer;
+use Patchlevel\Hydrator\Extension\Cryptography\Cryptographer;
+use Patchlevel\Hydrator\Extension\Cryptography\CryptographyExtension;
+use Patchlevel\Hydrator\Extension\Lifecycle\LifecycleExtension;
+use Patchlevel\Hydrator\Guesser\BuiltInGuesser;
+use Patchlevel\Hydrator\Guesser\ChainGuesser;
+use Patchlevel\Hydrator\Guesser\Guesser;
 use Patchlevel\Hydrator\Hydrator;
 use Patchlevel\Hydrator\Metadata\AttributeMetadataFactory;
 use Patchlevel\Hydrator\Metadata\MetadataFactory;
 use Patchlevel\Hydrator\MetadataHydrator;
+use Patchlevel\Hydrator\StackHydrator;
+use Patchlevel\Hydrator\StackHydratorBuilder;
 use Patchlevel\Worker\Event\WorkerRunningEvent;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ChildDefinition;
@@ -175,7 +192,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             return;
         }
 
-        $this->configureHydrator($container);
+        $this->configureHydrator($config, $container);
         $this->configureUpcaster($container);
         $this->configureSerializer($config, $container);
         $this->configureMessageDecorator($container);
@@ -469,7 +486,10 @@ final class PatchlevelEventSourcingExtension extends Extension
                     continue;
                 }
 
-                throw new InvalidArgumentException(sprintf('Unknown retry strategy type "%s"', $strategyConfig['type']));
+                throw new InvalidArgumentException(sprintf(
+                    'Unknown retry strategy type "%s"',
+                    $strategyConfig['type'],
+                ));
             }
         }
 
@@ -526,6 +546,16 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->setAlias(SubscriberAccessorRepository::class, MetadataSubscriberAccessorRepository::class);
 
+        $container->registerForAutoconfiguration(CleanupTaskHandler::class)
+            ->addTag('event_sourcing.cleanup_task_handler');
+
+        $container->register(DefaultCleaner::class)
+            ->setArguments([
+                new TaggedIteratorArgument('event_sourcing.cleanup_task_handler'),
+            ]);
+
+        $container->setAlias(Cleaner::class, DefaultCleaner::class);
+
         $container->register(DefaultSubscriptionEngine::class)
             ->setArguments([
                 new Reference(MessageLoader::class),
@@ -533,6 +563,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(SubscriberAccessorRepository::class),
                 new Reference(RetryStrategyRepository::class),
                 new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                new Reference(Cleaner::class),
             ])
             ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
 
@@ -582,6 +613,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                     new Reference(SubscriptionEngine::class),
                     $config['subscription']['auto_setup']['ids'] ?: null,
                     $config['subscription']['auto_setup']['groups'] ?: null,
+                    $config['subscription']['auto_setup']['exclude_url'] ?: null,
                 ])
                 ->addTag('kernel.event_listener', [
                     'event' => 'kernel.request',
@@ -600,6 +632,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new TaggedIteratorArgument('event_sourcing.subscriber'),
                 new Reference($config['subscription']['rebuild_after_file_change']['cache_pool']),
                 new Reference(SubscriberMetadataFactory::class),
+                $config['subscription']['rebuild_after_file_change']['exclude_url'] ?: null,
             ])
             ->addTag('kernel.event_listener', [
                 'event' => 'kernel.request',
@@ -608,21 +641,93 @@ final class PatchlevelEventSourcingExtension extends Extension
             ]);
     }
 
-    private function configureHydrator(ContainerBuilder $container): void
+    /** @param Config $config */
+    private function configureHydrator(array $config, ContainerBuilder $container): void
     {
-        $container->register(AttributeMetadataFactory::class);
-        $container->setAlias(MetadataFactory::class, AttributeMetadataFactory::class);
+        if (!$config['hydrator']['enabled']) { // legacy MetadataHydrator
+            $container->register(ChainGuesser::class)
+                ->setArguments([new TaggedIteratorArgument('event_sourcing.hydrator.guesser')]);
 
-        $container->register(MetadataHydrator::class)
-            ->setArguments([
-                new Reference(MetadataFactory::class),
-                new Reference(
-                    PayloadCryptographer::class,
-                    ContainerInterface::IGNORE_ON_INVALID_REFERENCE,
-                ),
-            ]);
+            $container->register(BuiltInGuesser::class)
+                ->addTag('event_sourcing.hydrator.guesser', ['priority' => -64]);
 
-        $container->setAlias(Hydrator::class, MetadataHydrator::class);
+            $container->register(SymfonyGuesser::class)
+                ->addTag('event_sourcing.hydrator.guesser', ['priority' => -32]);
+
+            $container->registerForAutoconfiguration(Guesser::class)
+                ->addTag('event_sourcing.hydrator.guesser');
+
+            $container->register(AttributeMetadataFactory::class)
+                ->setArguments([
+                    null,
+                    new Reference(ChainGuesser::class),
+                ]);
+
+            $container->setAlias(MetadataFactory::class, AttributeMetadataFactory::class);
+
+            $container->register(MetadataHydrator::class)
+                ->setArguments([
+                    new Reference(MetadataFactory::class),
+                    new Reference(
+                        PayloadCryptographer::class,
+                        ContainerInterface::IGNORE_ON_INVALID_REFERENCE,
+                    ),
+                ]);
+
+            $container->setAlias(Hydrator::class, MetadataHydrator::class);
+
+            return;
+        }
+
+        $container->registerForAutoconfiguration(HydratorExtension::class)
+            ->addTag('event_sourcing.hydrator.extension');
+
+        $container->register(CoreExtension::class)
+            ->addTag('event_sourcing.hydrator.extension');
+
+        $container->register(SymfonyExtension::class)
+            ->addTag('event_sourcing.hydrator.extension');
+
+        if ($config['hydrator']['cryptography']['enabled']) {
+            $container->register(ExtensionDoctrineCipherKeyStore::class)
+                ->setArguments([new Reference('event_sourcing.dbal_connection')])
+                ->addTag('event_sourcing.doctrine_schema_configurator');
+
+            $container->setAlias(
+                \Patchlevel\Hydrator\Extension\Cryptography\Store\CipherKeyStore::class,
+                ExtensionDoctrineCipherKeyStore::class,
+            );
+
+            $container->register(BaseCryptographer::class)
+                ->setFactory([BaseCryptographer::class, 'createWithOpenssl'])
+                ->setArguments([
+                    new Reference(\Patchlevel\Hydrator\Extension\Cryptography\Store\CipherKeyStore::class),
+                    $config['hydrator']['cryptography']['algorithm'],
+                ]);
+
+            $container->setAlias(Cryptographer::class, BaseCryptographer::class);
+
+            $container->register(CryptographyExtension::class)
+                ->setArguments([
+                    new Reference(Cryptographer::class),
+                    new Reference(PayloadCryptographer::class, ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
+                    true,
+                ])
+                ->addTag('event_sourcing.hydrator.extension');
+        }
+
+        if ($config['hydrator']['lifecycle']['enabled']) {
+            $container->register(LifecycleExtension::class)
+                ->addTag('event_sourcing.hydrator.extension');
+        }
+
+        $builder = $container->register(StackHydratorBuilder::class);
+        $builder->addMethodCall('enableDefaultLazy', [$config['hydrator']['default_lazy']]);
+
+        $container->register(StackHydrator::class)
+            ->setFactory([new Reference(StackHydratorBuilder::class), 'build']);
+
+        $container->setAlias(Hydrator::class, StackHydrator::class);
     }
 
     private function configureUpcaster(ContainerBuilder $container): void
@@ -990,6 +1095,12 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->addTag('console.command');
 
         $container->register(SubscriptionReactivateCommand::class)
+            ->setArguments([
+                new Reference(SubscriptionEngine::class),
+            ])
+            ->addTag('console.command');
+
+        $container->register(SubscriptionRefreshCommand::class)
             ->setArguments([
                 new Reference(SubscriptionEngine::class),
             ])
