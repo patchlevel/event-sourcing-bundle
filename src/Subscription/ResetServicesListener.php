@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Patchlevel\EventSourcingBundle\Subscription;
 
 use Patchlevel\Worker\Event\WorkerRunningEvent;
-use Symfony\Component\HttpKernel\DependencyInjection\ServicesResetter;
+use Symfony\Contracts\Service\ResetInterface;
 
 final readonly class ResetServicesListener
 {
-    public function __construct(private ServicesResetter $servicesResetter)
+    public function __construct(private ResetInterface $servicesResetter)
     {
     }
 

@@ -510,16 +510,16 @@
         },
         {
             "name": "patchlevel/hydrator",
-            "version": "1.23.0",
+            "version": "1.23.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/hydrator.git",
-                "reference": "70c0602819f7c0a878c9654f5797b788ba427623"
+                "reference": "7c15b9bdab2bb4f5be631cc0602d558955c8051c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/hydrator/zipball/70c0602819f7c0a878c9654f5797b788ba427623",
-                "reference": "70c0602819f7c0a878c9654f5797b788ba427623",
+                "url": "https://api.github.com/repos/patchlevel/hydrator/zipball/7c15b9bdab2bb4f5be631cc0602d558955c8051c",
+                "reference": "7c15b9bdab2bb4f5be631cc0602d558955c8051c",
                 "shasum": ""
             },
             "require": {
@@ -568,9 +568,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/hydrator/issues",
-                "source": "https://github.com/patchlevel/hydrator/tree/1.23.0"
+                "source": "https://github.com/patchlevel/hydrator/tree/1.23.1"
             },
-            "time": "2026-04-09T08:24:28+00:00"
+            "time": "2026-04-28T09:27:47+00:00"
         },
         {
             "name": "patchlevel/worker",
@@ -5469,11 +5469,11 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.1.51",
+            "version": "2.1.53",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/dc3b523c45e714c70de2ac5113b958223b55dc59",
-                "reference": "dc3b523c45e714c70de2ac5113b958223b55dc59",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/ef67586798c003274797b288a68b221e4270dca7",
+                "reference": "ef67586798c003274797b288a68b221e4270dca7",
                 "shasum": ""
             },
             "require": {
@@ -5518,7 +5518,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-04-21T18:22:01+00:00"
+            "time": "2026-04-28T16:09:00+00:00"
         },
         {
             "name": "phpstan/phpstan-symfony",
@@ -6057,12 +6057,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "08cd07f04fb07fb4d316e956801d57b700cf7096"
+                "reference": "87a281378fdad8f5926efe259f6ca72e7a395e68"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/08cd07f04fb07fb4d316e956801d57b700cf7096",
-                "reference": "08cd07f04fb07fb4d316e956801d57b700cf7096",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/87a281378fdad8f5926efe259f6ca72e7a395e68",
+                "reference": "87a281378fdad8f5926efe259f6ca72e7a395e68",
                 "shasum": ""
             },
             "conflict": {
@@ -6678,7 +6678,7 @@
                 "phpoffice/common": "<0.2.9",
                 "phpoffice/math": "<=0.2",
                 "phpoffice/phpexcel": "<=1.8.2",
-                "phpoffice/phpspreadsheet": "<1.30|>=2,<2.1.12|>=2.2,<2.4|>=3,<3.10|>=4,<5",
+                "phpoffice/phpspreadsheet": "<=1.30.3|>=2,<=2.1.15|>=2.2,<=2.4.4|>=3,<=3.10.4|>=4,<=5.6",
                 "phppgadmin/phppgadmin": "<=7.13",
                 "phpseclib/phpseclib": "<2.0.53|>=3,<3.0.51",
                 "phpservermon/phpservermon": "<3.6",
@@ -7105,7 +7105,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-04-24T17:22:29+00:00"
+            "time": "2026-04-28T23:21:55+00:00"
         },
         {
             "name": "sanmai/di-container",

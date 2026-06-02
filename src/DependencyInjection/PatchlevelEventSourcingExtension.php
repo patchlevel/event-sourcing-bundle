@@ -636,7 +636,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             ])
             ->addTag('kernel.event_listener', [
                 'event' => 'kernel.request',
-                'priority' => 100,
+                'priority' => 190,
                 'method' => 'onKernelRequest',
             ]);
     }
