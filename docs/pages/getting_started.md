@@ -189,7 +189,8 @@ use Patchlevel\EventSourcing\Attribute\Projector;
 use Patchlevel\EventSourcing\Attribute\Setup;
 use Patchlevel\EventSourcing\Attribute\Subscribe;
 use Patchlevel\EventSourcing\Attribute\Teardown;
-use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberUtil;
+
+use function sprintf;
 
 /**
  * @psalm-type GuestData = array{
@@ -199,10 +200,10 @@ use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberUtil;
  *     check_out_date: string|null
  * }
  */
-#[Projector('guests')]
+#[Projector(self::SUBSCRIBER_ID)]
 final class GuestProjection
 {
-    use SubscriberUtil;
+    private const SUBSCRIBER_ID = 'guests';
 
     public function __construct(
         private Connection $db,
@@ -214,7 +215,7 @@ final class GuestProjection
     {
         return $this->db->createQueryBuilder()
             ->select('*')
-            ->from($this->table())
+            ->from(self::SUBSCRIBER_ID)
             ->where('hotel_id = :hotel_id')
             ->setParameter('hotel_id', $hotelId->toString())
             ->fetchAllAssociative();
@@ -226,7 +227,7 @@ final class GuestProjection
         DateTimeImmutable $recordedOn,
     ): void {
         $this->db->insert(
-            $this->table(),
+            self::SUBSCRIBER_ID,
             [
                 'hotel_id' => $event->hotelId->toString(),
                 'guest_name' => $event->guestName,
@@ -242,7 +243,7 @@ final class GuestProjection
         DateTimeImmutable $recordedOn,
     ): void {
         $this->db->update(
-            $this->table(),
+            self::SUBSCRIBER_ID,
             [
                 'check_out_date' => $recordedOn->format('Y-m-d H:i:s'),
             ],
@@ -257,25 +258,21 @@ final class GuestProjection
     #[Setup]
     public function create(): void
     {
-        $this->db->executeStatement(
-            "CREATE TABLE {$this->table()} (
+        $this->db->executeStatement(sprintf(
+            'CREATE TABLE %s (
                 hotel_id VARCHAR(36) NOT NULL,
                 guest_name VARCHAR(255) NOT NULL,
                 check_in_date TIMESTAMP NOT NULL,
                 check_out_date TIMESTAMP NULL
-            );",
-        );
+            );',
+            self::SUBSCRIBER_ID,
+        ));
     }
 
     #[Teardown]
     public function drop(): void
     {
-        $this->db->executeStatement("DROP TABLE IF EXISTS {$this->table()};");
-    }
-
-    private function table(): string
-    {
-        return 'projection_' . $this->subscriberId();
+        $this->db->executeStatement(sprintf('DROP TABLE IF EXISTS %s;', self::SUBSCRIBER_ID));
     }
 }
 ```
