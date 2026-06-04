@@ -37,7 +37,7 @@ parameters:
 			path: src/Normalizer/UidNormalizer.php
 
 		-
-			message: '#^Method Fixtures\\DummyGuesser\:\:guess\(\) has parameter \$type with generic class Symfony\\Component\\TypeInfo\\Type\\ObjectType but does not specify its types\: T$#'
+			message: '#^Method Patchlevel\\EventSourcingBundle\\Tests\\Fixtures\\DummyGuesser\:\:guess\(\) has parameter \$type with generic class Symfony\\Component\\TypeInfo\\Type\\ObjectType but does not specify its types\: T$#'
 			identifier: missingType.generics
 			count: 1
 			path: tests/Fixtures/DummyGuesser.php
