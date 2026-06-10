@@ -119,9 +119,12 @@ You can autowire the connection in your services like this:
 ```php
 use Doctrine\DBAL\Connection;
 
-public function __construct(
-    private readonly Connection $projectionConnection,
-) {
+class YourService
+{
+    public function __construct(
+        private readonly Connection $projectionConnection,
+    ) {
+    }
 }
 ```
 :::
