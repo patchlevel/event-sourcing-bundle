@@ -2,7 +2,7 @@
 
 :::note
 You can find out more about event sourcing in the library 
-[documentation](/docs/event-sourcing/latest/). 
+[documentation](/docs/event-sourcing/latest). 
 This documentation is limited to bundle integration and configuration.
 :::
 
@@ -33,7 +33,7 @@ The library will automatically register all classes marked with the `#[Aggregate
 :::
 
 :::tip
-If you want to learn more about aggregates, read the [library documentation](/docs/event-sourcing/latest/aggregate/).
+If you want to learn more about aggregates, read the [library documentation](/docs/event-sourcing/latest/aggregate).
 :::
 
 ## Events
@@ -55,7 +55,7 @@ patchlevel_event_sourcing:
 ```
 
 :::tip
-If you want to learn more about events, read the [library documentation](/docs/event-sourcing/latest/events/).
+If you want to learn more about events, read the [library documentation](/docs/event-sourcing/latest/events).
 :::
 
 ## Custom Headers
@@ -277,7 +277,7 @@ All schema relevant commands are removed if you activate this option. You should
 :::
 
 :::tip
-If you want to learn more about store, read the [library documentation](/docs/event-sourcing/latest/store/).
+If you want to learn more about store, read the [library documentation](/docs/event-sourcing/latest/store).
 :::
 
 ### Kernel Reset
@@ -332,7 +332,7 @@ patchlevel_event_sourcing:
 
 :::tip
 You can find out more about subscriptions in the library 
-[documentation](/docs/event-sourcing/latest/subscription/).
+[documentation](/docs/event-sourcing/latest/subscription).
 :::
 
 ### Store
@@ -499,7 +499,7 @@ patchlevel_event_sourcing:
 ```
 
 :::note
-You can find out more about the command bus and the aggregate handlers [here](/docs/event-sourcing/latest/command-bus/).
+You can find out more about the command bus and the aggregate handlers [here](/docs/event-sourcing/latest/command-bus).
 :::
 
 ### Instant Retry
@@ -541,7 +541,7 @@ patchlevel_event_sourcing:
 ```
 
 :::note
-You can find out more about the query bus [here](/docs/event-sourcing/latest/query-bus/).
+You can find out more about the query bus [here](/docs/event-sourcing/latest/query-bus).
 :::
 
 ## Event Bus
@@ -555,7 +555,7 @@ patchlevel_event_sourcing:
 ```
 
 :::note
-Default is the patchlevel [event bus](/docs/event-sourcing/latest/event-bus/).
+Default is the patchlevel [event bus](/docs/event-sourcing/latest/event-bus).
 :::
 
 ### Patchlevel (Default) Event Bus
@@ -687,7 +687,7 @@ final class Profile extends BasicAggregateRoot
 ```
 
 :::note
-You can find out more about snapshots [here](/docs/event-sourcing/latest/snapshots/).
+You can find out more about snapshots [here](/docs/event-sourcing/latest/snapshots).
 :::
 
 ## Cryptography
@@ -716,7 +716,7 @@ patchlevel_event_sourcing:
 ```
 
 :::note
-You can find out more about personal data [here](/docs/event-sourcing/latest/personal-data/).
+You can find out more about personal data [here](/docs/event-sourcing/latest/personal-data).
 :::
 
 ## Clock

@@ -10,13 +10,13 @@ for [event-sourcing](https://github.com/patchlevel/event-sourcing) library.
 * Everything is included in the package for event sourcing
 * Based on [doctrine dbal](https://github.com/doctrine/dbal) and their ecosystem
 * Developer experience oriented and fully typed
-* Automatic [snapshot](/docs/event-sourcing/latest/snapshots/)-system to boost your performance
-* [Split](/docs/event-sourcing/latest/split-stream/) big aggregates into multiple streams
-* Versioned and managed lifecycle of [subscriptions](/docs/event-sourcing/latest/subscription/) like projections and processors
-* Safe usage of [Personal Data](/docs/event-sourcing/latest/personal-data/) with crypto-shredding
-* Smooth [upcasting](/docs/event-sourcing/latest/upcasting/) of old events
-* Simple setup with [scheme management](/docs/event-sourcing/latest/store/) and [doctrine migration](/docs/event-sourcing/latest/store/)
-* Built in [cli commands](/docs/event-sourcing/latest/cli/) with [symfony](https://symfony.com/)
+* Automatic [snapshot](/docs/event-sourcing/latest/snapshots)-system to boost your performance
+* [Split](/docs/event-sourcing/latest/split-stream) big aggregates into multiple streams
+* Versioned and managed lifecycle of [subscriptions](/docs/event-sourcing/latest/subscription) like projections and processors
+* Safe usage of [Personal Data](/docs/event-sourcing/latest/personal-data) with crypto-shredding
+* Smooth [upcasting](/docs/event-sourcing/latest/upcasting) of old events
+* Simple setup with [scheme management](/docs/event-sourcing/latest/store) and [doctrine migration](/docs/event-sourcing/latest/store)
+* Built in [cli commands](/docs/event-sourcing/latest/cli) with [symfony](https://symfony.com/)
 * and much more...
 
 ## Installation

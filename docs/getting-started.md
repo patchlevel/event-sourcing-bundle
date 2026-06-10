@@ -70,7 +70,7 @@ final class GuestIsCheckedOut
 ```
 
 :::note
-You can find out more about events in the [library](/docs/event-sourcing/latest/events/).
+You can find out more about events in the [library](/docs/event-sourcing/latest/events).
 :::
 
 ## Define aggregates
@@ -171,7 +171,7 @@ final class Hotel extends BasicAggregateRoot
 ```
 
 :::note
-You can find out more about aggregates in the [library](/docs/event-sourcing/latest/aggregate/).
+You can find out more about aggregates in the [library](/docs/event-sourcing/latest/aggregate).
 :::
 
 ## Define projections
@@ -284,7 +284,7 @@ autoconfigure need to be enabled, otherwise you need add the `event_sourcing.sub
 :::
 
 :::note
-You can find out more about projections in the [library](/docs/event-sourcing/latest/subscription/).
+You can find out more about projections in the [library](/docs/event-sourcing/latest/subscription).
 :::
 
 ## Processor
@@ -329,7 +329,7 @@ autoconfigure need to be enabled, otherwise you need add the `event_sourcing.sub
 :::
 
 :::note
-You can find out more about processor in the [library](/docs/event-sourcing/latest/subscription/)
+You can find out more about processor in the [library](/docs/event-sourcing/latest/subscription)
 :::
 
 ## Database setup
@@ -348,7 +348,7 @@ bin/console event-sourcing:migrations:migrate
 ```
 
 :::note
-You can find out more about the cli in the [library](/docs/event-sourcing/latest/cli/).
+You can find out more about the cli in the [library](/docs/event-sourcing/latest/cli).
 :::
 
 ## Usage
@@ -433,5 +433,5 @@ If there are still open questions, create a ticket on Github and we will try to 
 
 :::note
 This documentation is limited to the bundle integration.
-You should also read the [library documentation](/docs/event-sourcing/latest/).
+You should also read the [library documentation](/docs/event-sourcing/latest).
 :::

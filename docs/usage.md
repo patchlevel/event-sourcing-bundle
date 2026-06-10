@@ -5,7 +5,7 @@ But we provide only examples for specific symfony features.
 
 :::note
 You can find out more about event sourcing in the library 
-[documentation](/docs/event-sourcing/latest/). 
+[documentation](/docs/event-sourcing/latest). 
 This documentation is limited to bundle integration and configuration.
 :::
 
