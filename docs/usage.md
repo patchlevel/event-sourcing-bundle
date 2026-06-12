@@ -3,12 +3,12 @@
 Here you will find some examples of how to use the bundle.
 But we provide only examples for specific symfony features.
 
-!!! info
+:::note
+You can find out more about event sourcing in the library 
+[documentation](/docs/event-sourcing/latest). 
+This documentation is limited to bundle integration and configuration.
+:::
 
-    You can find out more about event sourcing in the library 
-    [documentation](https://event-sourcing.patchlevel.io/latest/). 
-    This documentation is limited to bundle integration and configuration.
-    
 ## Repository
 
 You can access the specific repositories using the `RepositoryManager::get`. Or inject directly the right repository via
@@ -140,24 +140,25 @@ services:
         - name: event_sourcing.listener
           priority: 16
 ```
-!!! warning
 
-    You have to deactivate the `autoconfigure` for this service, 
-    otherwise the service will be added twice.
-    
+:::warning
+You have to deactivate the `autoconfigure` for this service, 
+otherwise the service will be added twice.
+:::
+
 ## Normalizer
 
 This bundle adds more Symfony specific normalizers in addition to the existing built-in normalizers.
 
-!!! note
+:::note
+You can find the other build-in normalizers [here](/docs/event-sourcing/latest/normalizer/#built-in-normalizer)
+:::
 
-    You can find the other build-in normalizers [here](https://event-sourcing.patchlevel.io/latest/normalizer/#built-in-normalizer)
-    
-!!! tip
+:::tip
+The Hydrator can automatically determine the appropriate normalizer based on the data type and annotations.
+You don't have to specify the normalizer manually like in the example below.
+:::
 
-    The Hydrator can automatically determine the appropriate normalizer based on the data type and annotations.
-    You don't have to specify the normalizer manually like in the example below.
-    
 ### Uid
 
 With the `Uid` Normalizer, as the name suggests, you can convert Symfony Uuid and Ulid objects to a string and back again.
@@ -172,15 +173,16 @@ final class DTO
     public Uuid $id;
 }
 ```
-!!! warning
 
-    The symfony uuid don't implement the `AggregateId` interface, so it can not be used as an aggregate id directly.
-    Use instead the `Patchlevel\EventSourcing\Aggregate\Uuid` class.
-    
-!!! tip
+:::warning
+The symfony uuid don't implement the `AggregateId` interface, so it can not be used as an aggregate id directly.
+Use instead the `Patchlevel\EventSourcing\Aggregate\Uuid` class.
+:::
 
-    Use the `Uuid` implementation and `IdNormalizer` from the library to use it as an aggregate id.
-    
+:::tip
+Use the `Uuid` implementation and `IdNormalizer` from the library to use it as an aggregate id.
+:::
+
 ### DatePoint
 
 With the `DatePoint` Normalizer, you can convert a `DatePoint` object to a string and back again.

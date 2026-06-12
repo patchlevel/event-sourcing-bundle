@@ -1,15 +1,15 @@
 # Configuration
 
-!!! info
+:::note
+You can find out more about event sourcing in the library 
+[documentation](/docs/event-sourcing/latest). 
+This documentation is limited to bundle integration and configuration.
+:::
 
-    You can find out more about event sourcing in the library 
-    [documentation](https://event-sourcing.patchlevel.io/latest/). 
-    This documentation is limited to bundle integration and configuration.
-    
-!!! tip
+:::tip
+We provide a [default configuration](installation.md#configuration-file) that should work for most projects.
+:::
 
-    We provide a [default configuration](./installation.md#configuration-file) that should work for most projects.
-    
 ## Aggregate
 
 A path must be specified for Event Sourcing to know where to look for your aggregates.
@@ -27,14 +27,15 @@ patchlevel_event_sourcing:
     - '%kernel.project_dir%/src/Hotel/Domain'
     - '%kernel.project_dir%/src/Room/Domain'
 ```
-!!! note
 
-    The library will automatically register all classes marked with the `#[Aggregate]` attribute in the specified paths.
-    
-!!! tip
+:::note
+The library will automatically register all classes marked with the `#[Aggregate]` attribute in the specified paths.
+:::
 
-    If you want to learn more about aggregates, read the [library documentation](https://event-sourcing.patchlevel.io/latest/aggregate/).
-    
+:::tip
+If you want to learn more about aggregates, read the [library documentation](/docs/event-sourcing/latest/aggregate).
+:::
+
 ## Events
 
 A path must be specified for Event Sourcing to know where to look for your events.
@@ -52,10 +53,11 @@ patchlevel_event_sourcing:
     - '%kernel.project_dir%/src/Hotel/Domain/Event'
     - '%kernel.project_dir%/src/Room/Domain/Event'
 ```
-!!! tip
 
-    If you want to learn more about events, read the [library documentation](https://event-sourcing.patchlevel.io/latest/events/).
-    
+:::tip
+If you want to learn more about events, read the [library documentation](/docs/event-sourcing/latest/events).
+:::
+
 ## Custom Headers
 
 If you want to implement custom headers for your application, you must specify the
@@ -74,10 +76,11 @@ patchlevel_event_sourcing:
     - '%kernel.project_dir%/src/Hotel/Domain/Header'
     - '%kernel.project_dir%/src/Room/Domain/Header'
 ```
-!!! tip
 
-    If you want to learn more about custom headers, read the [library documentation](https://event-sourcing.patchlevel.io/latest/message/#custom-headers).
-    
+:::tip
+If you want to learn more about custom headers, read the [library documentation](/docs/event-sourcing/latest/message/#custom-headers).
+:::
+
 ## Connection
 
 You have to specify the connection url to the event store.
@@ -87,11 +90,12 @@ patchlevel_event_sourcing:
   connection:
     url: '%env(EVENTSTORE_URL)%'
 ```
-!!! note
 
-    You can find out more about how to create a connection 
-    [here](https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html)
-    
+:::note
+You can find out more about how to create a connection 
+[here](https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html)
+:::
+
 ### Connection for Projections
 
 Per default, our event sourcing connection is not available to use in your application.
@@ -103,24 +107,28 @@ patchlevel_event_sourcing:
     url: '%env(EVENTSTORE_URL)%'
     provide_dedicated_connection: true
 ```
-!!! warning
 
-    If you use doctrine migrations, you should exclude you projection tables from the schema generation.
-    The schema is managed by the subscription engine and should not be managed by doctrine.
-    
-!!! tip
+:::warning
+If you use doctrine migrations, you should exclude you projection tables from the schema generation.
+The schema is managed by the subscription engine and should not be managed by doctrine.
+:::
 
-    You can autowire the connection in your services like this:
-    
-    ```php
-    use Doctrine\DBAL\Connection;
-    
+:::tip
+You can autowire the connection in your services like this:
+
+```php
+use Doctrine\DBAL\Connection;
+
+class YourService
+{
     public function __construct(
         private readonly Connection $projectionConnection,
     ) {
     }
-    ```
-    
+}
+```
+:::
+
 ### Doctrine Bundle
 
 If you have installed the [doctrine bundle](https://github.com/doctrine/DoctrineBundle),
@@ -137,21 +145,22 @@ patchlevel_event_sourcing:
     connection:
         service: doctrine.dbal.eventstore_connection
 ```
-!!! danger
 
-    Do not use the same connection for event sourcing and your projections,
-    otherwise you may run into transaction problems.
-    
-!!! warning
+:::danger
+Do not use the same connection for event sourcing and your projections,
+otherwise you may run into transaction problems.
+:::
 
-    If you want to use the same connection as doctrine orm, then you have to set the flag `merge_orm_schema`. 
-    Otherwise you should avoid using the same connection as other tools.
-    
-!!! note
+:::warning
+If you want to use the same connection as doctrine orm, then you have to set the flag `merge_orm_schema`. 
+Otherwise you should avoid using the same connection as other tools.
+:::
 
-    You can find out more about the dbal configuration 
-    [here](https://symfony.com/bundles/DoctrineBundle/current/configuration.html).
-    
+:::note
+You can find out more about the dbal configuration 
+[here](https://symfony.com/bundles/DoctrineBundle/current/configuration.html).
+:::
+
 If you are using Doctrine for your projections too, you need to create a dedicated connection for this.
 You can do this by defining a new connection named `projection` in the `doctrine.yaml` file
 and use the same connection url as for the event store.
@@ -169,16 +178,17 @@ patchlevel_event_sourcing:
     connection:
         service: doctrine.dbal.eventstore_connection
 ```
-!!! warning
 
-    You should exclude your projection tables from the schema generation.
-    
-    ```yaml
-    doctrine:
-        dbal:
-            schema_filter: ~^(projection_)~
-    ```
-    
+:::warning
+You should exclude your projection tables from the schema generation.
+
+```yaml
+doctrine:
+    dbal:
+        schema_filter: ~^(projection_)~
+```
+:::
+
 Then you can use this connection in your projections.
 If you are using autowiring you can inject the right connection `Connection $projectionConnection` parameter name.
 The prefix `projection` is used to identify the connection.
@@ -218,10 +228,10 @@ Following store types are available:
 - `in_memory`
 - `custom`
 
-!!! note
+:::note
+If you use `custom` store type, you need to set the service id under `patchlevel_event_sourcing.store.service`.
+:::
 
-    If you use `custom` store type, you need to set the service id under `patchlevel_event_sourcing.store.service`.
-    
 ### Change table Name
 
 You can change the table name of the event store.
@@ -242,10 +252,11 @@ patchlevel_event_sourcing:
     store:
         read_only: true
 ```
-!!! tip
 
-    This is useful if you have maintenance work on the event store and you want to avoid side effects.
-    
+:::tip
+This is useful if you have maintenance work on the event store and you want to avoid side effects.
+:::
+
 ### Merge ORM Schema
 
 You can also merge the schema with doctrine orm. You have to set the following flag for this:
@@ -255,19 +266,20 @@ patchlevel_event_sourcing:
     store:
         merge_orm_schema: true
 ```
-!!! warning
 
-    If you want to merge the schema, then the same doctrine connection must be used as with the doctrine orm. 
-    Otherwise errors may occur!
-    
-!!! note
+:::warning
+If you want to merge the schema, then the same doctrine connection must be used as with the doctrine orm. 
+Otherwise errors may occur!
+:::
 
-    All schema relevant commands are removed if you activate this option. You should use the doctrine commands then.
-    
-!!! tip
+:::note
+All schema relevant commands are removed if you activate this option. You should use the doctrine commands then.
+:::
 
-    If you want to learn more about store, read the [library documentation](https://event-sourcing.patchlevel.io/latest/store/).
-    
+:::tip
+If you want to learn more about store, read the [library documentation](/docs/event-sourcing/latest/store).
+:::
+
 ### Kernel Reset
 
 Only available in `in_memory` store. If you want to reset the store after each kernel request, you can activate this option.
@@ -295,16 +307,17 @@ patchlevel_event_sourcing:
             translators:
               - Patchlevel\EventSourcing\Message\Translator\AggregateToStreamHeaderTranslator
 ```
-!!! danger
 
-    Make sure that you use different table names for the old and new store.
-    Otherwise your event store will be destroyed.
-    
-!!! tip
+:::danger
+Make sure that you use different table names for the old and new store.
+Otherwise your event store will be destroyed.
+:::
 
-    Set the `read_only` flag to `true` for the old store to avoid side effects
-    and missing events during the migration.
-    
+:::tip
+Set the `read_only` flag to `true` for the old store to avoid side effects
+and missing events during the migration.
+:::
+
 ## Migration
 
 You can use [doctrine migrations](https://www.doctrine-project.org/projects/migrations.html) to manage the schema.
@@ -317,11 +330,11 @@ patchlevel_event_sourcing:
 ```
 ## Subscription
 
-!!! tip
+:::tip
+You can find out more about subscriptions in the library 
+[documentation](/docs/event-sourcing/latest/subscription).
+:::
 
-    You can find out more about subscriptions in the library 
-    [documentation](https://event-sourcing.patchlevel.io/latest/subscription/).
-    
 ### Store
 
 You can change where the subscription engine stores its necessary information about the subscription.
@@ -343,11 +356,12 @@ patchlevel_event_sourcing:
       options:
         table_name: 'my_subscription_store'
 ```
-!!! tip
 
-    If you are using the [doctrine-test-bundle](https://github.com/dmaicher/doctrine-test-bundle),
-    you can use the `static_in_memory` store for testing.
-    
+:::tip
+If you are using the [doctrine-test-bundle](https://github.com/dmaicher/doctrine-test-bundle),
+you can use the `static_in_memory` store for testing.
+:::
+
 ### Catch Up
 
 If aggregates are used in the processors and new events are generated there,
@@ -371,10 +385,11 @@ patchlevel_event_sourcing:
     subscription:
         throw_on_error: true
 ```
-!!! warning
 
-    This option should not be used in production. The normal behavior is to log the error and continue.
-    
+:::warning
+This option should not be used in production. The normal behavior is to log the error and continue.
+:::
+
 ### Run After Aggregate Save
 
 If you want to run the subscription engine after an aggregate is saved, you can activate this option.
@@ -395,10 +410,11 @@ patchlevel_event_sourcing:
     subscription:
         auto_setup: true
 ```
-!!! note
 
-    This works only before each http requests and not if you use the console commands.
-    
+:::note
+This works only before each http requests and not if you use the console commands.
+:::
+
 ### Rebuild After File Change
 
 If you want to rebuild the subscription engine after a file change, you can activate this option.
@@ -409,14 +425,15 @@ patchlevel_event_sourcing:
     subscription:
         rebuild_after_file_change: true
 ```
-!!! note
 
-    This works only before each http requests and not if you use the console commands.
-    
-!!! tip
+:::note
+This works only before each http requests and not if you use the console commands.
+:::
 
-    This is using the cache system to store the latest file change time. You can change the cache pool with the `cache_pool` option.
-    
+:::tip
+This is using the cache system to store the latest file change time. You can change the cache pool with the `cache_pool` option.
+:::
+
 ### Gap Detection
 
 Depending on the database you are using for the eventstore it may be happening that your subscriptions are skipping some
@@ -431,14 +448,15 @@ patchlevel_event_sourcing:
     subscription:
         gap_detection: ~
 ```
-!!! info
 
-    For more context you can read more about this in [this issue](https://github.com/patchlevel/event-sourcing/issues/727#issuecomment-2757297536).
-    
-!!! tip
+:::note
+For more context you can read more about this in [this issue](https://github.com/patchlevel/event-sourcing/issues/727#issuecomment-2757297536).
+:::
 
-    You can use both techniques locking and gap detecion to mitigate gaps happening in the subscriptions.
-    
+:::tip
+You can use both techniques locking and gap detecion to mitigate gaps happening in the subscriptions.
+:::
+
 You can also define how often the gap detection should re-check the gap and how long it should wait, in this example we
 instantly retry the first time, then we wait 500ms and after that we check a last time after 1 second.
 
@@ -479,10 +497,11 @@ patchlevel_event_sourcing:
     command_bus:
         service: command.bus
 ```
-!!! note
 
-    You can find out more about the command bus and the aggregate handlers [here](https://event-sourcing.patchlevel.io/latest/command_bus/).
-    
+:::note
+You can find out more about the command bus and the aggregate handlers [here](/docs/event-sourcing/latest/command-bus).
+:::
+
 ### Instant Retry
 
 You can define the default instant retry configuration for the command bus.
@@ -496,10 +515,11 @@ patchlevel_event_sourcing:
             default_exceptions:
                 - Patchlevel\EventSourcing\Repository\AggregateOutdated
 ```
-!!! note
 
-    You can find out more about instant retry [here](https://event-sourcing.patchlevel.io/latest/command_bus/#instant-retry).
-    
+:::note
+You can find out more about instant retry [here](/docs/event-sourcing/latest/command-bus/#instant-retry).
+:::
+
 ## Query Bus
 
 You can enable the query bus integration to use queries to retrieve data from your system. For this bundle we provide
@@ -519,10 +539,11 @@ patchlevel_event_sourcing:
     query_bus:
         service: query.bus
 ```
-!!! note
 
-    You can find out more about the query bus [here](https://event-sourcing.patchlevel.io/latest/query_bus/).
-    
+:::note
+You can find out more about the query bus [here](/docs/event-sourcing/latest/query-bus).
+:::
+
 ## Event Bus
 
 You can enable the event bus to listen for events and messages synchronously.
@@ -532,10 +553,11 @@ But you should consider using the subscription engine for this.
 patchlevel_event_sourcing:
     event_bus: ~
 ```
-!!! note
 
-    Default is the patchlevel [event bus](https://event-sourcing.patchlevel.io/latest/event_bus/).
-    
+:::note
+Default is the patchlevel [event bus](/docs/event-sourcing/latest/event-bus).
+:::
+
 ### Patchlevel (Default) Event Bus
 
 First of all we have our own default event bus.
@@ -546,10 +568,11 @@ patchlevel_event_sourcing:
     event_bus:
         type: default
 ```
-!!! note
 
-    You don't have to specify this as it is the default value.
-    
+:::note
+You don't have to specify this as it is the default value.
+:::
+
 ### Symfony Event Bus
 
 But you can also use [Symfony Messenger](https://symfony.com/doc/current/messenger.html).
@@ -602,11 +625,12 @@ patchlevel_event_sourcing:
         type: psr14
         service: my.event.bus.service
 ```
-!!! note
 
-    Like the Symfony event bus, the event sourcing attributes no longer work here.
-    You have to use the system that comes with the respective psr14 implementation.
-    
+:::note
+Like the Symfony event bus, the event sourcing attributes no longer work here.
+You have to use the system that comes with the respective psr14 implementation.
+:::
+
 ### Custom Event Bus
 
 You can also use your own event bus that implements the `Patchlevel\EventSourcing\EventBus\EventBus` interface.
@@ -617,11 +641,12 @@ patchlevel_event_sourcing:
         type: custom
         service: my.event.bus.service
 ```
-!!! note
 
-    Like the Symfony event bus, the event sourcing attributes no longer work here.
-    You have to use the system that comes with the respective custom implementation.
-    
+:::note
+Like the Symfony event bus, the event sourcing attributes no longer work here.
+You have to use the system that comes with the respective custom implementation.
+:::
+
 ## Snapshot
 
 You can use symfony cache to define the target of the snapshot store.
@@ -660,10 +685,11 @@ final class Profile extends BasicAggregateRoot
     // ...
 }
 ```
-!!! note
 
-    You can find out more about snapshots [here](https://event-sourcing.patchlevel.io/latest/snapshots/).
-    
+:::note
+You can find out more about snapshots [here](/docs/event-sourcing/latest/snapshots).
+:::
+
 ## Cryptography
 
 You can use the library to encrypt and decrypt personal data.
@@ -674,12 +700,13 @@ patchlevel_event_sourcing:
     cryptography:
       use_encrypted_field_name: true
 ```
-!!! tip
 
-    You should activate `use_encrypted_field_name` to mark the fields that are encrypted.
-    That allows you later to migrate not encrypted fields to encrypted fields.
-    If you have already encrypted fields, you can activate `fallback_to_field_name` to use the old field name as fallback.
-    
+:::tip
+You should activate `use_encrypted_field_name` to mark the fields that are encrypted.
+That allows you later to migrate not encrypted fields to encrypted fields.
+If you have already encrypted fields, you can activate `fallback_to_field_name` to use the old field name as fallback.
+:::
+
 If you want to use another algorithm, you can specify this here:
 
 ```yaml
@@ -687,10 +714,11 @@ patchlevel_event_sourcing:
     cryptography:
         algorithm: 'aes-256-gcm'
 ```
-!!! note
 
-    You can find out more about personal data [here](https://event-sourcing.patchlevel.io/latest/personal_data/).
-    
+:::note
+You can find out more about personal data [here](/docs/event-sourcing/latest/personal-data).
+:::
+
 ## Clock
 
 The clock is used to return the current time as DateTimeImmutable.
@@ -705,10 +733,11 @@ when@test:
         clock:
             freeze: '2020-01-01 22:00:00'
 ```
-!!! note
 
-    If freeze is not set, then the system clock is used.
-    
+:::note
+If freeze is not set, then the system clock is used.
+:::
+
 ### Symfony Clock
 
 Since symfony 6.2 there is a [clock](https://symfony.com/doc/current/components/clock.html) implementation

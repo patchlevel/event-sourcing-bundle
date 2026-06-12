@@ -5,11 +5,11 @@ We keep the example small, so we can only create hotels and let guests check in 
 
 For this example we use [symfony/mailer](https://symfony.com/doc/current/mailer.html).
 
-!!! info
+:::note
+First of all, the bundle has to be installed and configured.
+If you haven't already done so, see the [installation introduction](installation.md).
+:::
 
-    First of all, the bundle has to be installed and configured.
-    If you haven't already done so, see the [installation introduction](installation.md).
-    
 ## Define some events
 
 First we define the events that happen in our system.
@@ -68,10 +68,11 @@ final class GuestIsCheckedOut
     }
 }
 ```
-!!! note
 
-    You can find out more about events in the [library](https://event-sourcing.patchlevel.io/latest/events/).
-    
+:::note
+You can find out more about events in the [library](/docs/event-sourcing/latest/events).
+:::
+
 ## Define aggregates
 
 Next we need to define the hotel aggregate.
@@ -168,10 +169,11 @@ final class Hotel extends BasicAggregateRoot
     }
 }
 ```
-!!! note
 
-    You can find out more about aggregates in the [library](https://event-sourcing.patchlevel.io/latest/aggregate/).
-    
+:::note
+You can find out more about aggregates in the [library](/docs/event-sourcing/latest/aggregate).
+:::
+
 ## Define projections
 
 Now we want to see which guests are currently checked in at a hotel or when a guest checked in and out.
@@ -276,14 +278,15 @@ final class GuestProjection
     }
 }
 ```
-!!! warning
 
-    autoconfigure need to be enabled, otherwise you need add the `event_sourcing.subscriber` tag.
-    
-!!! note
+:::warning
+autoconfigure need to be enabled, otherwise you need add the `event_sourcing.subscriber` tag.
+:::
 
-    You can find out more about projections in the [library](https://event-sourcing.patchlevel.io/latest/subscription/).
-    
+:::note
+You can find out more about projections in the [library](/docs/event-sourcing/latest/subscription).
+:::
+
 ## Processor
 
 In our example we also want to send an email to the head office as soon as a guest is checked in.
@@ -320,14 +323,15 @@ final class SendCheckInEmailProcessor
     }
 }
 ```
-!!! warning
 
-    autoconfigure need to be enabled, otherwise you need add the `event_sourcing.subscriber` tag.
-    
-!!! note
+:::warning
+autoconfigure need to be enabled, otherwise you need add the `event_sourcing.subscriber` tag.
+:::
 
-    You can find out more about processor in the [library](https://event-sourcing.patchlevel.io/latest/subscription/)
-    
+:::note
+You can find out more about processor in the [library](/docs/event-sourcing/latest/subscription)
+:::
+
 ## Database setup
 
 So that we can actually write the data to a database, we need the associated schema and databases.
@@ -342,10 +346,11 @@ or you can use doctrine migrations:
 bin/console event-sourcing:migrations:diff
 bin/console event-sourcing:migrations:migrate
 ```
-!!! note
 
-    You can find out more about the cli in the [library](https://event-sourcing.patchlevel.io/latest/cli/).
-    
+:::note
+You can find out more about the cli in the [library](/docs/event-sourcing/latest/cli).
+:::
+
 ## Usage
 
 We are now ready to use the Event Sourcing System. We can load, change and save aggregates.
@@ -419,15 +424,14 @@ final class HotelController
 ```
 ## Result
 
-!!! success
+:::success
+We have successfully implemented and used event sourcing.
 
-    We have successfully implemented and used event sourcing.
-    
-    Feel free to browse further in the documentation for more detailed information. 
-    If there are still open questions, create a ticket on Github and we will try to help you.
-    
-!!! note
+Feel free to browse further in the documentation for more detailed information. 
+If there are still open questions, create a ticket on Github and we will try to help you.
+:::
 
-    This documentation is limited to the bundle integration.
-    You should also read the [library documentation](https://event-sourcing.patchlevel.io/latest/).
-    
+:::note
+This documentation is limited to the bundle integration.
+You should also read the [library documentation](/docs/event-sourcing/latest).
+:::
