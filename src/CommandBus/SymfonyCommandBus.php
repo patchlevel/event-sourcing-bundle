@@ -8,6 +8,8 @@ use Patchlevel\EventSourcing\CommandBus\CommandBus;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Symfony\Component\Messenger\MessageBusInterface;
 
+use function array_values;
+
 final class SymfonyCommandBus implements CommandBus
 {
     public function __construct(
@@ -20,7 +22,7 @@ final class SymfonyCommandBus implements CommandBus
         try {
             $this->messageBus->dispatch($command);
         } catch (HandlerFailedException $e) {
-            throw $e->getWrappedExceptions(null, true)[0] ?? $e;
+            throw array_values($e->getWrappedExceptions(null, true))[0] ?? $e;
         }
     }
 }
