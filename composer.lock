@@ -6169,12 +6169,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "2d4c60ceb3907269772941f01e631387c05cc1dd"
+                "reference": "2259e3e6e7d3f4962e60a23d1cb3cfcb36b0e0b4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/2d4c60ceb3907269772941f01e631387c05cc1dd",
-                "reference": "2d4c60ceb3907269772941f01e631387c05cc1dd",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/2259e3e6e7d3f4962e60a23d1cb3cfcb36b0e0b4",
+                "reference": "2259e3e6e7d3f4962e60a23d1cb3cfcb36b0e0b4",
                 "shasum": ""
             },
             "conflict": {
@@ -6230,7 +6230,7 @@
                 "austintoddj/canvas": "<=3.4.2",
                 "auth0/auth0-php": ">=3.3,<=8.18",
                 "auth0/login": "<=7.20",
-                "auth0/symfony": "<=5.7",
+                "auth0/symfony": "<=5.8",
                 "auth0/wordpress": "<=5.5",
                 "automad/automad": "<=2.0.0.0-beta27",
                 "automattic/jetpack": "<9.8",
@@ -6311,13 +6311,13 @@
                 "commerceteam/commerce": ">=0.9.6,<0.9.9",
                 "components/jquery": ">=1.0.3,<3.5",
                 "composer/composer": "<2.2.28|>=2.3,<2.9.8",
-                "concrete5/concrete5": "<9.5.1",
+                "concrete5/concrete5": "<9.5.2",
                 "concrete5/core": "<8.5.8|>=9,<9.1",
                 "contao-components/mediaelement": ">=2.14.2,<2.21.1",
                 "contao/comments-bundle": ">=2,<4.13.40|>=5.0.0.0-RC1-dev,<5.3.4",
-                "contao/contao": ">=3,<3.5.37|>=4,<4.4.56|>=4.5,<4.13.56|>=5,<5.3.38|>=5.4.0.0-RC1-dev,<5.6.1",
+                "contao/contao": ">=3,<3.5.37|>=4,<4.4.56|>=4.5,<5.3.48|>=5.4,<5.7.9",
                 "contao/core": "<3.5.39",
-                "contao/core-bundle": "<4.13.57|>=5,<5.3.42|>=5.4,<5.6.5",
+                "contao/core-bundle": "<5.3.48|>=5.4,<5.7.9",
                 "contao/listing-bundle": ">=3,<=3.5.30|>=4,<4.4.8",
                 "contao/managed-edition": "<=1.5",
                 "coreshop/core-shop": "<4.1.9|==5",
@@ -7281,7 +7281,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-07-14T02:26:33+00:00"
+            "time": "2026-07-14T20:10:54+00:00"
         },
         {
             "name": "sanmai/di-container",
