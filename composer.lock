@@ -6169,12 +6169,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "4fac0729c45b6dba8d6171a94eccb1d5d9514bf9"
+                "reference": "8c380c8db775462aac043451b065a060dcd746c7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/4fac0729c45b6dba8d6171a94eccb1d5d9514bf9",
-                "reference": "4fac0729c45b6dba8d6171a94eccb1d5d9514bf9",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/8c380c8db775462aac043451b065a060dcd746c7",
+                "reference": "8c380c8db775462aac043451b065a060dcd746c7",
                 "shasum": ""
             },
             "conflict": {
@@ -6311,7 +6311,7 @@
                 "codingms/modules": "<4.3.11|>=5,<5.7.4|>=6,<6.4.2|>=7,<7.5.5",
                 "commerceteam/commerce": ">=0.9.6,<0.9.9",
                 "components/jquery": ">=1.0.3,<3.5",
-                "composer/composer": "<2.2.28|>=2.3,<2.9.8",
+                "composer/composer": "<2.2.29|>=2.3,<2.10.2",
                 "concrete5/concrete5": "<9.5.2",
                 "concrete5/core": "<8.5.8|>=9,<9.1",
                 "contao-components/mediaelement": ">=2.14.2,<2.21.1",
@@ -6526,7 +6526,7 @@
                 "gregwar/rst": "<1.0.3",
                 "grumpydictator/firefly-iii": "<=6.6.2",
                 "gugoan/economizzer": "<=0.9.0.0-beta1",
-                "guzzlehttp/guzzle": "<7.12.1",
+                "guzzlehttp/guzzle": "<7.14.2",
                 "guzzlehttp/guzzle-services": "<1.5.4",
                 "guzzlehttp/oauth-subscriber": "<0.8.1",
                 "guzzlehttp/psr7": "<2.12.1",
@@ -7282,7 +7282,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-07-17T19:07:03+00:00"
+            "time": "2026-07-20T21:59:07+00:00"
         },
         {
             "name": "sanmai/di-container",
