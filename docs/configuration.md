@@ -362,6 +362,53 @@ If you are using the [doctrine-test-bundle](https://github.com/dmaicher/doctrine
 you can use the `static_in_memory` store for testing.
 :::
 
+### Retry Strategies
+
+If a subscriber throws an error, the subscription engine can retry it later instead of leaving it in an error state.
+You can define one or more named retry strategies and choose which one is used by default.
+
+```yaml
+patchlevel_event_sourcing:
+    subscription:
+        retry_strategies:
+            default:
+                type: clock_based
+                options:
+                    base_delay: 5
+                    delay_factor: 2
+                    max_attempts: 5
+            no_retry:
+                type: no_retry
+        default_retry_strategy: default
+```
+
+The following strategy types are available:
+
+- `clock_based`: retries with an increasing delay based on the clock. Configurable via `base_delay` (seconds),
+  `delay_factor` and `max_attempts`.
+- `no_retry`: never retries.
+- `custom`: use your own strategy. You need to set the `service` id to a service implementing the
+  `Patchlevel\EventSourcing\Subscription\RetryStrategy\RetryStrategy` interface.
+
+```yaml
+patchlevel_event_sourcing:
+    subscription:
+        retry_strategies:
+            my_strategy:
+                type: custom
+                service: my_retry_strategy_service
+        default_retry_strategy: my_strategy
+```
+
+:::note
+If you don't configure anything, a `default` (`clock_based`) and a `no_retry` strategy are registered and `default` is used.
+:::
+
+:::tip
+You can select the retry strategy per subscriber. If you want to learn more about retry strategies, read the
+[library documentation](/docs/event-sourcing/latest/subscription/#retry-strategy).
+:::
+
 ### Catch Up
 
 If aggregates are used in the processors and new events are generated there,
@@ -374,6 +421,15 @@ For this reason, you can activate the `catch_up` option.
 patchlevel_event_sourcing:
     subscription:
         catch_up: true
+```
+
+You can also limit how many messages are processed per catch up run with the `limit` option.
+
+```yaml
+patchlevel_event_sourcing:
+    subscription:
+        catch_up:
+            limit: 100
 ```
 ### Throw on Error
 
@@ -400,6 +456,24 @@ patchlevel_event_sourcing:
     subscription:
         run_after_aggregate_save: true
 ```
+
+You can also restrict which subscribers are run and limit how many messages are processed.
+Use `ids` and `groups` to only run specific subscribers and `limit` to cap the number of processed messages.
+
+```yaml
+patchlevel_event_sourcing:
+    subscription:
+        run_after_aggregate_save:
+            ids:
+                - 'profile_projection'
+            groups:
+                - 'default'
+            limit: 100
+```
+
+:::note
+If `ids` and `groups` are empty, all subscribers are run.
+:::
 ### Auto Setup
 
 If you want to automatically setup the subscription engine, you can activate this option.
@@ -414,6 +488,21 @@ patchlevel_event_sourcing:
 :::note
 This works only before each http requests and not if you use the console commands.
 :::
+
+You can restrict the setup to specific subscribers with `ids` and `groups`.
+With `exclude_url` you can define a regex for urls that should not trigger the auto setup.
+By default the symfony internal routes (`^/_(wdt|profiler|error)`) are excluded.
+
+```yaml
+patchlevel_event_sourcing:
+    subscription:
+        auto_setup:
+            ids:
+                - 'profile_projection'
+            groups:
+                - 'default'
+            exclude_url: '^/_(wdt|profiler|error)'
+```
 
 ### Rebuild After File Change
 
@@ -433,6 +522,17 @@ This works only before each http requests and not if you use the console command
 :::tip
 This is using the cache system to store the latest file change time. You can change the cache pool with the `cache_pool` option.
 :::
+
+With `exclude_url` you can define a regex for urls that should not trigger the rebuild.
+By default the symfony internal routes (`^/_(wdt|profiler|error)`) are excluded.
+
+```yaml
+patchlevel_event_sourcing:
+    subscription:
+        rebuild_after_file_change:
+            cache_pool: cache.app
+            exclude_url: '^/_(wdt|profiler|error)'
+```
 
 ### Gap Detection
 
@@ -501,6 +601,18 @@ patchlevel_event_sourcing:
 :::note
 You can find out more about the command bus and the aggregate handlers [here](/docs/event-sourcing/latest/command-bus).
 :::
+
+### Register Aggregate Handlers
+
+By default the aggregate command handlers are automatically registered for the configured messenger bus.
+If you want to register them yourself, you can disable this behaviour.
+
+```yaml
+patchlevel_event_sourcing:
+    command_bus:
+        service: command.bus
+        register_aggregate_handlers: false
+```
 
 ### Instant Retry
 
@@ -669,6 +781,26 @@ patchlevel_event_sourcing:
         default:
             service: event_sourcing.cache
 ```
+
+You can also choose the store type. The following types are available:
+
+- `psr6` *default*
+- `psr16`
+- `custom`
+
+```yaml
+patchlevel_event_sourcing:
+    snapshot_stores:
+        default:
+            type: psr16
+            service: event_sourcing.cache
+```
+
+:::note
+If you use the `custom` type, the `service` has to implement the
+`Patchlevel\EventSourcing\Snapshot\SnapshotStore` interface.
+:::
+
 Finally, you have to tell the aggregate that it should use this snapshot store.
 
 ```php
@@ -718,6 +850,49 @@ patchlevel_event_sourcing:
 :::note
 You can find out more about personal data [here](/docs/event-sourcing/latest/personal-data).
 :::
+
+## Hydrator
+
+You can enable the extension based hydrator, which replaces the legacy metadata hydrator.
+
+```yaml
+patchlevel_event_sourcing:
+    hydrator: ~
+```
+
+### Default Lazy
+
+You can enable lazy hydration by default. This means that values are only hydrated when they are accessed.
+
+```yaml
+patchlevel_event_sourcing:
+    hydrator:
+        default_lazy: true
+```
+
+### Cryptography
+
+The hydrator brings its own cryptography extension to encrypt and decrypt personal data.
+You can enable it and optionally choose the algorithm.
+
+```yaml
+patchlevel_event_sourcing:
+    hydrator:
+        cryptography:
+            enabled: true
+            algorithm: 'aes-256-gcm'
+```
+
+### Lifecycle
+
+You can enable the lifecycle extension to run lifecycle hooks during hydration.
+
+```yaml
+patchlevel_event_sourcing:
+    hydrator:
+        lifecycle:
+            enabled: true
+```
 
 ## Clock
 
