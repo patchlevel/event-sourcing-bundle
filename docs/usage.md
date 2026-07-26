@@ -43,6 +43,54 @@ final class HotelController
     }
 }
 ```
+## Aggregate Id Value Resolver
+
+The bundle registers a controller argument value resolver for aggregate ids.
+If you type-hint a controller argument with a class that implements
+`Patchlevel\EventSourcing\Aggregate\AggregateRootId`, the resolver builds it
+from the matching request attribute (e.g. a route parameter with the same name)
+using `fromString()`.
+
+```php
+namespace App\Hotel\Infrastructure\Controller;
+
+use Patchlevel\EventSourcing\Aggregate\Uuid;
+use Patchlevel\EventSourcing\Repository\Repository;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\Routing\Attribute\Route;
+
+#[AsController]
+final class HotelController
+{
+    public function __construct(
+        /** @var Repository<Hotel> */
+        private readonly Repository $hotelRepository,
+    ) {
+    }
+
+    #[Route('/hotel/{hotelId}')]
+    public function doStuffAction(Uuid $hotelId): Response
+    {
+        $hotel = $this->hotelRepository->load($hotelId);
+
+        // ...
+
+        return new Response();
+    }
+}
+```
+
+:::note
+The name of the argument (`$hotelId`) must match the name of the request attribute
+(the `{hotelId}` route parameter). If the attribute is missing or not a string,
+the resolver is skipped and Symfony continues with the other value resolvers.
+:::
+
+:::tip
+This works with any of your own aggregate id classes, as long as they implement
+`AggregateRootId`. The library's `Patchlevel\EventSourcing\Aggregate\Uuid` already does.
+:::
 ## Subscriber
 
 A subscriber can be used to send an email when a guest is checked in:
@@ -264,3 +312,14 @@ services:
     tags:
       - event_sourcing.message_decorator
 ```
+## Profiler
+
+When the kernel is in debug mode (e.g. in the `dev` environment), the bundle registers a
+[Symfony Web Profiler](https://symfony.com/doc/current/profiler.html) panel for event sourcing.
+It collects the messages that were dispatched during a request as well as the registered
+aggregates and events, and shows them in the profiler toolbar and panel.
+
+:::note
+This is enabled automatically and needs no configuration. It is only active when
+`kernel.debug` is `true`, so it has no effect in production.
+:::
