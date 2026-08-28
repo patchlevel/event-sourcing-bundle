@@ -14,7 +14,6 @@ use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
 use Doctrine\Persistence\ManagerRegistry;
 use Fixtures\DummyExtension;
-use Fixtures\DummyGuesser;
 use InvalidArgumentException;
 use Patchlevel\EventSourcing\Attribute\Aggregate;
 use Patchlevel\EventSourcing\Attribute\Event;
@@ -97,7 +96,6 @@ use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorR
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\Normalizer\SymfonyExtension;
-use Patchlevel\EventSourcingBundle\Normalizer\SymfonyGuesser;
 use Patchlevel\EventSourcingBundle\PatchlevelEventSourcingBundle;
 use Patchlevel\EventSourcingBundle\QueryBus\SymfonyQueryBus;
 use Patchlevel\EventSourcingBundle\Subscription\ResetServicesListener;
@@ -114,13 +112,9 @@ use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileSubscriber;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\QueryFoo;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\SnapshotableProfile;
 use Patchlevel\Hydrator\CoreExtension;
-use Patchlevel\Hydrator\Cryptography\PayloadCryptographer;
-use Patchlevel\Hydrator\Cryptography\PersonalDataPayloadCryptographer;
 use Patchlevel\Hydrator\Extension\Cryptography\CryptographyExtension;
 use Patchlevel\Hydrator\Extension\Lifecycle\LifecycleExtension;
-use Patchlevel\Hydrator\Guesser\BuiltInGuesser;
 use Patchlevel\Hydrator\Hydrator;
-use Patchlevel\Hydrator\MetadataHydrator;
 use Patchlevel\Hydrator\StackHydrator;
 use PHPUnit\Framework\Attributes\RequiresMethod;
 use PHPUnit\Framework\TestCase;
@@ -549,7 +543,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                 'patchlevel_event_sourcing' => [
                     'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
                     'aggregates' => [__DIR__ . '/../Fixtures'],
-                    'aggregate_handlers' => ['bus' => 'command.bus'],
+                    'command_bus' => ['service' => 'command.bus'],
                 ],
             ],
         );
@@ -567,26 +561,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertEquals(CreateProfile::class, $tag['handles']);
         self::assertEquals('command.bus', $tag['bus']);
-    }
-
-    public function testCommandBusAndLegacyConfigurationNotAllowed(): void
-    {
-        $container = new ContainerBuilder();
-
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Remove legacy aggregate_handlers configuration when using command_bus');
-
-        $this->compileContainer(
-            $container,
-            [
-                'patchlevel_event_sourcing' => [
-                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
-                    'aggregates' => [__DIR__ . '/../Fixtures'],
-                    'aggregate_handlers' => ['bus' => 'command.bus'],
-                    'command_bus' => ['service' => 'command.bus'],
-                ],
-            ],
-        );
     }
 
     public function testCommandBus(): void
@@ -1286,34 +1260,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         );
     }
 
-    public function testLegacyRetryStrategy(): void
-    {
-        $container = new ContainerBuilder();
-
-        $this->compileContainer(
-            $container,
-            [
-                'patchlevel_event_sourcing' => [
-                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
-                    'subscription' => [
-                        'retry_strategy' => [
-                            'base_delay' => 10,
-                            'delay_factor' => 11,
-                            'max_attempts' => 12,
-                        ],
-                    ],
-                ],
-            ],
-        );
-
-        $repository = $container->get(RetryStrategyRepository::class);
-
-        self::assertInstanceOf(RetryStrategyRepository::class, $repository);
-        self::assertInstanceOf(ClockBasedRetryStrategy::class, $repository->getDefaultRetryStrategy());
-        self::assertInstanceOf(ClockBasedRetryStrategy::class, $repository->get('default'));
-        self::assertInstanceOf(NoRetryStrategy::class, $repository->get('no_retry'));
-    }
-
     public function testRetryStrategy(): void
     {
         $container = new ContainerBuilder();
@@ -1399,40 +1345,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertFalse($container->has('event_sourcing.command.migration_diff'));
     }
 
-    public function testLegacyHydrator(): void
-    {
-        $container = new ContainerBuilder();
-
-        $container->setDefinition(DummyGuesser::class, new Definition(DummyGuesser::class))
-            ->setAutoconfigured(true);
-
-        $this->compileContainer(
-            $container,
-            [
-                'patchlevel_event_sourcing' => [
-                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
-                ],
-            ],
-        );
-
-        self::assertInstanceOf(MetadataHydrator::class, $container->get(Hydrator::class));
-
-        self::assertEquals(
-            [
-                BuiltInGuesser::class => [
-                    ['priority' => -64],
-                ],
-                SymfonyGuesser::class => [
-                    ['priority' => -32],
-                ],
-                DummyGuesser::class => [
-                    [],
-                ],
-            ],
-            $container->findTaggedServiceIds('event_sourcing.hydrator.guesser'),
-        );
-    }
-
     public function testHydrator(): void
     {
         $container = new ContainerBuilder();
@@ -1478,23 +1390,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         );
     }
 
-    public function testCryptography(): void
-    {
-        $container = new ContainerBuilder();
-
-        $this->compileContainer(
-            $container,
-            [
-                'patchlevel_event_sourcing' => [
-                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
-                    'cryptography' => ['algorithm' => 'aes256'],
-                ],
-            ],
-        );
-
-        self::assertInstanceOf(PersonalDataPayloadCryptographer::class, $container->get(PayloadCryptographer::class));
-    }
-
     public function testFullBuild(): void
     {
         $psrClock = $this->createMock(ClockInterface::class);
@@ -1523,7 +1418,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                             'service' => 'cache.default',
                         ],
                     ],
-                    'cryptography' => ['algorithm' => 'aes256'],
                     'subscription' => [
                         'catch_up' => ['limit' => 10],
                         'throw_on_error' => true,
