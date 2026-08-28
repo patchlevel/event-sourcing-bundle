@@ -44,7 +44,6 @@ use Patchlevel\EventSourcing\Console\Command\SubscriptionStatusCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionTeardownCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
 use Patchlevel\EventSourcing\Console\DoctrineHelper;
-use Patchlevel\EventSourcing\Cryptography\DoctrineCipherKeyStore;
 use Patchlevel\EventSourcing\Cryptography\ExtensionDoctrineCipherKeyStore;
 use Patchlevel\EventSourcing\DecisionModel\DecisionModelBuilder;
 use Patchlevel\EventSourcing\DecisionModel\EventAppender;
@@ -116,7 +115,6 @@ use Patchlevel\EventSourcing\Subscription\Engine\ThrowOnErrorSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Repository\RunSubscriptionEngineRepositoryManager;
 use Patchlevel\EventSourcing\Subscription\RetryStrategy\ClockBasedRetryStrategy;
 use Patchlevel\EventSourcing\Subscription\RetryStrategy\NoRetryStrategy;
-use Patchlevel\EventSourcing\Subscription\RetryStrategy\RetryStrategy;
 use Patchlevel\EventSourcing\Subscription\RetryStrategy\RetryStrategyRepository;
 use Patchlevel\EventSourcing\Subscription\Store\DoctrineSubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\InMemorySubscriptionStore;
@@ -133,7 +131,6 @@ use Patchlevel\EventSourcingBundle\DataCollector\MessageCollectorEventBus;
 use Patchlevel\EventSourcingBundle\Doctrine\DbalConnectionFactory;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\Normalizer\SymfonyExtension;
-use Patchlevel\EventSourcingBundle\Normalizer\SymfonyGuesser;
 use Patchlevel\EventSourcingBundle\QueryBus\SymfonyQueryBus;
 use Patchlevel\EventSourcingBundle\RequestListener\AutoSetupListener;
 use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRebuildAfterFileChangeListener;
@@ -142,25 +139,13 @@ use Patchlevel\EventSourcingBundle\Subscription\ResetServicesListener;
 use Patchlevel\EventSourcingBundle\Subscription\StaticInMemorySubscriptionStoreFactory;
 use Patchlevel\EventSourcingBundle\ValueResolver\IdentifierValueResolver;
 use Patchlevel\Hydrator\CoreExtension;
-use Patchlevel\Hydrator\Cryptography\Cipher\Cipher;
-use Patchlevel\Hydrator\Cryptography\Cipher\CipherKeyFactory;
-use Patchlevel\Hydrator\Cryptography\Cipher\OpensslCipher;
-use Patchlevel\Hydrator\Cryptography\Cipher\OpensslCipherKeyFactory;
-use Patchlevel\Hydrator\Cryptography\PayloadCryptographer;
-use Patchlevel\Hydrator\Cryptography\PersonalDataPayloadCryptographer;
-use Patchlevel\Hydrator\Cryptography\Store\CipherKeyStore;
 use Patchlevel\Hydrator\Extension as HydratorExtension;
 use Patchlevel\Hydrator\Extension\Cryptography\BaseCryptographer;
 use Patchlevel\Hydrator\Extension\Cryptography\Cryptographer;
 use Patchlevel\Hydrator\Extension\Cryptography\CryptographyExtension;
+use Patchlevel\Hydrator\Extension\Cryptography\Store\CipherKeyStore;
 use Patchlevel\Hydrator\Extension\Lifecycle\LifecycleExtension;
-use Patchlevel\Hydrator\Guesser\BuiltInGuesser;
-use Patchlevel\Hydrator\Guesser\ChainGuesser;
-use Patchlevel\Hydrator\Guesser\Guesser;
 use Patchlevel\Hydrator\Hydrator;
-use Patchlevel\Hydrator\Metadata\AttributeMetadataFactory;
-use Patchlevel\Hydrator\Metadata\MetadataFactory;
-use Patchlevel\Hydrator\MetadataHydrator;
 use Patchlevel\Hydrator\StackHydrator;
 use Patchlevel\Hydrator\StackHydratorBuilder;
 use Patchlevel\Worker\Event\WorkerRunningEvent;
@@ -209,7 +194,6 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureSchema($config, $container);
         $this->configureMessageLoader($config, $container);
         $this->configureSubscription($config, $container);
-        $this->configureCryptography($config, $container);
         $this->configureMigration($config, $container);
         $this->configureValueResolver($container);
         $this->configureStoreMigration($config, $container);
@@ -264,40 +248,27 @@ final class PatchlevelEventSourcingExtension extends Extension
     /** @param Config $config */
     private function configureCommandBus(array $config, ContainerBuilder $container): void
     {
-        if ($config['command_bus']['enabled'] && $config['aggregate_handlers']['enabled']) {
-            throw new InvalidArgumentException('Remove legacy aggregate_handlers configuration when using command_bus');
-        }
-
-        if ($config['command_bus']['enabled']) {
-            $container->register(SymfonyCommandBus::class)
-                ->setArguments([
-                    new Reference($config['command_bus']['service']),
-                ]);
-
-            $container->register(InstantRetryCommandBus::class)
-                ->setArguments([
-                    new Reference(SymfonyCommandBus::class),
-                    $config['command_bus']['instant_retry']['default_max_retries'],
-                    $config['command_bus']['instant_retry']['default_exceptions'],
-                ]);
-
-            $container->setAlias(CommandBus::class, InstantRetryCommandBus::class);
-
-            $container->setParameter(
-                'patchlevel_event_sourcing.aggregate_handlers.bus',
-                $config['command_bus']['service'],
-            );
-
+        if (!$config['command_bus']['enabled']) {
             return;
         }
 
-        if (!$config['aggregate_handlers']['enabled']) {
-            return;
-        }
+        $container->register(SymfonyCommandBus::class)
+            ->setArguments([
+                new Reference($config['command_bus']['service']),
+            ]);
+
+        $container->register(InstantRetryCommandBus::class)
+            ->setArguments([
+                new Reference(SymfonyCommandBus::class),
+                $config['command_bus']['instant_retry']['default_max_retries'],
+                $config['command_bus']['instant_retry']['default_exceptions'],
+            ]);
+
+        $container->setAlias(CommandBus::class, InstantRetryCommandBus::class);
 
         $container->setParameter(
             'patchlevel_event_sourcing.aggregate_handlers.bus',
-            $config['aggregate_handlers']['bus'],
+            $config['command_bus']['service'],
         );
     }
 
@@ -431,66 +402,41 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $strategies = [];
 
-        $retryStrategy = $config['subscription']['retry_strategy'] ?? null;
+        foreach ($config['subscription']['retry_strategies'] as $name => $strategyConfig) {
+            if ($strategyConfig['type'] === 'custom') {
+                $strategies[$name] = new Reference($strategyConfig['service']);
 
-        if ($retryStrategy) {
-            $container->register(ClockBasedRetryStrategy::class)
-                ->setArguments([
-                    new Reference('event_sourcing.clock'),
-                    $retryStrategy['base_delay'],
-                    $retryStrategy['delay_factor'],
-                    $retryStrategy['max_attempts'],
-                ]);
-
-            $container->register(NoRetryStrategy::class);
-
-            $container
-                ->setAlias(RetryStrategy::class, ClockBasedRetryStrategy::class)
-                ->setDeprecated(
-                    'patchlevel/event-sourcing-bundle',
-                    '3.10',
-                    'The "%alias_id%" alias is deprecated, use "RetryStrategyRepository" instead.',
-                );
-
-            $strategies['default'] = new Reference(RetryStrategy::class);
-            $strategies['no_retry'] = new Reference(NoRetryStrategy::class);
-        } else {
-            foreach ($config['subscription']['retry_strategies'] as $name => $strategyConfig) {
-                if ($strategyConfig['type'] === 'custom') {
-                    $strategies[$name] = new Reference($strategyConfig['service']);
-
-                    continue;
-                }
-
-                $id = 'event_sourcing.subscription.retry_strategy.' . $name;
-
-                if ($strategyConfig['type'] === 'clock_based') {
-                    $container->register($id, ClockBasedRetryStrategy::class)
-                        ->setArguments([
-                            new Reference('event_sourcing.clock'),
-                            $strategyConfig['options']['base_delay'] ?? 5,
-                            $strategyConfig['options']['delay_factor'] ?? 2,
-                            $strategyConfig['options']['max_attempts'] ?? 5,
-                        ]);
-
-                    $strategies[$name] = new Reference($id);
-
-                    continue;
-                }
-
-                if ($strategyConfig['type'] === 'no_retry') {
-                    $container->register($id, NoRetryStrategy::class);
-
-                    $strategies[$name] = new Reference($id);
-
-                    continue;
-                }
-
-                throw new InvalidArgumentException(sprintf(
-                    'Unknown retry strategy type "%s"',
-                    $strategyConfig['type'],
-                ));
+                continue;
             }
+
+            $id = 'event_sourcing.subscription.retry_strategy.' . $name;
+
+            if ($strategyConfig['type'] === 'clock_based') {
+                $container->register($id, ClockBasedRetryStrategy::class)
+                    ->setArguments([
+                        new Reference('event_sourcing.clock'),
+                        $strategyConfig['options']['base_delay'] ?? 5,
+                        $strategyConfig['options']['delay_factor'] ?? 2,
+                        $strategyConfig['options']['max_attempts'] ?? 5,
+                    ]);
+
+                $strategies[$name] = new Reference($id);
+
+                continue;
+            }
+
+            if ($strategyConfig['type'] === 'no_retry') {
+                $container->register($id, NoRetryStrategy::class);
+
+                $strategies[$name] = new Reference($id);
+
+                continue;
+            }
+
+            throw new InvalidArgumentException(sprintf(
+                'Unknown retry strategy type "%s"',
+                $strategyConfig['type'],
+            ));
         }
 
         $container->register(RetryStrategyRepository::class)
@@ -498,9 +444,6 @@ final class PatchlevelEventSourcingExtension extends Extension
                 $strategies,
                 $config['subscription']['default_retry_strategy'],
             ]);
-
-        $container->register(SubscriberHelper::class)
-            ->setArguments([new Reference(SubscriberMetadataFactory::class)]);
 
         if ($config['subscription']['store']['type'] === 'custom') {
             if ($config['subscription']['store']['service'] === null) {
@@ -644,41 +587,6 @@ final class PatchlevelEventSourcingExtension extends Extension
     /** @param Config $config */
     private function configureHydrator(array $config, ContainerBuilder $container): void
     {
-        if (!$config['hydrator']['enabled']) { // legacy MetadataHydrator
-            $container->register(ChainGuesser::class)
-                ->setArguments([new TaggedIteratorArgument('event_sourcing.hydrator.guesser')]);
-
-            $container->register(BuiltInGuesser::class)
-                ->addTag('event_sourcing.hydrator.guesser', ['priority' => -64]);
-
-            $container->register(SymfonyGuesser::class)
-                ->addTag('event_sourcing.hydrator.guesser', ['priority' => -32]);
-
-            $container->registerForAutoconfiguration(Guesser::class)
-                ->addTag('event_sourcing.hydrator.guesser');
-
-            $container->register(AttributeMetadataFactory::class)
-                ->setArguments([
-                    null,
-                    new Reference(ChainGuesser::class),
-                ]);
-
-            $container->setAlias(MetadataFactory::class, AttributeMetadataFactory::class);
-
-            $container->register(MetadataHydrator::class)
-                ->setArguments([
-                    new Reference(MetadataFactory::class),
-                    new Reference(
-                        PayloadCryptographer::class,
-                        ContainerInterface::IGNORE_ON_INVALID_REFERENCE,
-                    ),
-                ]);
-
-            $container->setAlias(Hydrator::class, MetadataHydrator::class);
-
-            return;
-        }
-
         $container->registerForAutoconfiguration(HydratorExtension::class)
             ->addTag('event_sourcing.hydrator.extension');
 
@@ -694,14 +602,14 @@ final class PatchlevelEventSourcingExtension extends Extension
                 ->addTag('event_sourcing.doctrine_schema_configurator');
 
             $container->setAlias(
-                \Patchlevel\Hydrator\Extension\Cryptography\Store\CipherKeyStore::class,
+                CipherKeyStore::class,
                 ExtensionDoctrineCipherKeyStore::class,
             );
 
             $container->register(BaseCryptographer::class)
                 ->setFactory([BaseCryptographer::class, 'createWithOpenssl'])
                 ->setArguments([
-                    new Reference(\Patchlevel\Hydrator\Extension\Cryptography\Store\CipherKeyStore::class),
+                    new Reference(CipherKeyStore::class),
                     $config['hydrator']['cryptography']['algorithm'],
                 ]);
 
@@ -710,7 +618,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             $container->register(CryptographyExtension::class)
                 ->setArguments([
                     new Reference(Cryptographer::class),
-                    new Reference(PayloadCryptographer::class, ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
+                    null,
                     true,
                 ])
                 ->addTag('event_sourcing.hydrator.extension');
@@ -1269,41 +1177,6 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(SchemaDirector::class),
             ])
             ->addTag('console.command');
-    }
-
-    /** @param Config $config */
-    private function configureCryptography(array $config, ContainerBuilder $container): void
-    {
-        if (!$config['cryptography']['enabled']) {
-            return;
-        }
-
-        $container->register(OpensslCipherKeyFactory::class)
-            ->setArguments([
-                $config['cryptography']['algorithm'],
-            ]);
-        $container->setAlias(CipherKeyFactory::class, OpensslCipherKeyFactory::class);
-
-        $container->register(DoctrineCipherKeyStore::class)
-            ->setArguments([
-                new Reference('event_sourcing.dbal_connection'),
-            ])
-            ->addTag('event_sourcing.doctrine_schema_configurator');
-        $container->setAlias(CipherKeyStore::class, DoctrineCipherKeyStore::class);
-
-        $container->register(OpensslCipher::class);
-        $container->setAlias(Cipher::class, OpensslCipher::class);
-
-        $container->register(PersonalDataPayloadCryptographer::class)
-            ->setArguments([
-                new Reference(CipherKeyStore::class),
-                new Reference(CipherKeyFactory::class),
-                new Reference(Cipher::class),
-                $config['cryptography']['use_encrypted_field_name'],
-                $config['cryptography']['fallback_to_field_name'],
-            ]);
-
-        $container->setAlias(PayloadCryptographer::class, PersonalDataPayloadCryptographer::class);
     }
 
     /** @param Config $config */

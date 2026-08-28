@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\RequestListener;
 
+use Patchlevel\EventSourcing\Subscription\Engine\Command\Setup;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngineCriteria;
 use Patchlevel\EventSourcing\Subscription\Status;
@@ -55,9 +56,11 @@ final class AutoSetupListener
             $ids[] = $subscription->id();
         }
 
-        $this->subscriptionEngine->setup(
-            new SubscriptionEngineCriteria($ids),
-            true,
+        $this->subscriptionEngine->execute(
+            new Setup(
+                ids: $ids,
+                skipBooting: true,
+            ),
         );
     }
 }

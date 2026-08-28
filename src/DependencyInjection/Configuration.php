@@ -28,7 +28,6 @@ use Throwable;
  *              service: string|null,
  *              options: array{table_name: string}
  *          },
- *          retry_strategy?: array{base_delay: int, delay_factor: int, max_attempts: int},
  *          retry_strategies: array<string, array{type: string, service: string, options: array<string, mixed>}>,
  *          default_retry_strategy: string,
  *          catch_up: array{enabled: bool, limit: positive-int|null},
@@ -80,14 +79,7 @@ use Throwable;
  *      headers: list<string>,
  *      snapshot_stores: array<string, array{type: string, service: string}>,
  *      migration: array{path: string, namespace: string},
- *      cryptography: array{
- *          enabled: bool,
- *          algorithm: string,
- *          use_encrypted_field_name: bool,
- *          fallback_to_field_name: bool,
- *      },
  *      clock: array{freeze: ?string, service: ?string},
- *      aggregate_handlers: array{enabled: bool, bus: string|null},
  *      dcb: array{enabled: bool},
  *      hydrator: array{
  *          enabled: bool,
@@ -228,19 +220,6 @@ final class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
 
-                    ->arrayNode('retry_strategy')
-                        ->setDeprecated(
-                            'patchlevel/event-sourcing-bundle',
-                            '3.10',
-                            'The "%node%" option is deprecated and will be removed in 4.0. Use "patchlevel_event_sourcing.subscription.retry_strategies" instead.'
-                        )
-                        ->children()
-                            ->integerNode('base_delay')->defaultValue(5)->end()
-                            ->integerNode('delay_factor')->defaultValue(2)->end()
-                            ->integerNode('max_attempts')->defaultValue(5)->end()
-                        ->end()
-                    ->end()
-
                     ->arrayNode('retry_strategies')
                         ->useAttributeAsKey('name')
                         ->arrayPrototype()
@@ -322,16 +301,6 @@ final class Configuration implements ConfigurationInterface
                 ->end()
             ->end()
 
-            ->arrayNode('cryptography')
-                ->canBeEnabled()
-                ->addDefaultsIfNotSet()
-                ->children()
-                    ->scalarNode('algorithm')->defaultValue('aes256')->end()
-                    ->booleanNode('use_encrypted_field_name')->defaultFalse()->end()
-                    ->booleanNode('fallback_to_field_name')->defaultFalse()->end()
-                ->end()
-            ->end()
-
             ->arrayNode('command_bus')
                 ->canBeEnabled()
                 ->addDefaultsIfNotSet()
@@ -365,21 +334,8 @@ final class Configuration implements ConfigurationInterface
                 ->canBeEnabled()
             ->end()
 
-            ->arrayNode('aggregate_handlers')
-                ->canBeEnabled()
-                ->addDefaultsIfNotSet()
-                ->children()
-                    ->scalarNode('bus')->defaultNull()->end()
-                ->end()
-                ->setDeprecated(
-                    'patchlevel/event-sourcing-bundle',
-                    '3.9',
-                    'The "%node%" option is deprecated and will be removed in 4.0. Use "patchlevel_event_sourcing.command_bus" instead.'
-                )
-            ->end()
-
             ->arrayNode('hydrator')
-                ->canBeEnabled()
+                ->canBeDisabled()
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->booleanNode('default_lazy')->defaultFalse()->end()
