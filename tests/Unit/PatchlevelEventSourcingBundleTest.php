@@ -6,7 +6,6 @@ namespace Patchlevel\EventSourcingBundle\Tests\Unit;
 
 use ArrayObject;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\Migrations\Tools\Console\Command\CurrentCommand;
 use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
 use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
@@ -369,6 +368,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         $container = new ContainerBuilder();
 
         $container->register('my_translator', ExcludeEventWithHeaderTranslator::class)
+            ->setPublic(true)
             ->setArguments([ArchivedHeader::class]);
 
         $this->compileContainer(
@@ -1575,10 +1575,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         $container->setParameter('kernel.project_dir', __DIR__);
 
         $connection = $this->createMock(Connection::class);
-        $connection
-            ->expects($this->never())
-            ->method('getDatabasePlatform')
-            ->willReturn(new PostgreSQLPlatform());
 
         $container->set('doctrine.dbal.eventstore_connection', $connection);
         $container->set('event.bus', $this->createMock(MessageBusInterface::class));
@@ -1594,9 +1590,18 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         $compilerPassConfig = $container->getCompilerPassConfig();
         $compilerPassConfig->setRemovingPasses([]);
-        $compilerPassConfig->addPass(new TestCaseAllPublicCompilerPass());
+        $compilerPassConfig->addPass(new AllPublicCompilerPass());
+        $compilerPassConfig->addPass(new NoLazyCompilerPass());
 
         $container->compile();
+
+        foreach ($container->getServiceIds() as $id) {
+            if (str_ends_with($id, '.inner')) {
+                continue;
+            }
+
+            $container->get($id);
+        }
 
         (new XmlDumper($container))->dump();
     }
