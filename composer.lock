@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d6fc8db1c30d2b0b4e72063bfb9bda98",
+    "content-hash": "07050a87c752889b79fb731a1c40a2a4",
     "packages": [
         {
             "name": "brick/math",
@@ -5437,13 +5437,14 @@
                 "bin/docs-inject-php-code"
             ],
             "type": "library",
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
             "description": "Extract and re-inject PHP code samples from/into markdown documentation",
             "support": {
-                "source": "https://github.com/patchlevel/docs-tools/tree/v1.0.0",
-                "issues": "https://github.com/patchlevel/docs-tools/issues"
+                "issues": "https://github.com/patchlevel/docs-tools/issues",
+                "source": "https://github.com/patchlevel/docs-tools/tree/v1.0.0"
             },
             "time": "2026-09-16T12:33:28+00:00"
         },

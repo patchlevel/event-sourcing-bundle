@@ -79,11 +79,5 @@
       "Patchlevel\\EventSourcingBundle\\Tests\\": "tests/"
     }
   },
-  "prefer-stable": true,
-  "repositories": {
-    "docs-tools": {
-      "type": "vcs",
-      "url": "https://github.com/patchlevel/docs-tools"
-    }
-  }
+  "prefer-stable": true
 }
