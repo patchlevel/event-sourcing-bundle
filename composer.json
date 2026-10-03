@@ -21,14 +21,14 @@
     "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
     "patchlevel/event-sourcing": "4.0.x-dev",
     "patchlevel/hydrator": "^2.0.2",
-    "symfony/cache": "^6.4.0 || ^7.0.0 || ^8.0.0",
-    "symfony/config": "^6.4.0 || ^7.0.0 || ^8.0.0",
-    "symfony/console": "^6.4.1 || ^7.0.1 || ^8.0.0",
+    "symfony/cache": "^7.3.0 || ^8.0.0",
+    "symfony/config": "^7.3.0 || ^8.0.0",
+    "symfony/console": "^7.3.0 || ^8.0.0",
     "symfony/dependency-injection": "^7.3.0 || ^8.0.0",
-    "symfony/event-dispatcher": "^6.4.1 || ^7.0.1 || ^8.0.0",
-    "symfony/finder": "^6.4.0 || ^7.0.0 || ^8.0.0",
-    "symfony/http-kernel": "^6.4.1 || ^7.0.1 || ^8.0.0",
-    "symfony/messenger": "^6.4.0 || ^7.0.0 || ^8.0.0",
+    "symfony/event-dispatcher": "^7.3.0 || ^8.0.0",
+    "symfony/finder": "^7.3.0 || ^8.0.0",
+    "symfony/http-kernel": "^7.3.0 || ^8.0.0",
+    "symfony/messenger": "^7.3.0 || ^8.0.0",
     "symfony/service-contracts": "^2.5 || ^3.0"
   },
   "require-dev": {
@@ -42,10 +42,10 @@
     "phpstan/phpstan-symfony": "^2.0.8",
     "phpunit/phpunit": "^11.5.45",
     "roave/security-advisories": "dev-master",
-    "symfony/clock": "^6.4.0 || ^7.0.0 || ^8.0.0",
-    "symfony/uid": "^6.4.0 || ^7.0.0 || ^8.0.0",
-    "symfony/var-dumper": "^6.4.0 || ^7.0.0 || ^8.0.0",
-    "symfony/web-profiler-bundle": "^6.4.0 || ^7.0.0 || ^8.0.0",
+    "symfony/clock": "^7.3.0 || ^8.0.0",
+    "symfony/uid": "^7.3.0 || ^8.0.0",
+    "symfony/var-dumper": "^7.3.0 || ^8.0.0",
+    "symfony/web-profiler-bundle": "^7.3.0 || ^8.0.0",
     "wnx/commonmark-markdown-renderer": "^1.4"
   },
   "suggest": {
@@ -55,7 +55,7 @@
   },
   "conflict": {
     "doctrine/doctrine-bundle": "<2.8",
-    "symfony/event-dispatcher": "6.4.36 || 7.4.8 || 8.0.8"
+    "symfony/event-dispatcher": "7.4.8 || 8.0.8"
   },
   "config": {
     "preferred-install": {
