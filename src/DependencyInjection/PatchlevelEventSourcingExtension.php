@@ -205,8 +205,6 @@ final class PatchlevelEventSourcingExtension extends Extension
             },
         );
 
-        $container->setParameter('event_sourcing.events', []);
-
         $container->register(EventRegistry::class)
             ->setArguments([new Parameter('event_sourcing.events')]);
 
@@ -231,8 +229,6 @@ final class PatchlevelEventSourcingExtension extends Extension
                 $definition->addResourceTag('event_sourcing.header', ['name' => $attribute->name]);
             },
         );
-
-        $container->setParameter('event_sourcing.headers', []);
 
         $container->register(MessageHeaderRegistry::class)
             ->setArguments([new Parameter('event_sourcing.headers')]);
@@ -902,8 +898,6 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->register(AggregateRootMetadataAwareMetadataFactory::class);
         $container->setAlias(AggregateRootMetadataFactory::class, AggregateRootMetadataAwareMetadataFactory::class);
-
-        $container->setParameter('event_sourcing.aggregates', []);
 
         $container->register(AggregateRootRegistry::class)
             ->setArguments([new Parameter('event_sourcing.aggregates')]);
