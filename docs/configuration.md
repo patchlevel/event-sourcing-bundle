@@ -352,43 +352,76 @@ If you are using the [doctrine-test-bundle](https://github.com/dmaicher/doctrine
 you can use the `static_in_memory` store for testing.
 :::
 
-### Catch Up
+### Sync Subscriptions
 
-If aggregates are used in the processors and new events are generated there,
-then they are not part of the current subscription engine `run` and will only be processed during the next run or boot.
-This is usually not a problem in dev or prod environment because a worker is used
-and these events will be processed at some point. But in testing it is not so easy.
-For this reason, you can activate the `catch_up` option.
+By default, all subscriptions are processed asynchronously by a worker
+that runs the `event-sourcing:subscription:run` command.
+If you want subscriptions to be processed directly after an aggregate has been saved,
+you can activate the `sync` option.
+Without further configuration, all subscriptions are processed synchronously.
+This is useful for development and testing, so you don't have to run a worker.
+
+```yaml
+when@dev:
+    patchlevel_event_sourcing:
+        subscription:
+            sync: true
+```
+In production you usually want only some subscriptions to be processed synchronously,
+e.g. projections that must be up to date in the same request.
+For this you can filter the subscriptions by `ids` and `groups`.
 
 ```yaml
 patchlevel_event_sourcing:
     subscription:
-        catch_up: true
+        sync:
+            groups: ['sync']
 ```
-### Throw on Error
+The group can be defined directly on the subscriber.
 
-You can activate the `throw_on_error` option to throw an exception if a subscription engine run has an error.
+```php
+use Patchlevel\EventSourcing\Attribute\Projector;
+
+#[Projector('profile', group: 'sync')]
+final class ProfileProjector
+{
+    // ...
+}
+```
+:::note
+If you define both `ids` and `groups`, a subscription must match both to be processed synchronously.
+:::
+
+:::note
+Sync subscriptions are processed in the same process as the request.
+Keep them fast, otherwise your requests will be slowed down.
+The worker still processes sync subscriptions as well, for example to retry failed ones.
+:::
+
+If a sync subscriber saves an aggregate itself, the new events are processed in the same run as well.
+You can limit how often the subscription engine catches up with the `catch_up_limit` option.
+
+```yaml
+patchlevel_event_sourcing:
+    subscription:
+        sync:
+            catch_up_limit: 10
+```
+You can also activate the `throw_on_error` option to throw an exception if a sync subscription has an error.
 This is useful for testing or development to get directly feedback if something is wrong.
 
 ```yaml
-patchlevel_event_sourcing:
-    subscription:
-        throw_on_error: true
+when@dev:
+    patchlevel_event_sourcing:
+        subscription:
+            sync:
+                throw_on_error: true
 ```
 :::warning
 This option should not be used in production. The normal behavior is to log the error and continue.
+This option only affects the sync run after an aggregate has been saved. The worker and the console commands are not affected.
 :::
 
-### Run After Aggregate Save
-
-If you want to run the subscription engine after an aggregate is saved, you can activate this option.
-This is useful for testing or development, so you don't have run a worker to process the events.
-
-```yaml
-patchlevel_event_sourcing:
-    subscription:
-        run_after_aggregate_save: true
-```
 ### Auto Setup
 
 If you want to automatically setup the subscription engine, you can activate this option.
