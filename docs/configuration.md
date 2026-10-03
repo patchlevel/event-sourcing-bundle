@@ -216,8 +216,8 @@ patchlevel_event_sourcing:
 ```
 Following store types are available:
 
-- `dbal_aggregate` *default (deprecated)*
-- `dbal_stream` *recommended*
+- `dbal_stream` *default*
+- `dbal_taggable` *required for DCB*
 - `in_memory`
 - `custom`
 
@@ -237,7 +237,7 @@ patchlevel_event_sourcing:
 ```
 ### Read Only Mode
 
-For `dbal_aggregate` and `dbal_stream` store types you can activate the read only mode.
+For the `dbal_stream` store type you can activate the read only mode.
 Readings are possible, but if you try to write, an exception `StoreIsReadOnly` is thrown.
 
 ```yaml
@@ -286,17 +286,18 @@ patchlevel_event_sourcing:
 If you want to migrate from your current store to a new store, you can use the following configuration.
 This register a new store and a new cli command `event-sourcing:store:migrate`.
 You can define translators to translate the old events to the new store.
-Here is an example for a migration from `dbal_aggregate` to `dbal_stream`.
+Here is an example for a migration from `dbal_stream` to `dbal_taggable`,
+which adds the event tags to the existing events.
 
 ```yaml
 patchlevel_event_sourcing:
     store:
         migrate_to_new_store:
-            type: 'dbal_stream'
+            type: 'dbal_taggable'
             options:
-                table_name: 'my_stream_store'
+                table_name: 'my_taggable_store'
             translators:
-              - Patchlevel\EventSourcing\Message\Translator\AggregateToStreamHeaderTranslator
+              - Patchlevel\EventSourcing\Message\Translator\ExtractEventTagTranslator
 ```
 :::danger
 Make sure that you use different table names for the old and new store.
@@ -669,29 +670,25 @@ You can find out more about snapshots [here](https://event-sourcing.patchlevel.i
 
 ## Cryptography
 
-You can use the library to encrypt and decrypt personal data.
-For this you need to enable the crypto shredding.
+You can use the library to encrypt and decrypt sensitive data.
+For this you need to enable the cryptography extension of the hydrator.
 
 ```yaml
 patchlevel_event_sourcing:
-    cryptography:
-      use_encrypted_field_name: true
+    hydrator:
+        cryptography: true
 ```
-:::tip
-You should activate `use_encrypted_field_name` to mark the fields that are encrypted.
-That allows you later to migrate not encrypted fields to encrypted fields.
-If you have already encrypted fields, you can activate `fallback_to_field_name` to use the old field name as fallback.
-:::
-
+The cipher keys are stored in the same database as the event store.
 If you want to use another algorithm, you can specify this here:
 
 ```yaml
 patchlevel_event_sourcing:
-    cryptography:
-        algorithm: 'aes-256-gcm'
+    hydrator:
+        cryptography:
+            algorithm: 'aes-256-gcm'
 ```
 :::note
-You can find out more about personal data [here](https://event-sourcing.patchlevel.io/latest/personal_data/).
+You can find out more about sensitive data [here](https://event-sourcing.patchlevel.io/latest/sensitive-data/).
 :::
 
 ## Clock

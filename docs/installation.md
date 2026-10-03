@@ -49,8 +49,8 @@ patchlevel_event_sourcing:
       gap_detection: ~
 
     # enable this if you want to use sensitive data encryption
-    #cryptography: ~ 
-    #  use_encrypted_field_name: true
+    #hydrator:
+    #  cryptography: true
 
 when@dev:
   patchlevel_event_sourcing:

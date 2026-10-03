@@ -19,6 +19,10 @@
     {
       "title": "Usage",
       "file": "usage.md"
+    },
+    {
+      "title": "Upgrade from 3.x",
+      "file": "UPGRADE-4.0.md"
     }
   ]
 }
