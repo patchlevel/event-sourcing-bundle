@@ -8,7 +8,7 @@ use Patchlevel\EventSourcing\Attribute\Event;
 use Patchlevel\EventSourcing\Identifier\CustomId;
 use Patchlevel\EventSourcing\Serializer\Normalizer\IdNormalizer;
 
-#[Event('profile.created')]
+#[Event('profile.created', aliases: ['profile.registered'])]
 class ProfileCreated
 {
     public function __construct(

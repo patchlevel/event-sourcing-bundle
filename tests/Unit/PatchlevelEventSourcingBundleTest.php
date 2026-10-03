@@ -47,7 +47,10 @@ use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\Psr14EventBus;
 use Patchlevel\EventSourcing\Message\Translator\ExcludeEventWithHeaderTranslator;
 use Patchlevel\EventSourcing\Message\Translator\RecalculatePlayheadTranslator;
+use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootAlreadyInRegistry;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
+use Patchlevel\EventSourcing\Metadata\AggregateRoot\NoAggregateRoot;
+use Patchlevel\EventSourcing\Metadata\Event\EventAlreadyInRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
 use Patchlevel\EventSourcing\Metadata\Message\MessageHeaderRegistry;
 use Patchlevel\EventSourcing\QueryBus\QueryBus;
@@ -103,6 +106,7 @@ use Patchlevel\EventSourcingBundle\Tests\Fixtures\DummyExtension;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\DummyUpcaster;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener1;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener2;
+use Patchlevel\EventSourcingBundle\Tests\Fixtures\NoAggregate;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Profile;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileCreated;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileProcessor;
@@ -835,6 +839,29 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertInstanceOf(EventRegistry::class, $eventRegistry);
         self::assertTrue($eventRegistry->hasEventClass(ProfileCreated::class));
+        self::assertSame('profile.created', $eventRegistry->eventName(ProfileCreated::class));
+        self::assertSame(ProfileCreated::class, $eventRegistry->eventClass('profile.registered'));
+    }
+
+    public function testDuplicateEventName(): void
+    {
+        $container = new ContainerBuilder();
+
+        $container->setDefinition('event.a', new Definition(ProfileCreated::class))
+            ->setAutoconfigured(true);
+        $container->setDefinition('event.b', new Definition(ProfileCreated::class))
+            ->setAutoconfigured(true);
+
+        $this->expectException(EventAlreadyInRegistry::class);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
+                ],
+            ],
+        );
     }
 
     public function testAggregateRegistry(): void
@@ -857,6 +884,46 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertInstanceOf(AggregateRootRegistry::class, $aggregateRegistry);
         self::assertTrue($aggregateRegistry->hasAggregateClass(Profile::class));
+    }
+
+    public function testDuplicateAggregateName(): void
+    {
+        $container = new ContainerBuilder();
+
+        $container->setDefinition('aggregate.a', new Definition(Profile::class))
+            ->setAutoconfigured(true);
+        $container->setDefinition('aggregate.b', new Definition(Profile::class))
+            ->setAutoconfigured(true);
+
+        $this->expectException(AggregateRootAlreadyInRegistry::class);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
+                ],
+            ],
+        );
+    }
+
+    public function testAggregateWithoutAggregateRoot(): void
+    {
+        $container = new ContainerBuilder();
+
+        $container->setDefinition(NoAggregate::class, new Definition(NoAggregate::class))
+            ->setAutoconfigured(true);
+
+        $this->expectException(NoAggregateRoot::class);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
+                ],
+            ],
+        );
     }
 
     public function testAggregateRegistryWithCustomServiceId(): void
@@ -902,6 +969,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertInstanceOf(MessageHeaderRegistry::class, $messageHeaderRegistry);
         self::assertTrue($messageHeaderRegistry->hasHeaderClass(CustomHeader::class));
+        self::assertTrue($messageHeaderRegistry->hasHeaderName('playhead'));
     }
 
     public function testRepositoryManager(): void
