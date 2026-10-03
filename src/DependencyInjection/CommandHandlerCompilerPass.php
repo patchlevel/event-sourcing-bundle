@@ -29,7 +29,10 @@ final class CommandHandlerCompilerPass implements CompilerPassInterface
             $container->getParameter('patchlevel_event_sourcing.aggregate_handlers.bus'),
         );
 
-        foreach ($container->getParameter('event_sourcing.aggregates') as $aggregateName => $aggregateClass) {
+        /** @var array<string, class-string> $aggregates */
+        $aggregates = $container->getParameter('event_sourcing.aggregates');
+
+        foreach ($aggregates as $aggregateName => $aggregateClass) {
             $parameterResolverId = sprintf('.event_sourcing.handler_parameter_resolver.%s', $aggregateName);
 
             foreach (HandlerFinder::findInClass($aggregateClass) as $aggregateHandler) {

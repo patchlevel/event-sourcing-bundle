@@ -10,7 +10,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 /** @internal */
 final class ResourceCompilerPass implements CompilerPassInterface
 {
-    private const RESSOURCES = [
+    private const RESOURCES = [
         'event_sourcing.aggregate' => 'event_sourcing.aggregates',
         'event_sourcing.event' => 'event_sourcing.events',
         'event_sourcing.header' => 'event_sourcing.headers',
@@ -18,11 +18,17 @@ final class ResourceCompilerPass implements CompilerPassInterface
 
     public function process(ContainerBuilder $container): void
     {
-        foreach (self::RESSOURCES as $tag => $parameter) {
+        foreach (self::RESOURCES as $tag => $parameter) {
             $map = [];
-            foreach ($container->findTaggedResourceIds($tag) as $id => $tags) {
-                foreach ($tags as $tag) {
-                    $map[$tag['name']] = $id;
+
+            /** @var array<string, list<array{name: string}>> $taggedResources */
+            $taggedResources = $container->findTaggedResourceIds($tag);
+
+            foreach ($taggedResources as $id => $attributes) {
+                $class = $container->getDefinition($id)->getClass() ?? $id;
+
+                foreach ($attributes as $attribute) {
+                    $map[$attribute['name']] = $class;
                 }
             }
 

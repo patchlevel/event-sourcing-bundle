@@ -859,6 +859,28 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertTrue($aggregateRegistry->hasAggregateClass(Profile::class));
     }
 
+    public function testAggregateRegistryWithCustomServiceId(): void
+    {
+        $container = new ContainerBuilder();
+
+        $container->setDefinition('app.profile', new Definition(Profile::class))
+            ->setAutoconfigured(true);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
+                ],
+            ],
+        );
+
+        $aggregateRegistry = $container->get(AggregateRootRegistry::class);
+
+        self::assertInstanceOf(AggregateRootRegistry::class, $aggregateRegistry);
+        self::assertTrue($aggregateRegistry->hasAggregateClass(Profile::class));
+    }
+
     public function testMessageHeaderRegistry(): void
     {
         $container = new ContainerBuilder();

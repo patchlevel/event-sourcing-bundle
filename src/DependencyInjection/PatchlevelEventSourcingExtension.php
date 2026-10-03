@@ -65,9 +65,7 @@ use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\AttributeEventMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Event\EventMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
-use Patchlevel\EventSourcing\Metadata\Message\AttributeMessageHeaderRegistryFactory;
 use Patchlevel\EventSourcing\Metadata\Message\MessageHeaderRegistry;
-use Patchlevel\EventSourcing\Metadata\Message\MessageHeaderRegistryFactory;
 use Patchlevel\EventSourcing\Metadata\Subscriber\AttributeSubscriberMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Subscriber\SubscriberMetadataFactory;
 use Patchlevel\EventSourcing\QueryBus\QueryBus;
@@ -233,6 +231,8 @@ final class PatchlevelEventSourcingExtension extends Extension
                 $definition->addResourceTag('event_sourcing.header', ['name' => $attribute->name]);
             },
         );
+
+        $container->setParameter('event_sourcing.headers', []);
 
         $container->register(MessageHeaderRegistry::class)
             ->setArguments([new Parameter('event_sourcing.headers')]);

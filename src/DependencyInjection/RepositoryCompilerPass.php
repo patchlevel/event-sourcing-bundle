@@ -16,7 +16,10 @@ final class RepositoryCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
-        foreach ($container->getParameter('event_sourcing.aggregates') as $aggregateName => $aggregateClass) {
+        /** @var array<string, class-string> $aggregates */
+        $aggregates = $container->getParameter('event_sourcing.aggregates');
+
+        foreach ($aggregates as $aggregateName => $aggregateClass) {
             $aggregateRepositoryName = $aggregateName . 'Repository';
             $aggregateRepositoryId = 'event_sourcing.' . $aggregateName . '.repository';
 

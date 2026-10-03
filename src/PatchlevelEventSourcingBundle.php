@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle;
 
-use Patchlevel\EventSourcingBundle\DependencyInjection\ResourceCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\CommandHandlerCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\DoctrineCleanupCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\HandlerServiceLocatorCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\HydratorCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\QueryHandlerCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\RepositoryCompilerPass;
+use Patchlevel\EventSourcingBundle\DependencyInjection\ResourceCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\SubscriberGuardCompilePass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\TranslatorCompilerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
