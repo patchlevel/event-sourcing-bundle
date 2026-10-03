@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fixtures;
+namespace Patchlevel\EventSourcingBundle\Tests\Fixtures;
 
 use Patchlevel\Hydrator\Extension;
 use Patchlevel\Hydrator\StackHydratorBuilder;

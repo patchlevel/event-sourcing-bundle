@@ -199,24 +199,33 @@ final class DTO
 ## Upcasting
 
 ```php
-use Patchlevel\EventSourcing\Serializer\Upcast\Upcast;
-use Patchlevel\EventSourcing\Serializer\Upcast\Upcaster;
+use Patchlevel\Hydrator\Extension\Upcast\Upcaster;
+use Patchlevel\Hydrator\Metadata\ClassMetadata;
 
 final class ProfileCreatedEmailLowerCastUpcaster implements Upcaster
 {
-    public function __invoke(Upcast $upcast): Upcast
+    /**
+     * @param array<string, mixed> $data
+     * @param array<string, mixed> $context
+     *
+     * @return array<string, mixed>
+     */
+    public function upcast(ClassMetadata $metadata, array $data, array $context): array
     {
         // ignore if other event is processed
-        if ($upcast->eventName !== 'profile_created') {
-            return $upcast;
+        if ($metadata->className !== ProfileCreated::class) {
+            return $data;
         }
 
-        return $upcast->replacePayloadByKey('email', strtolower($upcast->payload['email']));
+        $data['email'] = strtolower($data['email']);
+
+        return $data;
     }
 }
 ```
 If you have the symfony default service setting with `autowire`and `autoconfigure` enabled,
-the upcaster is automatically recognized and registered at the `Upcaster` interface.
+the upcaster is automatically recognized and registered in the `UpcastExtension` of the hydrator.
+The upcasters run right before the object is built, so encrypted fields are already decrypted.
 Otherwise you have to define the upcaster in the symfony service file:
 
 ```yaml
