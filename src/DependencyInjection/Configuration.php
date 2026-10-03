@@ -82,7 +82,6 @@ use Throwable;
  *      clock: array{freeze: ?string, service: ?string},
  *      dcb: array{enabled: bool},
  *      hydrator: array{
- *          enabled: bool,
  *          default_lazy: bool,
  *          cryptography: array{
  *              enabled: bool,
@@ -335,7 +334,6 @@ final class Configuration implements ConfigurationInterface
             ->end()
 
             ->arrayNode('hydrator')
-                ->canBeDisabled()
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->booleanNode('default_lazy')->defaultFalse()->end()

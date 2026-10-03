@@ -1360,7 +1360,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                 'patchlevel_event_sourcing' => [
                     'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
                     'hydrator' => [
-                        'enabled' => true,
                         'lifecycle' => ['enabled' => true],
                         'cryptography' => ['enabled' => true],
                     ],
