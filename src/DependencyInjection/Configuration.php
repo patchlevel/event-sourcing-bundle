@@ -30,13 +30,12 @@ use Throwable;
  *          },
  *          retry_strategies: array<string, array{type: string, service: string, options: array<string, mixed>}>,
  *          default_retry_strategy: string,
- *          catch_up: array{enabled: bool, limit: positive-int|null},
- *          throw_on_error: array{enabled: bool},
- *          run_after_aggregate_save: array{
+ *          sync: array{
  *              enabled: bool,
  *              ids: list<string>,
  *              groups: list<string>,
- *              limit: positive-int|null
+ *              catch_up_limit: positive-int|null,
+ *              throw_on_error: bool
  *          },
  *          auto_setup: array{
  *               enabled: bool,
@@ -245,25 +244,14 @@ final class Configuration implements ConfigurationInterface
 
                     ->scalarNode('default_retry_strategy')->defaultValue('default')->end()
 
-                    ->arrayNode('catch_up')
-                        ->canBeEnabled()
-                        ->addDefaultsIfNotSet()
-                        ->children()
-                            ->integerNode('limit')->defaultNull()->end()
-                        ->end()
-                    ->end()
-
-                    ->arrayNode('throw_on_error')
-                        ->canBeEnabled()
-                    ->end()
-
-                    ->arrayNode('run_after_aggregate_save')
+                    ->arrayNode('sync')
                         ->canBeEnabled()
                         ->addDefaultsIfNotSet()
                         ->children()
                             ->arrayNode('ids')->scalarPrototype()->end()->end()
                             ->arrayNode('groups')->scalarPrototype()->end()->end()
-                            ->integerNode('limit')->defaultNull()->end()
+                            ->integerNode('catch_up_limit')->defaultNull()->min(1)->end()
+                            ->booleanNode('throw_on_error')->defaultFalse()->end()
                         ->end()
                     ->end()
 

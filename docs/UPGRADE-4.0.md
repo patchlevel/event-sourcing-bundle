@@ -14,6 +14,58 @@ This guide only covers the changes of the bundle itself.
 
 ## Subscription
 
+### Sync Subscriptions
+
+The options `catch_up`, `throw_on_error` and `run_after_aggregate_save` have been removed
+in favor of the new `sync` option.
+Before, `catch_up` and `throw_on_error` decorated the global subscription engine,
+so they also affected the worker and the console commands.
+Now they only apply to the sync run after an aggregate has been saved.
+
+before:
+
+```yaml
+when@dev:
+    patchlevel_event_sourcing:
+        subscription:
+            catch_up: true
+            throw_on_error: true
+            run_after_aggregate_save: true
+```
+after:
+
+```yaml
+when@dev:
+    patchlevel_event_sourcing:
+        subscription:
+            sync:
+                throw_on_error: true
+```
+Catching up is now always active for sync runs.
+The `limit` option of `catch_up` is now called `catch_up_limit`.
+The `limit` option of `run_after_aggregate_save` has been removed without replacement.
+
+before:
+
+```yaml
+patchlevel_event_sourcing:
+    subscription:
+        catch_up:
+            limit: 10
+        run_after_aggregate_save:
+            groups: ['sync']
+```
+after:
+
+```yaml
+patchlevel_event_sourcing:
+    subscription:
+        sync:
+            groups: ['sync']
+            catch_up_limit: 10
+```
+If you run your tests with a worker-less setup, replace the options in `when@test` the same way.
+
 ### Retry Strategy
 
 The deprecated `retry_strategy` option has been removed. Use `retry_strategies` instead.

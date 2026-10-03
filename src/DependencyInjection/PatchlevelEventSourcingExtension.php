@@ -519,34 +519,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                 'method' => 'onWorkerRunningEvent',
             ]);
 
-        if ($config['subscription']['throw_on_error']['enabled']) {
-            $container->register(ThrowOnErrorSubscriptionEngine::class)
-                ->setDecoratedService(SubscriptionEngine::class)
-                ->setArguments([
-                    new Reference('.inner'),
-                ]);
-        }
-
-        if ($config['subscription']['catch_up']['enabled']) {
-            $container->register(CatchUpSubscriptionEngine::class)
-                ->setDecoratedService(SubscriptionEngine::class)
-                ->setArguments([
-                    new Reference('.inner'),
-                    $config['subscription']['catch_up']['limit'],
-                ]);
-        }
-
-        if ($config['subscription']['run_after_aggregate_save']['enabled']) {
-            $container->register(RunSubscriptionEngineRepositoryManager::class)
-                ->setDecoratedService(RepositoryManager::class)
-                ->setArguments([
-                    new Reference('.inner'),
-                    new Reference(SubscriptionEngine::class),
-                    $config['subscription']['run_after_aggregate_save']['ids'] ?: null,
-                    $config['subscription']['run_after_aggregate_save']['groups'] ?: null,
-                    $config['subscription']['run_after_aggregate_save']['limit'],
-                ]);
-        }
+        $this->configureSyncSubscription($config, $container);
 
         if ($config['subscription']['auto_setup']['enabled']) {
             $container->register(AutoSetupListener::class)
@@ -579,6 +552,37 @@ final class PatchlevelEventSourcingExtension extends Extension
                 'event' => 'kernel.request',
                 'priority' => 190,
                 'method' => 'onKernelRequest',
+            ]);
+    }
+
+    /** @param Config $config */
+    private function configureSyncSubscription(array $config, ContainerBuilder $container): void
+    {
+        if (!$config['subscription']['sync']['enabled']) {
+            return;
+        }
+
+        $container->register('event_sourcing.subscription.sync_engine', CatchUpSubscriptionEngine::class)
+            ->setArguments([
+                new Reference(DefaultSubscriptionEngine::class),
+                $config['subscription']['sync']['catch_up_limit'],
+            ]);
+
+        if ($config['subscription']['sync']['throw_on_error']) {
+            $container->register('event_sourcing.subscription.sync_engine.throw_on_error', ThrowOnErrorSubscriptionEngine::class)
+                ->setDecoratedService('event_sourcing.subscription.sync_engine')
+                ->setArguments([
+                    new Reference('.inner'),
+                ]);
+        }
+
+        $container->register(RunSubscriptionEngineRepositoryManager::class)
+            ->setDecoratedService(RepositoryManager::class)
+            ->setArguments([
+                new Reference('.inner'),
+                new Reference('event_sourcing.subscription.sync_engine'),
+                $config['subscription']['sync']['ids'] ?: null,
+                $config['subscription']['sync']['groups'] ?: null,
             ]);
     }
 

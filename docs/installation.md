@@ -55,9 +55,8 @@ patchlevel_event_sourcing:
 when@dev:
   patchlevel_event_sourcing:
     subscription:
-      catch_up: true
-      throw_on_error: true
-      run_after_aggregate_save: true
+      sync:
+        throw_on_error: true
       rebuild_after_file_change: true
       auto_setup: true
 
@@ -66,9 +65,8 @@ when@test:
     subscription:
       store:
         type: 'static_in_memory'
-      catch_up: true
-      throw_on_error: true
-      run_after_aggregate_save: true
+      sync:
+        throw_on_error: true
 ```
 ## Dotenv
 

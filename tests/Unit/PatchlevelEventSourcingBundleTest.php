@@ -83,6 +83,7 @@ use Patchlevel\EventSourcing\Subscription\Engine\GapResolverStoreMessageLoader;
 use Patchlevel\EventSourcing\Subscription\Engine\MessageLoader;
 use Patchlevel\EventSourcing\Subscription\Engine\StoreMessageLoader;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
+use Patchlevel\EventSourcing\Subscription\Engine\ThrowOnErrorSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Repository\RunSubscriptionEngineRepositoryManager;
 use Patchlevel\EventSourcing\Subscription\RetryStrategy\ClockBasedRetryStrategy;
 use Patchlevel\EventSourcing\Subscription\RetryStrategy\NoRetryStrategy;
@@ -1083,7 +1084,58 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(SplitStreamDecorator::class, $container->get(SplitStreamDecorator::class));
     }
 
-    public function testRunSubscriptionEngineRepositoryManager(): void
+    public function testSyncDisabledByDefault(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
+                ],
+            ],
+        );
+
+        self::assertFalse($container->hasDefinition(RunSubscriptionEngineRepositoryManager::class));
+        self::assertFalse($container->hasDefinition('event_sourcing.subscription.sync_engine'));
+        self::assertNotInstanceOf(
+            RunSubscriptionEngineRepositoryManager::class,
+            $container->get(RepositoryManager::class),
+        );
+    }
+
+    public function testSyncAllSubscriptions(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
+                    'subscription' => ['sync' => true],
+                ],
+            ],
+        );
+
+        self::assertInstanceOf(
+            RunSubscriptionEngineRepositoryManager::class,
+            $container->get(RepositoryManager::class),
+        );
+
+        $definition = $container->getDefinition(RunSubscriptionEngineRepositoryManager::class);
+        self::assertNull($definition->getArgument(2));
+        self::assertNull($definition->getArgument(3));
+
+        self::assertInstanceOf(
+            CatchUpSubscriptionEngine::class,
+            $container->get('event_sourcing.subscription.sync_engine'),
+        );
+        self::assertInstanceOf(DefaultSubscriptionEngine::class, $container->get(SubscriptionEngine::class));
+    }
+
+    public function testSyncFilteredSubscriptions(): void
     {
         $container = new ContainerBuilder();
 
@@ -1093,10 +1145,11 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                 'patchlevel_event_sourcing' => [
                     'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
                     'subscription' => [
-                        'run_after_aggregate_save' => [
-                            'ids' => ['a'],
-                            'groups' => ['b'],
-                            'limit' => 10,
+                        'sync' => [
+                            'ids' => ['profile'],
+                            'groups' => ['sync'],
+                            'catch_up_limit' => 10,
+                            'throw_on_error' => true,
                         ],
                     ],
                 ],
@@ -1107,6 +1160,16 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
             RunSubscriptionEngineRepositoryManager::class,
             $container->get(RepositoryManager::class),
         );
+
+        $definition = $container->getDefinition(RunSubscriptionEngineRepositoryManager::class);
+        self::assertSame(['profile'], $definition->getArgument(2));
+        self::assertSame(['sync'], $definition->getArgument(3));
+
+        self::assertInstanceOf(
+            ThrowOnErrorSubscriptionEngine::class,
+            $container->get('event_sourcing.subscription.sync_engine'),
+        );
+        self::assertInstanceOf(DefaultSubscriptionEngine::class, $container->get(SubscriptionEngine::class));
     }
 
     public function testSubscriptionEngineInMemoryStore(): void
@@ -1160,28 +1223,6 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertSame(
             $containerA->get(SubscriptionStore::class),
             $containerB->get(SubscriptionStore::class),
-        );
-    }
-
-    public function testCatchUpSubscriptionEngine(): void
-    {
-        $container = new ContainerBuilder();
-
-        $this->compileContainer(
-            $container,
-            [
-                'patchlevel_event_sourcing' => [
-                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
-                    'subscription' => [
-                        'catch_up' => ['limit' => 10],
-                    ],
-                ],
-            ],
-        );
-
-        self::assertInstanceOf(
-            CatchUpSubscriptionEngine::class,
-            $container->get(SubscriptionEngine::class),
         );
     }
 
@@ -1446,8 +1487,10 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                         ],
                     ],
                     'subscription' => [
-                        'catch_up' => ['limit' => 10],
-                        'throw_on_error' => true,
+                        'sync' => [
+                            'catch_up_limit' => 10,
+                            'throw_on_error' => true,
+                        ],
                     ],
                 ],
             ],
