@@ -13,7 +13,6 @@ use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
 use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
 use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
 use Doctrine\Persistence\ManagerRegistry;
-use Fixtures\DummyExtension;
 use InvalidArgumentException;
 use Patchlevel\EventSourcing\Attribute\Aggregate;
 use Patchlevel\EventSourcing\Attribute\Event;
@@ -102,6 +101,8 @@ use Patchlevel\EventSourcingBundle\Subscription\ResetServicesListener;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\CreateProfile;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\CustomHeader;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\DummyArgumentResolver;
+use Patchlevel\EventSourcingBundle\Tests\Fixtures\DummyExtension;
+use Patchlevel\EventSourcingBundle\Tests\Fixtures\DummyUpcaster;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener1;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener2;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Profile;
@@ -114,6 +115,7 @@ use Patchlevel\EventSourcingBundle\Tests\Fixtures\SnapshotableProfile;
 use Patchlevel\Hydrator\CoreExtension;
 use Patchlevel\Hydrator\Extension\Cryptography\CryptographyExtension;
 use Patchlevel\Hydrator\Extension\Lifecycle\LifecycleExtension;
+use Patchlevel\Hydrator\Extension\Upcast\UpcastExtension;
 use Patchlevel\Hydrator\Hydrator;
 use Patchlevel\Hydrator\StackHydrator;
 use PHPUnit\Framework\Attributes\RequiresMethod;
@@ -1386,6 +1388,32 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
                     [],
                 ],
             ],
+            $container->findTaggedServiceIds('event_sourcing.hydrator.extension'),
+        );
+    }
+
+    public function testUpcaster(): void
+    {
+        $container = new ContainerBuilder();
+
+        $container->setDefinition(DummyUpcaster::class, new Definition(DummyUpcaster::class))
+            ->setAutoconfigured(true);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
+                ],
+            ],
+        );
+
+        self::assertEquals(
+            [[], [new Reference(DummyUpcaster::class)]],
+            $container->getDefinition(UpcastExtension::class)->getArguments(),
+        );
+        self::assertArrayHasKey(
+            UpcastExtension::class,
             $container->findTaggedServiceIds('event_sourcing.hydrator.extension'),
         );
     }

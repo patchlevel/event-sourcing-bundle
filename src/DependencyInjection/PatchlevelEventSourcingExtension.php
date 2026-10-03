@@ -44,7 +44,7 @@ use Patchlevel\EventSourcing\Console\Command\SubscriptionStatusCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionTeardownCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
 use Patchlevel\EventSourcing\Console\DoctrineHelper;
-use Patchlevel\EventSourcing\Cryptography\ExtensionDoctrineCipherKeyStore;
+use Patchlevel\EventSourcing\Cryptography\DoctrineCipherKeyStore;
 use Patchlevel\EventSourcing\DecisionModel\DecisionModelBuilder;
 use Patchlevel\EventSourcing\DecisionModel\EventAppender;
 use Patchlevel\EventSourcing\DecisionModel\StoreDecisionModelBuilder;
@@ -91,8 +91,6 @@ use Patchlevel\EventSourcing\Serializer\Encoder\Encoder;
 use Patchlevel\EventSourcing\Serializer\Encoder\JsonEncoder;
 use Patchlevel\EventSourcing\Serializer\EventSerializer;
 use Patchlevel\EventSourcing\Serializer\EventTagExtractor;
-use Patchlevel\EventSourcing\Serializer\Upcast\Upcaster;
-use Patchlevel\EventSourcing\Serializer\Upcast\UpcasterChain;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr16SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr6SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\DefaultSnapshotStore;
@@ -145,6 +143,7 @@ use Patchlevel\Hydrator\Extension\Cryptography\Cryptographer;
 use Patchlevel\Hydrator\Extension\Cryptography\CryptographyExtension;
 use Patchlevel\Hydrator\Extension\Cryptography\Store\CipherKeyStore;
 use Patchlevel\Hydrator\Extension\Lifecycle\LifecycleExtension;
+use Patchlevel\Hydrator\Extension\Upcast\Upcaster;
 use Patchlevel\Hydrator\Hydrator;
 use Patchlevel\Hydrator\StackHydrator;
 use Patchlevel\Hydrator\StackHydratorBuilder;
@@ -220,7 +219,6 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(EventRegistry::class),
                 new Reference(Hydrator::class),
                 new Reference(Encoder::class),
-                new Reference(Upcaster::class),
             ]);
 
         $container->setAlias(EventSerializer::class, DefaultEventSerializer::class);
@@ -597,13 +595,13 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->addTag('event_sourcing.hydrator.extension');
 
         if ($config['hydrator']['cryptography']['enabled']) {
-            $container->register(ExtensionDoctrineCipherKeyStore::class)
+            $container->register(DoctrineCipherKeyStore::class)
                 ->setArguments([new Reference('event_sourcing.dbal_connection')])
                 ->addTag('event_sourcing.doctrine_schema_configurator');
 
             $container->setAlias(
                 CipherKeyStore::class,
-                ExtensionDoctrineCipherKeyStore::class,
+                DoctrineCipherKeyStore::class,
             );
 
             $container->register(BaseCryptographer::class)
@@ -616,11 +614,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             $container->setAlias(Cryptographer::class, BaseCryptographer::class);
 
             $container->register(CryptographyExtension::class)
-                ->setArguments([
-                    new Reference(Cryptographer::class),
-                    null,
-                    true,
-                ])
+                ->setArguments([new Reference(Cryptographer::class)])
                 ->addTag('event_sourcing.hydrator.extension');
         }
 
@@ -642,11 +636,6 @@ final class PatchlevelEventSourcingExtension extends Extension
     {
         $container->registerForAutoconfiguration(Upcaster::class)
             ->addTag('event_sourcing.upcaster');
-
-        $container->register(UpcasterChain::class)
-            ->setArguments([new TaggedIteratorArgument('event_sourcing.upcaster')]);
-
-        $container->setAlias(Upcaster::class, UpcasterChain::class);
     }
 
     private function configureMessageDecorator(ContainerBuilder $container): void
