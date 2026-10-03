@@ -229,12 +229,14 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->registerAttributeForAutoconfiguration(
             Header::class,
             static function (ChildDefinition $definition, Header $attribute): void {
-                $definition->addResourceTag('event_sourcing.header', ['name' => $attribute->name]);
+                $definition->addResourceTag('event_sourcing.header', [
+                    'name' => $attribute->name,
+                    'aliases' => $attribute->aliases,
+                ]);
             },
         );
 
         $container->register(MessageHeaderRegistry::class)
-            ->setFactory([MessageHeaderRegistry::class, 'createWithInternalHeaders'])
             ->setArguments([new Parameter('event_sourcing.headers')]);
 
         $container->register(DefaultHeadersSerializer::class)

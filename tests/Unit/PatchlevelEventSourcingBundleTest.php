@@ -52,6 +52,7 @@ use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\NoAggregateRoot;
 use Patchlevel\EventSourcing\Metadata\Event\EventAlreadyInRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
+use Patchlevel\EventSourcing\Metadata\Message\HeaderAlreadyInRegistry;
 use Patchlevel\EventSourcing\Metadata\Message\MessageHeaderRegistry;
 use Patchlevel\EventSourcing\QueryBus\QueryBus;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
@@ -107,6 +108,7 @@ use Patchlevel\EventSourcingBundle\Tests\Fixtures\DummyUpcaster;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener1;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Listener2;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\NoAggregate;
+use Patchlevel\EventSourcingBundle\Tests\Fixtures\PlayheadAliasHeader;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\Profile;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileCreated;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\ProfileProcessor;
@@ -970,6 +972,48 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(MessageHeaderRegistry::class, $messageHeaderRegistry);
         self::assertTrue($messageHeaderRegistry->hasHeaderClass(CustomHeader::class));
         self::assertTrue($messageHeaderRegistry->hasHeaderName('playhead'));
+        self::assertSame('custom', $messageHeaderRegistry->headerName(CustomHeader::class));
+        self::assertSame(CustomHeader::class, $messageHeaderRegistry->headerClass('legacyCustom'));
+    }
+
+    public function testDuplicateHeaderAlias(): void
+    {
+        $container = new ContainerBuilder();
+
+        $container->setDefinition('header.a', new Definition(CustomHeader::class))
+            ->setAutoconfigured(true);
+        $container->setDefinition('header.b', new Definition(CustomHeader::class))
+            ->setAutoconfigured(true);
+
+        $this->expectException(HeaderAlreadyInRegistry::class);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
+                ],
+            ],
+        );
+    }
+
+    public function testHeaderAliasCollidesWithInternalHeader(): void
+    {
+        $container = new ContainerBuilder();
+
+        $container->setDefinition(PlayheadAliasHeader::class, new Definition(PlayheadAliasHeader::class))
+            ->setAutoconfigured(true);
+
+        $this->expectException(HeaderAlreadyInRegistry::class);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
+                ],
+            ],
+        );
     }
 
     public function testRepositoryManager(): void

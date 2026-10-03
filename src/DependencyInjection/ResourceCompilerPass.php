@@ -8,6 +8,8 @@ use Patchlevel\EventSourcing\Aggregate\AggregateRoot;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootAlreadyInRegistry;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\NoAggregateRoot;
 use Patchlevel\EventSourcing\Metadata\Event\EventAlreadyInRegistry;
+use Patchlevel\EventSourcing\Metadata\Message\HeaderAlreadyInRegistry;
+use Patchlevel\EventSourcing\Metadata\Message\MessageHeaderRegistry;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
@@ -46,9 +48,28 @@ final class ResourceCompilerPass implements CompilerPassInterface
         }
 
         $headers = [];
+        $headerAliases = [];
 
         foreach ($this->taggedClasses($container, 'event_sourcing.header') as [$class, $attribute]) {
             $headers[$attribute['name']] = $class;
+
+            foreach ($attribute['aliases'] ?? [] as $alias) {
+                if (array_key_exists($alias, $headerAliases)) {
+                    throw new HeaderAlreadyInRegistry($alias);
+                }
+
+                $headerAliases[$alias] = $class;
+            }
+        }
+
+        $headers = MessageHeaderRegistry::createWithInternalHeaders($headers)->headerClasses();
+
+        foreach ($headerAliases as $alias => $class) {
+            if (array_key_exists($alias, $headers)) {
+                throw new HeaderAlreadyInRegistry($alias);
+            }
+
+            $headers[$alias] = $class;
         }
 
         $container->setParameter('event_sourcing.aggregates', $aggregates);
