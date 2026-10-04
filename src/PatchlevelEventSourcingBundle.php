@@ -10,6 +10,7 @@ use Patchlevel\EventSourcingBundle\DependencyInjection\HandlerServiceLocatorComp
 use Patchlevel\EventSourcingBundle\DependencyInjection\HydratorCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\QueryHandlerCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\RepositoryCompilerPass;
+use Patchlevel\EventSourcingBundle\DependencyInjection\ResourceCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\SubscriberGuardCompilePass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\TranslatorCompilerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -19,6 +20,7 @@ final class PatchlevelEventSourcingBundle extends Bundle
 {
     public function build(ContainerBuilder $container): void
     {
+        $container->addCompilerPass(new ResourceCompilerPass(), priority: 100);
         $container->addCompilerPass(new RepositoryCompilerPass());
         $container->addCompilerPass(new SubscriberGuardCompilePass());
         $container->addCompilerPass(new CommandHandlerCompilerPass(), priority: 100);

@@ -32,8 +32,6 @@ Now you have to add following recommended configuration file here `config/packag
 
 ```yaml
 patchlevel_event_sourcing:
-    aggregates: '%kernel.project_dir%/src'
-    events: '%kernel.project_dir%/src'
     connection:
       url: '%env(EVENTSTORE_URL)%'
       provide_dedicated_connection: true

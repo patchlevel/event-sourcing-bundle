@@ -10,72 +10,33 @@ This documentation is limited to bundle integration and configuration.
 We provide a [default configuration](./installation.md#configuration-file) that should work for most projects.
 :::
 
-## Aggregate
+## Aggregates, Events and Headers
 
-A path must be specified for Event Sourcing to know where to look for your aggregates.
-If you want you can use glob patterns to specify multiple paths.
+Aggregates, events and custom headers are discovered via Symfony's service autoconfiguration.
+Every class marked with the `#[Aggregate]`, `#[Event]` or `#[Header]` attribute that is covered
+by a service resource with `autoconfigure` enabled is registered automatically.
+These classes are not registered as services, they are only collected and then excluded from the container.
 
-```yaml
-patchlevel_event_sourcing:
-  aggregates: '%kernel.project_dir%/src/*/Domain'
-```
-Or use an array to specify multiple paths.
+With the default Symfony configuration in `config/services.yaml` this works out of the box:
 
 ```yaml
-patchlevel_event_sourcing:
-  aggregates:
-    - '%kernel.project_dir%/src/Hotel/Domain'
-    - '%kernel.project_dir%/src/Room/Domain'
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  App\:
+    resource: '../src/'
 ```
 :::note
-The library will automatically register all classes marked with the `#[Aggregate]` attribute in the specified paths.
+Make sure the directories containing your aggregates, events and headers are not listed in the `exclude` option.
 :::
 
 :::tip
-If you want to learn more about aggregates, read the [library documentation](https://event-sourcing.patchlevel.io/latest/aggregate/).
-:::
-
-## Events
-
-A path must be specified for Event Sourcing to know where to look for your events.
-If you want you can use glob patterns to specify multiple paths.
-
-```yaml
-patchlevel_event_sourcing:
-  events: '%kernel.project_dir%/src/*/Domain/Event'
-```
-Or use an array to specify multiple paths.
-
-```yaml
-patchlevel_event_sourcing:
-  events:
-    - '%kernel.project_dir%/src/Hotel/Domain/Event'
-    - '%kernel.project_dir%/src/Room/Domain/Event'
-```
-:::tip
-If you want to learn more about events, read the [library documentation](https://event-sourcing.patchlevel.io/latest/events/).
-:::
-
-## Custom Headers
-
-If you want to implement custom headers for your application, you must specify the
-paths to look for those headers.
-If you want you can use glob patterns to specify multiple paths.
-
-```yaml
-patchlevel_event_sourcing:
-  headers: '%kernel.project_dir%/src/*/Domain/Header'
-```
-Or use an array to specify multiple paths.
-
-```yaml
-patchlevel_event_sourcing:
-  headers:
-    - '%kernel.project_dir%/src/Hotel/Domain/Header'
-    - '%kernel.project_dir%/src/Room/Domain/Header'
-```
-:::tip
-If you want to learn more about custom headers, read the [library documentation](https://event-sourcing.patchlevel.io/latest/message/#custom-headers).
+If you want to learn more about [aggregates](https://event-sourcing.patchlevel.io/latest/aggregate/),
+[events](https://event-sourcing.patchlevel.io/latest/events/)
+or [custom headers](https://event-sourcing.patchlevel.io/latest/message/#custom-headers),
+read the library documentation.
 :::
 
 ## Connection

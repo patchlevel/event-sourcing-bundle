@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e8e556d60159c0d8a9127c205fd6e149",
+    "content-hash": "6e0134267927896dc554ae6c3f44dcd2",
     "packages": [
         {
             "name": "brick/math",
@@ -420,12 +420,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "ade8292ca34e1f8c398e31e4a43c01973548f757"
+                "reference": "51c07650652266b11c641a3a25d9955757bd3b31"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/ade8292ca34e1f8c398e31e4a43c01973548f757",
-                "reference": "ade8292ca34e1f8c398e31e4a43c01973548f757",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/51c07650652266b11c641a3a25d9955757bd3b31",
+                "reference": "51c07650652266b11c641a3a25d9955757bd3b31",
                 "shasum": ""
             },
             "require": {
@@ -507,7 +507,7 @@
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
                 "source": "https://github.com/patchlevel/event-sourcing/tree/4.0.x"
             },
-            "time": "2026-09-24T06:22:35+00:00"
+            "time": "2026-10-03T10:26:29+00:00"
         },
         {
             "name": "patchlevel/hydrator",

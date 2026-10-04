@@ -17,6 +17,7 @@ use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
 use Doctrine\ORM\Tools\ToolEvents;
 use Patchlevel\EventSourcing\Attribute\Aggregate;
 use Patchlevel\EventSourcing\Attribute\Event;
+use Patchlevel\EventSourcing\Attribute\Header;
 use Patchlevel\EventSourcing\Attribute\Processor;
 use Patchlevel\EventSourcing\Attribute\Projector;
 use Patchlevel\EventSourcing\Attribute\Subscriber;
@@ -61,14 +62,10 @@ use Patchlevel\EventSourcing\Message\Serializer\HeadersSerializer;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootMetadataAwareMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
-use Patchlevel\EventSourcing\Metadata\AggregateRoot\AttributeAggregateRootRegistryFactory;
 use Patchlevel\EventSourcing\Metadata\Event\AttributeEventMetadataFactory;
-use Patchlevel\EventSourcing\Metadata\Event\AttributeEventRegistryFactory;
 use Patchlevel\EventSourcing\Metadata\Event\EventMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
-use Patchlevel\EventSourcing\Metadata\Message\AttributeMessageHeaderRegistryFactory;
 use Patchlevel\EventSourcing\Metadata\Message\MessageHeaderRegistry;
-use Patchlevel\EventSourcing\Metadata\Message\MessageHeaderRegistryFactory;
 use Patchlevel\EventSourcing\Metadata\Subscriber\AttributeSubscriberMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Subscriber\SubscriberMetadataFactory;
 use Patchlevel\EventSourcing\QueryBus\QueryBus;
@@ -154,6 +151,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Extension\Extension;
+use Symfony\Component\DependencyInjection\Parameter;
 use Symfony\Component\DependencyInjection\Reference;
 
 use function class_exists;
@@ -165,8 +163,6 @@ final class PatchlevelEventSourcingExtension extends Extension
     /** @param array<array-key, mixed> $configs */
     public function load(array $configs, ContainerBuilder $container): void
     {
-        $this->removeNonServices($container);
-
         $configuration = new Configuration();
 
         /** @var Config $config */
@@ -186,7 +182,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureConnection($config, $container);
         $this->configureStore($config, $container);
         $this->configureSnapshots($config, $container);
-        $this->configureAggregates($config, $container);
+        $this->configureAggregates($container);
         $this->configureCommands($container);
         $this->configureProfiler($container);
         $this->configureClock($config, $container);
@@ -202,11 +198,18 @@ final class PatchlevelEventSourcingExtension extends Extension
     /** @param Config $config */
     private function configureSerializer(array $config, ContainerBuilder $container): void
     {
-        $container->register(AttributeEventRegistryFactory::class);
+        $container->registerAttributeForAutoconfiguration(
+            Event::class,
+            static function (ChildDefinition $definition, Event $attribute): void {
+                $definition->addResourceTag('event_sourcing.event', [
+                    'name' => $attribute->name,
+                    'aliases' => $attribute->aliases,
+                ]);
+            },
+        );
 
         $container->register(EventRegistry::class)
-            ->setFactory([new Reference(AttributeEventRegistryFactory::class), 'create'])
-            ->setArguments([$config['events']]);
+            ->setArguments([new Parameter('event_sourcing.events')]);
 
         $container->register(AttributeEventMetadataFactory::class);
         $container->setAlias(EventMetadataFactory::class, AttributeEventMetadataFactory::class);
@@ -223,12 +226,18 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->setAlias(EventSerializer::class, DefaultEventSerializer::class);
 
-        $container->register(AttributeMessageHeaderRegistryFactory::class);
-        $container->setAlias(MessageHeaderRegistryFactory::class, AttributeMessageHeaderRegistryFactory::class);
+        $container->registerAttributeForAutoconfiguration(
+            Header::class,
+            static function (ChildDefinition $definition, Header $attribute): void {
+                $definition->addResourceTag('event_sourcing.header', [
+                    'name' => $attribute->name,
+                    'aliases' => $attribute->aliases,
+                ]);
+            },
+        );
 
         $container->register(MessageHeaderRegistry::class)
-            ->setFactory([new Reference(MessageHeaderRegistryFactory::class), 'create'])
-            ->setArguments([$config['headers']]);
+            ->setArguments([new Parameter('event_sourcing.headers')]);
 
         $container->register(DefaultHeadersSerializer::class)
             ->setArguments([
@@ -888,17 +897,20 @@ final class PatchlevelEventSourcingExtension extends Extension
         $container->setAlias(SnapshotStore::class, DefaultSnapshotStore::class);
     }
 
-    /** @param Config $config */
-    private function configureAggregates(array $config, ContainerBuilder $container): void
+    private function configureAggregates(ContainerBuilder $container): void
     {
+        $container->registerAttributeForAutoconfiguration(
+            Aggregate::class,
+            static function (ChildDefinition $definition, Aggregate $attribute): void {
+                $definition->addResourceTag('event_sourcing.aggregate', ['name' => $attribute->name]);
+            },
+        );
+
         $container->register(AggregateRootMetadataAwareMetadataFactory::class);
         $container->setAlias(AggregateRootMetadataFactory::class, AggregateRootMetadataAwareMetadataFactory::class);
 
-        $container->register(AttributeAggregateRootRegistryFactory::class);
-
         $container->register(AggregateRootRegistry::class)
-            ->setFactory([new Reference(AttributeAggregateRootRegistryFactory::class), 'create'])
-            ->setArguments([$config['aggregates']]);
+            ->setArguments([new Parameter('event_sourcing.aggregates')]);
 
         $container->register(DefaultRepositoryManager::class)
             ->setArguments([
@@ -1201,27 +1213,5 @@ final class PatchlevelEventSourcingExtension extends Extension
     {
         $container->register(IdentifierValueResolver::class)
             ->addTag('controller.argument_value_resolver', ['priority' => 200]);
-    }
-
-    private function removeNonServices(ContainerBuilder $container): void
-    {
-        $container->registerAttributeForAutoconfiguration(
-            Aggregate::class,
-            static function (ChildDefinition $definition): void {
-                $definition->setAbstract(true)->addTag(
-                    'container.excluded',
-                    ['source' => sprintf('with #[%s] attribute', Aggregate::class)],
-                );
-            },
-        );
-        $container->registerAttributeForAutoconfiguration(
-            Event::class,
-            static function (ChildDefinition $definition): void {
-                $definition->setAbstract(true)->addTag(
-                    'container.excluded',
-                    ['source' => sprintf('with #[%s] attribute', Event::class)],
-                );
-            },
-        );
     }
 }
