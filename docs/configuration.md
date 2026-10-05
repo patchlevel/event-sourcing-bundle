@@ -284,7 +284,7 @@ patchlevel_event_sourcing:
 
 :::tip
 You can find out more about subscriptions in the library
-[documentation](https://event-sourcing.patchlevel.io/latest/subscription/).
+[documentation](/docs/event-sourcing/latest/subscription).
 :::
 
 ### Store
@@ -476,7 +476,7 @@ final class SubscriptionErrorListener
 }
 ```
 :::note
-You can find all available events in the [library documentation](https://event-sourcing.patchlevel.io/latest/subscription/).
+You can find all available events in the [library documentation](/docs/event-sourcing/latest/subscription).
 :::
 
 ## Command Bus
