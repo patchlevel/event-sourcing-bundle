@@ -2,7 +2,7 @@
 
 :::info
 You can find out more about event sourcing in the library
-[documentation](https://event-sourcing.patchlevel.io/latest/).
+[documentation](/docs/event-sourcing/latest).
 This documentation is limited to bundle integration and configuration.
 :::
 
@@ -33,9 +33,9 @@ Make sure the directories containing your aggregates, events and headers are not
 :::
 
 :::tip
-If you want to learn more about [aggregates](https://event-sourcing.patchlevel.io/latest/aggregate/),
-[events](https://event-sourcing.patchlevel.io/latest/events/)
-or [custom headers](https://event-sourcing.patchlevel.io/latest/message/#custom-headers),
+If you want to learn more about [aggregates](/docs/event-sourcing/latest/aggregate),
+[events](/docs/event-sourcing/latest/events)
+or [custom headers](/docs/event-sourcing/latest/message/#custom-headers),
 read the library documentation.
 :::
 
@@ -229,7 +229,7 @@ All schema relevant commands are removed if you activate this option. You should
 :::
 
 :::tip
-If you want to learn more about store, read the [library documentation](https://event-sourcing.patchlevel.io/latest/store/).
+If you want to learn more about store, read the [library documentation](/docs/event-sourcing/latest/store).
 :::
 
 ### Kernel Reset
@@ -284,7 +284,7 @@ patchlevel_event_sourcing:
 
 :::tip
 You can find out more about subscriptions in the library
-[documentation](https://event-sourcing.patchlevel.io/latest/subscription/).
+[documentation](/docs/event-sourcing/latest/subscription).
 :::
 
 ### Store
@@ -311,6 +311,51 @@ patchlevel_event_sourcing:
 :::tip
 If you are using the [doctrine-test-bundle](https://github.com/dmaicher/doctrine-test-bundle),
 you can use the `static_in_memory` store for testing.
+:::
+
+### Retry Strategies
+
+If a subscriber throws an error, the subscription engine can retry it later instead of leaving it in an error state.
+You can define one or more named retry strategies and choose which one is used by default.
+
+```yaml
+patchlevel_event_sourcing:
+    subscription:
+        retry_strategies:
+            default:
+                type: clock_based
+                options:
+                    base_delay: 5
+                    delay_factor: 2
+                    max_attempts: 5
+            no_retry:
+                type: no_retry
+        default_retry_strategy: default
+```
+The following strategy types are available:
+
+- `clock_based`: retries with an increasing delay based on the clock. Configurable via `base_delay` (seconds),
+  `delay_factor` and `max_attempts`.
+- `no_retry`: never retries.
+- `custom`: use your own strategy. You need to set the `service` id to a service implementing the
+  `Patchlevel\EventSourcing\Subscription\RetryStrategy\RetryStrategy` interface.
+
+```yaml
+patchlevel_event_sourcing:
+    subscription:
+        retry_strategies:
+            my_strategy:
+                type: custom
+                service: my_retry_strategy_service
+        default_retry_strategy: my_strategy
+```
+:::note
+If you don't configure anything, a `default` (`clock_based`) and a `no_retry` strategy are registered and `default` is used.
+:::
+
+:::tip
+You can select the retry strategy per subscriber. If you want to learn more about retry strategies, read the
+[library documentation](/docs/event-sourcing/latest/subscription/#retry-strategy).
 :::
 
 ### Sync Subscriptions
@@ -397,6 +442,21 @@ patchlevel_event_sourcing:
 This works only before each http requests and not if you use the console commands.
 :::
 
+You can restrict the setup to specific subscribers with `ids` and `groups`.
+With `exclude_url` you can define a regex for urls that should not trigger the auto setup.
+By default the symfony internal routes (`^/_(wdt|profiler|error)`) are excluded.
+
+```yaml
+patchlevel_event_sourcing:
+    subscription:
+        auto_setup:
+            ids:
+                - 'profile_projection'
+            groups:
+                - 'default'
+            exclude_url: '^/_(wdt|profiler|error)'
+```
+
 ### Rebuild After File Change
 
 If you want to rebuild the subscription engine after a file change, you can activate this option.
@@ -414,6 +474,17 @@ This works only before each http requests and not if you use the console command
 :::tip
 This is using the cache system to store the latest file change time. You can change the cache pool with the `cache_pool` option.
 :::
+
+With `exclude_url` you can define a regex for urls that should not trigger the rebuild.
+By default the symfony internal routes (`^/_(wdt|profiler|error)`) are excluded.
+
+```yaml
+patchlevel_event_sourcing:
+    subscription:
+        rebuild_after_file_change:
+            cache_pool: cache.app
+            exclude_url: '^/_(wdt|profiler|error)'
+```
 
 ### Gap Detection
 
@@ -478,9 +549,20 @@ patchlevel_event_sourcing:
         service: command.bus
 ```
 :::note
-You can find out more about the command bus and the aggregate handlers [here](https://event-sourcing.patchlevel.io/latest/command_bus/).
+You can find out more about the command bus and the aggregate handlers [here](/docs/event-sourcing/latest/command-bus).
 :::
 
+### Register Aggregate Handlers
+
+By default the aggregate command handlers are automatically registered for the configured messenger bus.
+If you want to register them yourself, you can disable this behaviour.
+
+```yaml
+patchlevel_event_sourcing:
+    command_bus:
+        service: command.bus
+        register_aggregate_handlers: false
+```
 ### Instant Retry
 
 You can define the default instant retry configuration for the command bus.
@@ -495,7 +577,7 @@ patchlevel_event_sourcing:
                 - Patchlevel\EventSourcing\Repository\AggregateOutdated
 ```
 :::note
-You can find out more about instant retry [here](https://event-sourcing.patchlevel.io/latest/command_bus/#instant-retry).
+You can find out more about instant retry [here](/docs/event-sourcing/latest/command-bus/#instant-retry).
 :::
 
 ## Query Bus
@@ -518,7 +600,7 @@ patchlevel_event_sourcing:
         service: query.bus
 ```
 :::note
-You can find out more about the query bus [here](https://event-sourcing.patchlevel.io/latest/query_bus/).
+You can find out more about the query bus [here](/docs/event-sourcing/latest/query-bus).
 :::
 
 ## Event Bus
@@ -531,7 +613,7 @@ patchlevel_event_sourcing:
     event_bus: ~
 ```
 :::note
-Default is the patchlevel [event bus](https://event-sourcing.patchlevel.io/latest/event_bus/).
+Default is the patchlevel [event bus](/docs/event-sourcing/latest/event-bus).
 :::
 
 ### Patchlevel (Default) Event Bus
@@ -642,6 +724,24 @@ patchlevel_event_sourcing:
         default:
             service: event_sourcing.cache
 ```
+You can also choose the store type. The following types are available:
+
+- `psr6` *default*
+- `psr16`
+- `custom`
+
+```yaml
+patchlevel_event_sourcing:
+    snapshot_stores:
+        default:
+            type: psr16
+            service: event_sourcing.cache
+```
+:::note
+If you use the `custom` type, the `service` has to implement the
+`Patchlevel\EventSourcing\Snapshot\Adapter\SnapshotAdapter` interface.
+:::
+
 Finally, you have to tell the aggregate that it should use this snapshot store.
 
 ```php
@@ -659,9 +759,29 @@ final class Profile extends BasicAggregateRoot
 }
 ```
 :::note
-You can find out more about snapshots [here](https://event-sourcing.patchlevel.io/latest/snapshots/).
+You can find out more about snapshots [here](/docs/event-sourcing/latest/snapshots).
 :::
 
+## Hydrator
+
+### Default Lazy
+
+You can enable lazy hydration by default. This means that values are only hydrated when they are accessed.
+
+```yaml
+patchlevel_event_sourcing:
+    hydrator:
+        default_lazy: true
+```
+### Lifecycle
+
+You can enable the lifecycle extension to run lifecycle hooks during hydration.
+
+```yaml
+patchlevel_event_sourcing:
+    hydrator:
+        lifecycle: true
+```
 ## Cryptography
 
 You can use the library to encrypt and decrypt sensitive data.
@@ -682,7 +802,7 @@ patchlevel_event_sourcing:
             algorithm: 'aes-256-gcm'
 ```
 :::note
-You can find out more about sensitive data [here](https://event-sourcing.patchlevel.io/latest/sensitive-data/).
+You can find out more about sensitive data [here](/docs/event-sourcing/latest/sensitive-data).
 :::
 
 ## Clock

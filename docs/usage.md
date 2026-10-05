@@ -5,7 +5,7 @@ But we provide only examples for specific symfony features.
 
 :::info
 You can find out more about event sourcing in the library
-[documentation](https://event-sourcing.patchlevel.io/latest/).
+[documentation](/docs/event-sourcing/latest).
 This documentation is limited to bundle integration and configuration.
 :::
 
@@ -17,7 +17,7 @@ argument name injection. For our aggregate `Hotel` it would be `$hotelRepository
 ```php
 namespace App\Hotel\Infrastructure\Controller;
 
-use Patchlevel\EventSourcing\Aggregate\Uuid;
+use Patchlevel\EventSourcing\Identifier\Uuid;
 use Patchlevel\EventSourcing\Repository\Repository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
@@ -43,6 +43,54 @@ final class HotelController
     }
 }
 ```
+## Identifier Value Resolver
+
+The bundle registers a controller argument value resolver for identifiers.
+If you type-hint a controller argument with a class that implements
+`Patchlevel\EventSourcing\Identifier\Identifier`, the resolver builds it
+from the matching request attribute (e.g. a route parameter with the same name)
+using `fromString()`.
+
+```php
+namespace App\Hotel\Infrastructure\Controller;
+
+use Patchlevel\EventSourcing\Identifier\Uuid;
+use Patchlevel\EventSourcing\Repository\Repository;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\Routing\Attribute\Route;
+
+#[AsController]
+final class HotelController
+{
+    public function __construct(
+        /** @var Repository<Hotel> */
+        private readonly Repository $hotelRepository,
+    ) {
+    }
+
+    #[Route('/hotel/{hotelId}')]
+    public function doStuffAction(Uuid $hotelId): Response
+    {
+        $hotel = $this->hotelRepository->load($hotelId);
+
+        // ...
+
+        return new Response();
+    }
+}
+```
+
+:::note
+The name of the argument (`$hotelId`) must match the name of the request attribute
+(the `{hotelId}` route parameter). If the attribute is missing or not a string,
+the resolver is skipped and Symfony continues with the other value resolvers.
+:::
+
+:::tip
+This works with any of your own identifier classes, as long as they implement
+`Identifier`. The library's `Patchlevel\EventSourcing\Identifier\Uuid` already does.
+:::
 ## Subscriber
 
 A subscriber can be used to send an email when a guest is checked in:
@@ -150,7 +198,7 @@ otherwise the service will be added twice.
 This bundle adds more Symfony specific normalizers in addition to the existing built-in normalizers.
 
 :::note
-You can find the other build-in normalizers [here](https://event-sourcing.patchlevel.io/latest/normalizer/#built-in-normalizer)
+You can find the other build-in normalizers [here](/docs/event-sourcing/latest/normalizer/#built-in-normalizer)
 :::
 
 :::tip
@@ -173,8 +221,8 @@ final class DTO
 }
 ```
 :::warning
-The symfony uuid don't implement the `AggregateId` interface, so it can not be used as an aggregate id directly.
-Use instead the `Patchlevel\EventSourcing\Aggregate\Uuid` class.
+The symfony uuid don't implement the `Identifier` interface, so it can not be used as an aggregate id directly.
+Use instead the `Patchlevel\EventSourcing\Identifier\Uuid` class.
 :::
 
 :::tip
@@ -272,3 +320,15 @@ services:
     tags:
       - event_sourcing.message_decorator
 ```
+
+## Profiler
+
+When the kernel is in debug mode (e.g. in the `dev` environment), the bundle registers a
+[Symfony Web Profiler](https://symfony.com/doc/current/profiler.html) panel for event sourcing.
+It collects the messages that were dispatched during a request as well as the registered
+aggregates and events, and shows them in the profiler toolbar and panel.
+
+:::note
+This is enabled automatically and needs no configuration. It is only active when
+`kernel.debug` is `true`, so it has no effect in production.
+:::
