@@ -153,6 +153,7 @@ use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Parameter;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 use function class_exists;
 use function sprintf;
@@ -491,7 +492,6 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->setArguments([
                 new TaggedIteratorArgument('event_sourcing.subscriber'),
                 new Reference(SubscriberMetadataFactory::class),
-                new TaggedIteratorArgument('event_sourcing.argument_resolver'),
             ]);
 
         $container->setAlias(SubscriberAccessorRepository::class, MetadataSubscriberAccessorRepository::class);
@@ -506,6 +506,8 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->setAlias(Cleaner::class, DefaultCleaner::class);
 
+        $container->register('event_sourcing.subscription.event_dispatcher', EventDispatcher::class);
+
         $container->register(DefaultSubscriptionEngine::class)
             ->setArguments([
                 new Reference(MessageLoader::class),
@@ -514,6 +516,8 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference(RetryStrategyRepository::class),
                 new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
                 new Reference(Cleaner::class),
+                new Reference('event_sourcing.subscription.event_dispatcher'),
+                new TaggedIteratorArgument('event_sourcing.argument_resolver'),
             ])
             ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
 
@@ -849,6 +853,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                 ->setArguments([
                     new Reference('event_sourcing.dbal_connection'),
                     new Reference(EventSerializer::class),
+                    new Reference(EventRegistry::class),
                     new Reference(HeadersSerializer::class),
                     new Reference('event_sourcing.clock'),
                     $config['store']['migrate_to_new_store']['options'],
