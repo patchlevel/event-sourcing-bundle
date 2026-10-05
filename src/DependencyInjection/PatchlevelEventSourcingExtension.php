@@ -491,7 +491,6 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->setArguments([
                 new TaggedIteratorArgument('event_sourcing.subscriber'),
                 new Reference(SubscriberMetadataFactory::class),
-                new TaggedIteratorArgument('event_sourcing.argument_resolver'),
             ]);
 
         $container->setAlias(SubscriberAccessorRepository::class, MetadataSubscriberAccessorRepository::class);
@@ -515,6 +514,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                 new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
                 new Reference(Cleaner::class),
             ])
+            ->setArgument('$argumentResolvers', new TaggedIteratorArgument('event_sourcing.argument_resolver'))
             ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
 
         $container->setAlias(SubscriptionEngine::class, DefaultSubscriptionEngine::class);
@@ -849,6 +849,7 @@ final class PatchlevelEventSourcingExtension extends Extension
                 ->setArguments([
                     new Reference('event_sourcing.dbal_connection'),
                     new Reference(EventSerializer::class),
+                    new Reference(EventRegistry::class),
                     new Reference(HeadersSerializer::class),
                     new Reference('event_sourcing.clock'),
                     $config['store']['migrate_to_new_store']['options'],

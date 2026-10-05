@@ -76,6 +76,7 @@ use Patchlevel\EventSourcing\Store\InMemoryStore;
 use Patchlevel\EventSourcing\Store\ReadOnlyStore;
 use Patchlevel\EventSourcing\Store\Store;
 use Patchlevel\EventSourcing\Store\StreamDoctrineDbalStore;
+use Patchlevel\EventSourcing\Store\TaggableDoctrineDbalStore;
 use Patchlevel\EventSourcing\Subscription\Cleanup\Cleaner;
 use Patchlevel\EventSourcing\Subscription\Cleanup\Dbal\DbalCleanupTaskHandler;
 use Patchlevel\EventSourcing\Subscription\Cleanup\DefaultCleaner;
@@ -94,7 +95,6 @@ use Patchlevel\EventSourcing\Subscription\RetryStrategy\RetryStrategyRepository;
 use Patchlevel\EventSourcing\Subscription\Store\DoctrineSubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\InMemorySubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\SubscriptionStore;
-use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorRepository;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\Normalizer\SymfonyExtension;
@@ -137,6 +137,8 @@ use Symfony\Component\DependencyInjection\Dumper\XmlDumper;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\ServicesResetter;
 use Symfony\Component\Messenger\MessageBusInterface;
+
+use function array_filter;
 
 final class PatchlevelEventSourcingBundleTest extends TestCase
 {
@@ -352,6 +354,26 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
             ],
             $container->findTaggedServiceIds('event_sourcing.translator'),
         );
+    }
+
+    public function testMigrateToTaggableStore(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
+                    'store' => [
+                        'migrate_to_new_store' => ['type' => 'dbal_taggable'],
+                    ],
+                ],
+            ],
+        );
+
+        self::assertInstanceOf(StreamDoctrineDbalStore::class, $container->get(Store::class));
+        self::assertInstanceOf(TaggableDoctrineDbalStore::class, $container->get('event_sourcing.store.new_store'));
     }
 
     public function testSymfonyEventBus(): void
@@ -1380,14 +1402,14 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertTrue($container->getDefinition(DummyArgumentResolver::class)->hasTag('event_sourcing.argument_resolver'));
-        self::assertInstanceOf(
-            TaggedIteratorArgument::class,
-            $container->getDefinition(MetadataSubscriberAccessorRepository::class)->getArgument(2),
+
+        $argumentResolvers = array_filter(
+            $container->getDefinition(DefaultSubscriptionEngine::class)->getArguments(),
+            static fn (mixed $argument): bool => $argument instanceof TaggedIteratorArgument
+                && $argument->getTag() === 'event_sourcing.argument_resolver',
         );
-        self::assertEquals(
-            'event_sourcing.argument_resolver',
-            $container->getDefinition(MetadataSubscriberAccessorRepository::class)->getArgument(2)->getTag(),
-        );
+
+        self::assertCount(1, $argumentResolvers);
     }
 
     public function testRetryStrategy(): void
