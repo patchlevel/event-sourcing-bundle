@@ -37,10 +37,10 @@ jobs:
             operating-system: "windows-latest"
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: "Install PHP"
-        uses: "shivammathur/setup-php@2.37.0"
+        uses: "shivammathur/setup-php@2.37.2"
         with:
           coverage: "pcov"
           php-version: "${{ matrix.php-version }}"

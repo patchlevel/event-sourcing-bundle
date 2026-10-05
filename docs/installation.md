@@ -11,6 +11,7 @@ The first thing to do is to install packet if it has not already been done.
 ```bash
 composer require patchlevel/event-sourcing-bundle
 ```
+
 :::note
 how to install [composer](https://getcomposer.org/doc/00-intro.md)
 :::
@@ -73,6 +74,7 @@ Finally, we have to fill the ENV variable with a connection url.
 ```dotenv
 EVENTSTORE_URL="pdo-pgsql://app:!ChangeMe!@127.0.0.1:5432/app?serverVersion=16&charset=utf8"
 ```
+
 :::note
 You can find out more about what a connection url looks like [here](https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html#connecting-using-a-url).
 :::
@@ -116,6 +118,7 @@ For this you have to add the following configuration to the `.symfony.local.yaml
 workers:
   docker_compose: ~
 ```
+
 :::success
-You have successfully installed the bundle. Now you can start with the [quickstart](./getting_started.md) to get a feeling for the bundle.
+You have successfully installed the bundle. Now you can start with the [quickstart](getting-started.md) to get a feeling for the bundle.
 :::

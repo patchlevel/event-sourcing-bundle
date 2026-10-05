@@ -5,7 +5,7 @@ We keep the example small, so we can only create hotels and let guests check in 
 
 For this example we use [symfony/mailer](https://symfony.com/doc/current/mailer.html).
 
-:::info
+:::note
 First of all, the bundle has to be installed and configured.
 If you haven't already done so, see the [installation introduction](installation.md).
 :::
@@ -19,8 +19,8 @@ A hotel can be created with a `name` and an `id`:
 ```php
 namespace App\Hotel\Domain\Event;
 
-use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Attribute\Event;
+use Patchlevel\EventSourcing\Identifier\Uuid;
 
 #[Event('hotel.created')]
 final class HotelCreated
@@ -37,8 +37,8 @@ A guest can check in by `guestName`:
 ```php
 namespace App\Hotel\Domain\Event;
 
-use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Attribute\Event;
+use Patchlevel\EventSourcing\Identifier\Uuid;
 
 #[Event('hotel.guest_is_checked_in')]
 final class GuestIsCheckedIn
@@ -55,8 +55,8 @@ And also check out again:
 ```php
 namespace App\Hotel\Domain\Event;
 
-use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Attribute\Event;
+use Patchlevel\EventSourcing\Identifier\Uuid;
 
 #[Event('hotel.guest_is_checked_out')]
 final class GuestIsCheckedOut
@@ -68,8 +68,9 @@ final class GuestIsCheckedOut
     }
 }
 ```
+
 :::note
-You can find out more about events in the [library](https://event-sourcing.patchlevel.io/latest/events/).
+You can find out more about events in the [library](/docs/event-sourcing/latest/events).
 :::
 
 ## Define aggregates
@@ -87,10 +88,10 @@ use App\Hotel\Domain\Event\GuestIsCheckedIn;
 use App\Hotel\Domain\Event\GuestIsCheckedOut;
 use App\Hotel\Domain\Event\HotelCreated;
 use Patchlevel\EventSourcing\Aggregate\BasicAggregateRoot;
-use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Attribute\Aggregate;
 use Patchlevel\EventSourcing\Attribute\Apply;
 use Patchlevel\EventSourcing\Attribute\Id;
+use Patchlevel\EventSourcing\Identifier\Uuid;
 
 use function array_filter;
 use function array_values;
@@ -168,8 +169,9 @@ final class Hotel extends BasicAggregateRoot
     }
 }
 ```
+
 :::note
-You can find out more about aggregates in the [library](https://event-sourcing.patchlevel.io/latest/aggregate/).
+You can find out more about aggregates in the [library](/docs/event-sourcing/latest/aggregate).
 :::
 
 ## Define projections
@@ -184,12 +186,13 @@ namespace App\Hotel\Infrastructure\Projection;
 use App\Hotel\Domain\Event\GuestIsCheckedIn;
 use App\Hotel\Domain\Event\GuestIsCheckedOut;
 use Doctrine\DBAL\Connection;
-use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Attribute\Projector;
 use Patchlevel\EventSourcing\Attribute\Setup;
 use Patchlevel\EventSourcing\Attribute\Subscribe;
 use Patchlevel\EventSourcing\Attribute\Teardown;
-use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberUtil;
+use Patchlevel\EventSourcing\Identifier\Uuid;
+
+use function sprintf;
 
 /**
  * @psalm-type GuestData = array{
@@ -199,10 +202,10 @@ use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberUtil;
  *     check_out_date: string|null
  * }
  */
-#[Projector('guests')]
+#[Projector(self::SUBSCRIBER_ID)]
 final class GuestProjection
 {
-    use SubscriberUtil;
+    private const SUBSCRIBER_ID = 'guests';
 
     public function __construct(
         private Connection $db,
@@ -214,7 +217,7 @@ final class GuestProjection
     {
         return $this->db->createQueryBuilder()
             ->select('*')
-            ->from($this->table())
+            ->from(self::SUBSCRIBER_ID)
             ->where('hotel_id = :hotel_id')
             ->setParameter('hotel_id', $hotelId->toString())
             ->fetchAllAssociative();
@@ -226,7 +229,7 @@ final class GuestProjection
         DateTimeImmutable $recordedOn,
     ): void {
         $this->db->insert(
-            $this->table(),
+            self::SUBSCRIBER_ID,
             [
                 'hotel_id' => $event->hotelId->toString(),
                 'guest_name' => $event->guestName,
@@ -242,7 +245,7 @@ final class GuestProjection
         DateTimeImmutable $recordedOn,
     ): void {
         $this->db->update(
-            $this->table(),
+            self::SUBSCRIBER_ID,
             [
                 'check_out_date' => $recordedOn->format('Y-m-d H:i:s'),
             ],
@@ -257,34 +260,31 @@ final class GuestProjection
     #[Setup]
     public function create(): void
     {
-        $this->db->executeStatement(
-            "CREATE TABLE {$this->table()} (
+        $this->db->executeStatement(sprintf(
+            'CREATE TABLE %s (
                 hotel_id VARCHAR(36) NOT NULL,
                 guest_name VARCHAR(255) NOT NULL,
                 check_in_date TIMESTAMP NOT NULL,
                 check_out_date TIMESTAMP NULL
-            );",
-        );
+            );',
+            self::SUBSCRIBER_ID,
+        ));
     }
 
     #[Teardown]
     public function drop(): void
     {
-        $this->db->executeStatement("DROP TABLE IF EXISTS {$this->table()};");
-    }
-
-    private function table(): string
-    {
-        return 'projection_' . $this->subscriberId();
+        $this->db->executeStatement(sprintf('DROP TABLE IF EXISTS %s;', self::SUBSCRIBER_ID));
     }
 }
 ```
+
 :::warning
 autoconfigure need to be enabled, otherwise you need add the `event_sourcing.subscriber` tag.
 :::
 
 :::note
-You can find out more about projections in the [library](https://event-sourcing.patchlevel.io/latest/subscription/).
+You can find out more about projections in the [library](/docs/event-sourcing/latest/subscription).
 :::
 
 ## Processor
@@ -323,12 +323,13 @@ final class SendCheckInEmailProcessor
     }
 }
 ```
+
 :::warning
 autoconfigure need to be enabled, otherwise you need add the `event_sourcing.subscriber` tag.
 :::
 
 :::note
-You can find out more about processor in the [library](https://event-sourcing.patchlevel.io/latest/subscription/)
+You can find out more about processor in the [library](/docs/event-sourcing/latest/subscription)
 :::
 
 ## Database setup
@@ -345,8 +346,9 @@ or you can use doctrine migrations:
 bin/console event-sourcing:migrations:diff
 bin/console event-sourcing:migrations:migrate
 ```
+
 :::note
-You can find out more about the cli in the [library](https://event-sourcing.patchlevel.io/latest/cli/).
+You can find out more about the cli in the [library](/docs/event-sourcing/latest/cli).
 :::
 
 ## Usage
@@ -358,7 +360,7 @@ namespace App\Hotel\Infrastructure\Controller;
 
 use App\Hotel\Domain\Hotel;
 use App\Hotel\Infrastructure\Projection\GuestProjection;
-use Patchlevel\EventSourcing\Aggregate\Uuid;
+use Patchlevel\EventSourcing\Identifier\Uuid;
 use Patchlevel\EventSourcing\Repository\Repository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -431,5 +433,5 @@ If there are still open questions, create a ticket on Github and we will try to 
 
 :::note
 This documentation is limited to the bundle integration.
-You should also read the [library documentation](https://event-sourcing.patchlevel.io/latest/).
+You should also read the [library documentation](/docs/event-sourcing/latest).
 :::
