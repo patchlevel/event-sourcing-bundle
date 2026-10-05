@@ -92,6 +92,7 @@ use Patchlevel\EventSourcing\Snapshot\Adapter\Psr16SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr6SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\DefaultSnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
+use Patchlevel\EventSourcing\Store\Dbal\PostgreSQLPlatformMiddleware;
 use Patchlevel\EventSourcing\Store\InMemoryStore;
 use Patchlevel\EventSourcing\Store\ReadOnlyStore;
 use Patchlevel\EventSourcing\Store\Store;
@@ -102,7 +103,9 @@ use Patchlevel\EventSourcing\Subscription\Cleanup\CleanupTaskHandler;
 use Patchlevel\EventSourcing\Subscription\Cleanup\DefaultCleaner;
 use Patchlevel\EventSourcing\Subscription\Engine\CatchUpSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\DefaultSubscriptionEngine;
+use Patchlevel\EventSourcing\Subscription\Engine\Event\OnSubscriptionRemoved;
 use Patchlevel\EventSourcing\Subscription\Engine\GapResolverStoreMessageLoader;
+use Patchlevel\EventSourcing\Subscription\Engine\Listener\RemoveSubscriptionStreamListener;
 use Patchlevel\EventSourcing\Subscription\Engine\MessageLoader;
 use Patchlevel\EventSourcing\Subscription\Engine\StoreMessageLoader;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
@@ -115,6 +118,7 @@ use Patchlevel\EventSourcing\Subscription\Store\DoctrineSubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\InMemorySubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\SubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Subscriber\ArgumentResolver\ArgumentResolver;
+use Patchlevel\EventSourcing\Subscription\Subscriber\ArgumentResolver\EventEmitterResolver;
 use Patchlevel\EventSourcing\Subscription\Subscriber\ArgumentResolver\LookupResolver;
 use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorRepository;
 use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberAccessorRepository;
@@ -156,6 +160,7 @@ use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 use function class_exists;
+use function preg_match;
 use function sprintf;
 
 /** @psalm-import-type Config from Configuration */
@@ -533,6 +538,7 @@ final class PatchlevelEventSourcingExtension extends Extension
             ]);
 
         $this->configureSyncSubscription($config, $container);
+        $this->configureEventEmitter($config, $container);
 
         if ($config['subscription']['auto_setup']['enabled']) {
             $container->register(AutoSetupListener::class)
@@ -597,6 +603,33 @@ final class PatchlevelEventSourcingExtension extends Extension
                 $config['subscription']['sync']['ids'] ?: null,
                 $config['subscription']['sync']['groups'] ?: null,
             ]);
+    }
+
+    /** @param Config $config */
+    private function configureEventEmitter(array $config, ContainerBuilder $container): void
+    {
+        if (!$config['subscription']['event_emitter']['enabled']) {
+            return;
+        }
+
+        if ($config['store']['read_only']) {
+            throw new InvalidArgumentException('Event emitter does not support a read only store');
+        }
+
+        $container->register(EventEmitterResolver::class)
+            ->setArguments([new Reference(Store::class)])
+            ->addTag('event_sourcing.argument_resolver');
+
+        $container->register(RemoveSubscriptionStreamListener::class)
+            ->setArguments([
+                new Reference(Store::class),
+                new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            ])
+            ->addTag('kernel.event_listener', [
+                'event' => OnSubscriptionRemoved::class,
+                'dispatcher' => 'event_sourcing.subscription.event_dispatcher',
+            ])
+            ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
     }
 
     /** @param Config $config */
@@ -681,11 +714,19 @@ final class PatchlevelEventSourcingExtension extends Extension
             return;
         }
 
+        $middlewares = [];
+
+        if ($this->usesTaggableStore($config)) {
+            $container->register(PostgreSQLPlatformMiddleware::class);
+            $middlewares[] = new Reference(PostgreSQLPlatformMiddleware::class);
+        }
+
         if ($config['connection']['url'] !== null) {
             $container->register('event_sourcing.dbal_connection', Connection::class)
                 ->setFactory([DbalConnectionFactory::class, 'createConnection'])
                 ->setArguments([
                     $config['connection']['url'],
+                    $middlewares,
                 ]);
 
             if ($config['connection']['provide_dedicated_connection']) {
@@ -710,6 +751,26 @@ final class PatchlevelEventSourcingExtension extends Extension
         }
 
         $container->setAlias('event_sourcing.dbal_connection', $config['connection']['service']);
+
+        if (
+            $middlewares === []
+            || !preg_match('/^doctrine\.dbal\.(.+)_connection$/', $config['connection']['service'], $matches)
+        ) {
+            return;
+        }
+
+        $container->getDefinition(PostgreSQLPlatformMiddleware::class)
+            ->addTag('doctrine.middleware', ['connection' => $matches[1]]);
+    }
+
+    /** @param Config $config */
+    private function usesTaggableStore(array $config): bool
+    {
+        return $config['store']['type'] === 'dbal_taggable'
+            || (
+                $config['store']['migrate_to_new_store']['enabled']
+                && $config['store']['migrate_to_new_store']['type'] === 'dbal_taggable'
+            );
     }
 
     /** @param Config $config */
@@ -1196,19 +1257,19 @@ final class PatchlevelEventSourcingExtension extends Extension
             return;
         }
 
-        if ($config['store']['type'] !== 'dbal_taggable') {
+        if ($config['store']['type'] === 'dbal_stream') {
             throw new InvalidArgumentException(
-                'DCB requires a taggable store, please use "dbal_taggable" as store type.',
+                'DCB requires a store that supports appending, please use "dbal_taggable", "in_memory" or a custom store.',
             );
         }
 
         $container->register(StoreDecisionModelBuilder::class)
-            ->setArguments([new Reference(TaggableDoctrineDbalStore::class)]);
+            ->setArguments([new Reference(Store::class)]);
         $container->setAlias(DecisionModelBuilder::class, StoreDecisionModelBuilder::class);
 
         $container->register(StoreEventAppender::class)
             ->setArguments([
-                new Reference(TaggableDoctrineDbalStore::class),
+                new Reference(Store::class),
                 new Reference(EventTagExtractor::class),
             ]);
         $container->setAlias(EventAppender::class, StoreEventAppender::class);

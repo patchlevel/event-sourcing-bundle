@@ -52,7 +52,8 @@ use Throwable;
  *              enabled: bool,
  *              retries_in_ms: list<int>,
  *              detection_window: string
- *          }
+ *          },
+ *          event_emitter: array{enabled: bool}
  *      },
  *      connection: ?array{
  *          service: ?string,
@@ -263,6 +264,10 @@ final class Configuration implements ConfigurationInterface
                             ->end()
                             ->scalarNode('detection_window')->defaultValue('PT5M')->end()
                         ->end()
+                    ->end()
+
+                    ->arrayNode('event_emitter')
+                        ->canBeEnabled()
                     ->end()
                 ->end()
             ->end()
