@@ -72,6 +72,8 @@ use Patchlevel\EventSourcing\Snapshot\Adapter\Psr6SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\DefaultSnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
 use Patchlevel\EventSourcing\Store\ArchivedHeader;
+use Patchlevel\EventSourcing\Store\Dbal\PostgreSQLPlatform as EventSourcingPostgreSQLPlatform;
+use Patchlevel\EventSourcing\Store\Dbal\PostgreSQLPlatformMiddleware;
 use Patchlevel\EventSourcing\Store\InMemoryStore;
 use Patchlevel\EventSourcing\Store\ReadOnlyStore;
 use Patchlevel\EventSourcing\Store\Store;
@@ -82,7 +84,9 @@ use Patchlevel\EventSourcing\Subscription\Cleanup\Dbal\DbalCleanupTaskHandler;
 use Patchlevel\EventSourcing\Subscription\Cleanup\DefaultCleaner;
 use Patchlevel\EventSourcing\Subscription\Engine\CatchUpSubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\DefaultSubscriptionEngine;
+use Patchlevel\EventSourcing\Subscription\Engine\Event\OnSubscriptionRemoved;
 use Patchlevel\EventSourcing\Subscription\Engine\GapResolverStoreMessageLoader;
+use Patchlevel\EventSourcing\Subscription\Engine\Listener\RemoveSubscriptionStreamListener;
 use Patchlevel\EventSourcing\Subscription\Engine\MessageLoader;
 use Patchlevel\EventSourcing\Subscription\Engine\StoreMessageLoader;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
@@ -95,6 +99,7 @@ use Patchlevel\EventSourcing\Subscription\RetryStrategy\RetryStrategyRepository;
 use Patchlevel\EventSourcing\Subscription\Store\DoctrineSubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\InMemorySubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\SubscriptionStore;
+use Patchlevel\EventSourcing\Subscription\Subscriber\ArgumentResolver\EventEmitterResolver;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\Normalizer\SymfonyExtension;
@@ -621,6 +626,96 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertInstanceOf(StoreEventAppender::class, $container->get(EventAppender::class));
         self::assertInstanceOf(StoreDecisionModelBuilder::class, $container->get(DecisionModelBuilder::class));
+    }
+
+    public function testDCBWithInMemoryStore(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
+                    'store' => ['type' => 'in_memory'],
+                    'dcb' => true,
+                ],
+            ],
+        );
+
+        self::assertInstanceOf(StoreEventAppender::class, $container->get(EventAppender::class));
+        self::assertInstanceOf(StoreDecisionModelBuilder::class, $container->get(DecisionModelBuilder::class));
+    }
+
+    public function testDCBWithStreamStore(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->compileContainer(
+            new ContainerBuilder(),
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
+                    'dcb' => true,
+                ],
+            ],
+        );
+    }
+
+    public function testPostgreSQLPlatformMiddlewareForDoctrineConnection(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
+                    'store' => ['type' => 'dbal_taggable'],
+                ],
+            ],
+        );
+
+        self::assertEquals(
+            [['connection' => 'eventstore']],
+            $container->getDefinition(PostgreSQLPlatformMiddleware::class)->getTag('doctrine.middleware'),
+        );
+    }
+
+    public function testPostgreSQLPlatformMiddlewareForUrlConnection(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => ['url' => 'pdo-pgsql://user:secret@localhost/app?serverVersion=16'],
+                    'store' => ['type' => 'dbal_taggable'],
+                ],
+            ],
+        );
+
+        $connection = $container->get('event_sourcing.dbal_connection');
+
+        self::assertInstanceOf(Connection::class, $connection);
+        self::assertInstanceOf(EventSourcingPostgreSQLPlatform::class, $connection->getDatabasePlatform());
+    }
+
+    public function testNoPostgreSQLPlatformMiddlewareForStreamStore(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
+                ],
+            ],
+        );
+
+        self::assertFalse($container->has(PostgreSQLPlatformMiddleware::class));
     }
 
     public function testMessageLoader(): void
@@ -1428,6 +1523,50 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(
             EventDispatcher::class,
             $container->get('event_sourcing.subscription.event_dispatcher'),
+        );
+    }
+
+    public function testEventEmitter(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
+                    'subscription' => ['event_emitter' => true],
+                ],
+            ],
+        );
+
+        self::assertTrue(
+            $container->getDefinition(EventEmitterResolver::class)->hasTag('event_sourcing.argument_resolver'),
+        );
+        self::assertEquals(
+            [
+                [
+                    'event' => OnSubscriptionRemoved::class,
+                    'dispatcher' => 'event_sourcing.subscription.event_dispatcher',
+                ],
+            ],
+            $container->getDefinition(RemoveSubscriptionStreamListener::class)->getTag('kernel.event_listener'),
+        );
+    }
+
+    public function testEventEmitterWithReadOnlyStore(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->compileContainer(
+            new ContainerBuilder(),
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
+                    'store' => ['read_only' => true],
+                    'subscription' => ['event_emitter' => true],
+                ],
+            ],
         );
     }
 

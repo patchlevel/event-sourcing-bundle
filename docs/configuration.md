@@ -178,12 +178,20 @@ patchlevel_event_sourcing:
 Following store types are available:
 
 - `dbal_stream` *default*
-- `dbal_taggable` *required for DCB*
+- `dbal_taggable`
 - `in_memory`
 - `custom`
 
 :::note
 If you use `custom` store type, you need to set the service id under `patchlevel_event_sourcing.store.service`.
+:::
+
+:::tip
+With `dbal_taggable` the bundle registers the `PostgreSQLPlatformMiddleware` on the event store connection,
+so a GIN index on the `tags` column is created on PostgreSQL.
+This works automatically if you configure the connection via `url` or use a doctrine bundle connection
+like `doctrine.dbal.eventstore_connection`.
+For any other connection service you have to register the middleware yourself.
 :::
 
 ### Change table Name
@@ -550,6 +558,23 @@ final class SubscriptionErrorListener
 You can find all available events in the [library documentation](/docs/event-sourcing/latest/subscription).
 :::
 
+### Event Emitter
+
+Subscribers can emit new events into their own `subscription_<id>` stream with the `EventEmitter`.
+This is disabled by default and can be enabled like this:
+
+```yaml
+patchlevel_event_sourcing:
+    subscription:
+        event_emitter: true
+```
+:::warning
+If a subscription is removed, its `subscription_<id>` stream is removed from the event store as well.
+:::
+
+:::note
+The event emitter does not work with a read only store.
+:::
 ## Command Bus
 
 You can enable the command bus integration to use your aggregates as command handlers.
@@ -870,3 +895,24 @@ patchlevel_event_sourcing:
     clock:
         service: 'my_own_clock_service'
 ```
+
+## Dynamic Consistency Boundary
+
+You can enable the experimental dynamic consistency boundary (DCB).
+This registers the `DecisionModelBuilder` and the `EventAppender` services.
+
+```yaml
+patchlevel_event_sourcing:
+    store:
+        type: 'dbal_taggable'
+    dcb: true
+```
+:::note
+DCB needs a store that supports appending, like `dbal_taggable` or `in_memory` for tests.
+:::
+
+:::tip
+We recommend PostgreSQL for DCB, because only there the tag queries can use an index.
+:::
+
+If you want to learn more about DCB, read the [library documentation](/docs/event-sourcing/latest/dynamic-consistency-boundary).
