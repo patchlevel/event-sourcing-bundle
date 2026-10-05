@@ -135,10 +135,9 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Dumper\XmlDumper;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpKernel\DependencyInjection\ServicesResetter;
 use Symfony\Component\Messenger\MessageBusInterface;
-
-use function array_filter;
 
 final class PatchlevelEventSourcingBundleTest extends TestCase
 {
@@ -1403,13 +1402,33 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
 
         self::assertTrue($container->getDefinition(DummyArgumentResolver::class)->hasTag('event_sourcing.argument_resolver'));
 
-        $argumentResolvers = array_filter(
-            $container->getDefinition(DefaultSubscriptionEngine::class)->getArguments(),
-            static fn (mixed $argument): bool => $argument instanceof TaggedIteratorArgument
-                && $argument->getTag() === 'event_sourcing.argument_resolver',
+        $argument = $container->getDefinition(DefaultSubscriptionEngine::class)->getArgument(7);
+
+        self::assertInstanceOf(TaggedIteratorArgument::class, $argument);
+        self::assertEquals('event_sourcing.argument_resolver', $argument->getTag());
+    }
+
+    public function testSubscriptionEventDispatcher(): void
+    {
+        $container = new ContainerBuilder();
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
+                ],
+            ],
         );
 
-        self::assertCount(1, $argumentResolvers);
+        self::assertEquals(
+            new Reference('event_sourcing.subscription.event_dispatcher'),
+            $container->getDefinition(DefaultSubscriptionEngine::class)->getArgument(6),
+        );
+        self::assertInstanceOf(
+            EventDispatcher::class,
+            $container->get('event_sourcing.subscription.event_dispatcher'),
+        );
     }
 
     public function testRetryStrategy(): void

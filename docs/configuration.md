@@ -456,6 +456,29 @@ patchlevel_event_sourcing:
         gap_detection:
             detection_window: 'PT5M'
 ```
+### Engine Events
+
+The subscription engine dispatches events while processing, e.g. `OnHandleMessageError` or `OnResult`.
+It uses its own event dispatcher `event_sourcing.subscription.event_dispatcher`,
+so you have to pass it to the `AsEventListener` attribute.
+
+```php
+use Patchlevel\EventSourcing\Subscription\Engine\Event\OnHandleMessageError;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+
+#[AsEventListener(dispatcher: 'event_sourcing.subscription.event_dispatcher')]
+final class SubscriptionErrorListener
+{
+    public function __invoke(OnHandleMessageError $event): void
+    {
+        // logging, metrics, ...
+    }
+}
+```
+:::note
+You can find all available events in the [library documentation](https://event-sourcing.patchlevel.io/latest/subscription/).
+:::
+
 ## Command Bus
 
 You can enable the command bus integration to use your aggregates as command handlers.
