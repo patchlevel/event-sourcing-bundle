@@ -81,6 +81,19 @@ patchlevel_event_sourcing:
 If you want to learn more about custom headers, read the [library documentation](/docs/event-sourcing/latest/message/#custom-headers).
 :::
 
+## Metadata Cache
+
+Aggregates, events and subscribers are described with attributes.
+In production, meaning without `kernel.debug`, the registries and the metadata are cached
+in php files in the build directory, which are created by `cache:warmup`.
+This includes the hydrator metadata of your events, headers and aggregates with snapshots.
+Until then, they are created on every request.
+There is nothing to configure, the cache is renewed with every new build, e.g. by `cache:clear`.
+
+:::note
+With `kernel.debug`, nothing is cached, so that changes to your classes are picked up immediately.
+:::
+
 ## Connection
 
 You have to specify the connection url to the event store.
