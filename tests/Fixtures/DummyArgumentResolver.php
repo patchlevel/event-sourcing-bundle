@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\Tests\Fixtures;
 
-use Patchlevel\EventSourcing\Message\Message;
 use Patchlevel\EventSourcing\Metadata\Subscriber\ArgumentMetadata;
 use Patchlevel\EventSourcing\Subscription\Subscriber\ArgumentResolver\ArgumentResolver;
+use Patchlevel\EventSourcing\Subscription\Subscriber\ArgumentResolver\ArgumentResolverContext;
 
 class DummyArgumentResolver implements ArgumentResolver
 {
-    public function resolve(ArgumentMetadata $argument, Message $message): mixed
+    public function resolve(ArgumentMetadata $argument, ArgumentResolverContext $context): mixed
     {
         return null;
     }

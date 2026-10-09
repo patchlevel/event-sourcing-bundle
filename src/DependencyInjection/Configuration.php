@@ -28,16 +28,14 @@ use Throwable;
  *              service: string|null,
  *              options: array{table_name: string}
  *          },
- *          retry_strategy?: array{base_delay: int, delay_factor: int, max_attempts: int},
  *          retry_strategies: array<string, array{type: string, service: string, options: array<string, mixed>}>,
  *          default_retry_strategy: string,
- *          catch_up: array{enabled: bool, limit: positive-int|null},
- *          throw_on_error: array{enabled: bool},
- *          run_after_aggregate_save: array{
+ *          sync: array{
  *              enabled: bool,
  *              ids: list<string>,
  *              groups: list<string>,
- *              limit: positive-int|null
+ *              catch_up_limit: positive-int|null,
+ *              throw_on_error: bool
  *          },
  *          auto_setup: array{
  *               enabled: bool,
@@ -54,7 +52,8 @@ use Throwable;
  *              enabled: bool,
  *              retries_in_ms: list<int>,
  *              detection_window: string
- *          }
+ *          },
+ *          event_emitter: array{enabled: bool}
  *      },
  *      connection: ?array{
  *          service: ?string,
@@ -75,21 +74,11 @@ use Throwable;
  *              translators: list<string>
  *          }
  *      },
- *      aggregates: list<string>,
- *      events: list<string>,
- *      headers: list<string>,
  *      snapshot_stores: array<string, array{type: string, service: string}>,
  *      migration: array{path: string, namespace: string},
- *      cryptography: array{
- *          enabled: bool,
- *          algorithm: string,
- *          use_encrypted_field_name: bool,
- *          fallback_to_field_name: bool,
- *      },
  *      clock: array{freeze: ?string, service: ?string},
- *      aggregate_handlers: array{enabled: bool, bus: string|null},
+ *      dcb: array{enabled: bool},
  *      hydrator: array{
- *          enabled: bool,
  *          default_lazy: bool,
  *          cryptography: array{
  *              enabled: bool,
@@ -123,8 +112,8 @@ final class Configuration implements ConfigurationInterface
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->enumNode('type')
-                        ->values(['dbal_aggregate', 'dbal_stream', 'in_memory', 'custom'])
-                        ->defaultValue('dbal_aggregate')
+                        ->values(['dbal_stream', 'dbal_taggable', 'in_memory', 'custom'])
+                        ->defaultValue('dbal_stream')
                     ->end()
                     ->scalarNode('service')->defaultNull()->end()
                     ->booleanNode('merge_orm_schema')->defaultFalse()->end()
@@ -135,7 +124,7 @@ final class Configuration implements ConfigurationInterface
                         ->addDefaultsIfNotSet()
                         ->children()
                             ->enumNode('type')
-                                ->values(['dbal_aggregate', 'dbal_stream', 'in_memory', 'custom'])
+                                ->values(['dbal_stream', 'dbal_taggable', 'in_memory', 'custom'])
                             ->end()
                             ->scalarNode('service')->defaultNull()->end()
                             ->arrayNode('options')->variablePrototype()->end()->end()
@@ -161,24 +150,6 @@ final class Configuration implements ConfigurationInterface
                     ->end()
                     ->scalarNode('service')->defaultNull()->end()
                 ->end()
-            ->end()
-
-            ->arrayNode('events')
-                ->beforeNormalization()->castToArray()->end()
-                ->defaultValue([])
-                ->scalarPrototype()->end()
-            ->end()
-
-            ->arrayNode('aggregates')
-                ->beforeNormalization()->castToArray()->end()
-                ->defaultValue([])
-                ->scalarPrototype()->end()
-            ->end()
-
-            ->arrayNode('headers')
-                ->beforeNormalization()->castToArray()->end()
-                ->defaultValue([])
-                ->scalarPrototype()->end()
             ->end()
 
             ->arrayNode('clock')
@@ -227,19 +198,6 @@ final class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
 
-                    ->arrayNode('retry_strategy')
-                        ->setDeprecated(
-                            'patchlevel/event-sourcing-bundle',
-                            '3.10',
-                            'The "%node%" option is deprecated and will be removed in 4.0. Use "patchlevel_event_sourcing.subscription.retry_strategies" instead.'
-                        )
-                        ->children()
-                            ->integerNode('base_delay')->defaultValue(5)->end()
-                            ->integerNode('delay_factor')->defaultValue(2)->end()
-                            ->integerNode('max_attempts')->defaultValue(5)->end()
-                        ->end()
-                    ->end()
-
                     ->arrayNode('retry_strategies')
                         ->useAttributeAsKey('name')
                         ->arrayPrototype()
@@ -266,25 +224,14 @@ final class Configuration implements ConfigurationInterface
 
                     ->scalarNode('default_retry_strategy')->defaultValue('default')->end()
 
-                    ->arrayNode('catch_up')
-                        ->canBeEnabled()
-                        ->addDefaultsIfNotSet()
-                        ->children()
-                            ->integerNode('limit')->defaultNull()->end()
-                        ->end()
-                    ->end()
-
-                    ->arrayNode('throw_on_error')
-                        ->canBeEnabled()
-                    ->end()
-
-                    ->arrayNode('run_after_aggregate_save')
+                    ->arrayNode('sync')
                         ->canBeEnabled()
                         ->addDefaultsIfNotSet()
                         ->children()
                             ->arrayNode('ids')->scalarPrototype()->end()->end()
                             ->arrayNode('groups')->scalarPrototype()->end()->end()
-                            ->integerNode('limit')->defaultNull()->end()
+                            ->integerNode('catch_up_limit')->defaultNull()->min(1)->end()
+                            ->booleanNode('throw_on_error')->defaultFalse()->end()
                         ->end()
                     ->end()
 
@@ -318,16 +265,10 @@ final class Configuration implements ConfigurationInterface
                             ->scalarNode('detection_window')->defaultValue('PT5M')->end()
                         ->end()
                     ->end()
-                ->end()
-            ->end()
 
-            ->arrayNode('cryptography')
-                ->canBeEnabled()
-                ->addDefaultsIfNotSet()
-                ->children()
-                    ->scalarNode('algorithm')->defaultValue('aes256')->end()
-                    ->booleanNode('use_encrypted_field_name')->defaultFalse()->end()
-                    ->booleanNode('fallback_to_field_name')->defaultFalse()->end()
+                    ->arrayNode('event_emitter')
+                        ->canBeEnabled()
+                    ->end()
                 ->end()
             ->end()
 
@@ -360,21 +301,11 @@ final class Configuration implements ConfigurationInterface
                 ->end()
             ->end()
 
-            ->arrayNode('aggregate_handlers')
+            ->arrayNode('dcb')
                 ->canBeEnabled()
-                ->addDefaultsIfNotSet()
-                ->children()
-                    ->scalarNode('bus')->defaultNull()->end()
-                ->end()
-                ->setDeprecated(
-                    'patchlevel/event-sourcing-bundle',
-                    '3.9',
-                    'The "%node%" option is deprecated and will be removed in 4.0. Use "patchlevel_event_sourcing.command_bus" instead.'
-                )
             ->end()
 
             ->arrayNode('hydrator')
-                ->canBeEnabled()
                 ->addDefaultsIfNotSet()
                 ->children()
                     ->booleanNode('default_lazy')->defaultFalse()->end()

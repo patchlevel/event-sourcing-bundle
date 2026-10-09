@@ -19,8 +19,8 @@ A hotel can be created with a `name` and an `id`:
 ```php
 namespace App\Hotel\Domain\Event;
 
-use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Attribute\Event;
+use Patchlevel\EventSourcing\Identifier\Uuid;
 
 #[Event('hotel.created')]
 final class HotelCreated
@@ -37,8 +37,8 @@ A guest can check in by `guestName`:
 ```php
 namespace App\Hotel\Domain\Event;
 
-use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Attribute\Event;
+use Patchlevel\EventSourcing\Identifier\Uuid;
 
 #[Event('hotel.guest_is_checked_in')]
 final class GuestIsCheckedIn
@@ -55,8 +55,8 @@ And also check out again:
 ```php
 namespace App\Hotel\Domain\Event;
 
-use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Attribute\Event;
+use Patchlevel\EventSourcing\Identifier\Uuid;
 
 #[Event('hotel.guest_is_checked_out')]
 final class GuestIsCheckedOut
@@ -88,10 +88,10 @@ use App\Hotel\Domain\Event\GuestIsCheckedIn;
 use App\Hotel\Domain\Event\GuestIsCheckedOut;
 use App\Hotel\Domain\Event\HotelCreated;
 use Patchlevel\EventSourcing\Aggregate\BasicAggregateRoot;
-use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Attribute\Aggregate;
 use Patchlevel\EventSourcing\Attribute\Apply;
 use Patchlevel\EventSourcing\Attribute\Id;
+use Patchlevel\EventSourcing\Identifier\Uuid;
 
 use function array_filter;
 use function array_values;
@@ -186,11 +186,11 @@ namespace App\Hotel\Infrastructure\Projection;
 use App\Hotel\Domain\Event\GuestIsCheckedIn;
 use App\Hotel\Domain\Event\GuestIsCheckedOut;
 use Doctrine\DBAL\Connection;
-use Patchlevel\EventSourcing\Aggregate\Uuid;
 use Patchlevel\EventSourcing\Attribute\Projector;
 use Patchlevel\EventSourcing\Attribute\Setup;
 use Patchlevel\EventSourcing\Attribute\Subscribe;
 use Patchlevel\EventSourcing\Attribute\Teardown;
+use Patchlevel\EventSourcing\Identifier\Uuid;
 
 use function sprintf;
 
@@ -360,7 +360,7 @@ namespace App\Hotel\Infrastructure\Controller;
 
 use App\Hotel\Domain\Hotel;
 use App\Hotel\Infrastructure\Projection\GuestProjection;
-use Patchlevel\EventSourcing\Aggregate\Uuid;
+use Patchlevel\EventSourcing\Identifier\Uuid;
 use Patchlevel\EventSourcing\Repository\Repository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -427,7 +427,7 @@ final class HotelController
 :::success
 We have successfully implemented and used event sourcing.
 
-Feel free to browse further in the documentation for more detailed information. 
+Feel free to browse further in the documentation for more detailed information.
 If there are still open questions, create a ticket on Github and we will try to help you.
 :::
 

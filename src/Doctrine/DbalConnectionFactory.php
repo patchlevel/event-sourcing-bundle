@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\Doctrine;
 
+use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Driver\Middleware;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
 
@@ -27,10 +29,12 @@ final class DbalConnectionFactory
         'sqlite3'    => 'pdo_sqlite',
     ];
 
-    public static function createConnection(string $url): Connection
+    /** @param list<Middleware> $middlewares */
+    public static function createConnection(string $url, array $middlewares = []): Connection
     {
         return DriverManager::getConnection(
             (new DsnParser(self::DEFAULT_SCHEME_MAP))->parse($url),
+            (new Configuration())->setMiddlewares($middlewares),
         );
     }
 }

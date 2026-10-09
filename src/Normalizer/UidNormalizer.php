@@ -28,7 +28,8 @@ final class UidNormalizer implements Normalizer, TypeAwareNormalizer
     ) {
     }
 
-    public function normalize(mixed $value): string|null
+    /** @param array<string, mixed> $context */
+    public function normalize(mixed $value, array $context = []): string|null
     {
         if ($value === null) {
             return null;
@@ -41,7 +42,8 @@ final class UidNormalizer implements Normalizer, TypeAwareNormalizer
         return (string)$value;
     }
 
-    public function denormalize(mixed $value): Uuid|null
+    /** @param array<string, mixed> $context */
+    public function denormalize(mixed $value, array $context = []): Uuid|null
     {
         if ($value === null) {
             return null;

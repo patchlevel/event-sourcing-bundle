@@ -19,7 +19,8 @@ final class DatePointNormalizer implements Normalizer
     ) {
     }
 
-    public function normalize(mixed $value): string|null
+    /** @param array<string, mixed> $context */
+    public function normalize(mixed $value, array $context = []): string|null
     {
         if ($value === null) {
             return null;
@@ -32,7 +33,8 @@ final class DatePointNormalizer implements Normalizer
         return $value->format($this->format);
     }
 
-    public function denormalize(mixed $value): DatePoint|null
+    /** @param array<string, mixed> $context */
+    public function denormalize(mixed $value, array $context = []): DatePoint|null
     {
         if ($value === null) {
             return null;

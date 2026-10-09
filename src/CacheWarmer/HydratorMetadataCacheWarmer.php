@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace Patchlevel\EventSourcingBundle\CacheWarmer;
 
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootMetadataFactory;
-use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistryFactory;
-use Patchlevel\EventSourcing\Metadata\Event\EventRegistryFactory;
+use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
+use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
 use Patchlevel\EventSourcing\Metadata\Message\MessageHeaderRegistry;
-use Patchlevel\Hydrator\Metadata\MetadataFactory as HydratorMetadataFactory;
-use Patchlevel\Hydrator\Metadata\Psr6MetadataFactory as Psr6HydratorMetadataFactory;
 use Patchlevel\Hydrator\StackHydratorBuilder;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\NullAdapter;
@@ -29,18 +27,12 @@ use function is_file;
  */
 final class HydratorMetadataCacheWarmer implements CacheWarmerInterface
 {
-    /**
-     * @param list<string> $aggregatePaths
-     * @param list<string> $eventPaths
-     */
     public function __construct(
-        private readonly StackHydratorBuilder|HydratorMetadataFactory $hydrator,
-        private readonly AggregateRootRegistryFactory $aggregateRootRegistryFactory,
-        private readonly EventRegistryFactory $eventRegistryFactory,
+        private readonly StackHydratorBuilder $hydratorBuilder,
+        private readonly AggregateRootRegistry $aggregateRootRegistry,
+        private readonly EventRegistry $eventRegistry,
         private readonly AggregateRootMetadataFactory $aggregateRootMetadataFactory,
         private readonly MessageHeaderRegistry $messageHeaderRegistry,
-        private readonly array $aggregatePaths,
-        private readonly array $eventPaths,
         private readonly string $phpArrayFile,
     ) {
     }
@@ -61,14 +53,12 @@ final class HydratorMetadataCacheWarmer implements CacheWarmerInterface
         // without deep cloning, the array adapter keeps the objects as they are, which can then be exported
         $cache = new ArrayAdapter(0, false);
 
-        $hydratorMetadataFactory = $this->hydrator instanceof StackHydratorBuilder
-            ? (clone $this->hydrator)->setCache($cache)->build()
-            : new Psr6HydratorMetadataFactory($this->hydrator, $cache);
+        $hydrator = (clone $this->hydratorBuilder)->setCache($cache)->build();
 
         // aggregates are only hydrated for snapshots, events and headers are hydrated when they are (de)serialized
         $hydratedClasses = array_values($this->messageHeaderRegistry->headerClasses());
 
-        foreach ($this->aggregateRootRegistryFactory->create($this->aggregatePaths)->aggregateClasses() as $aggregateClass) {
+        foreach ($this->aggregateRootRegistry->aggregateClasses() as $aggregateClass) {
             if ($this->aggregateRootMetadataFactory->metadata($aggregateClass)->snapshot === null) {
                 continue;
             }
@@ -76,12 +66,12 @@ final class HydratorMetadataCacheWarmer implements CacheWarmerInterface
             $hydratedClasses[] = $aggregateClass;
         }
 
-        foreach ($this->eventRegistryFactory->create($this->eventPaths)->eventClasses() as $eventClass) {
+        foreach ($this->eventRegistry->eventClasses() as $eventClass) {
             $hydratedClasses[] = $eventClass;
         }
 
         foreach (array_unique($hydratedClasses) as $hydratedClass) {
-            $hydratorMetadataFactory->metadata($hydratedClass);
+            $hydrator->metadata($hydratedClass);
         }
 
         $values = array_filter($cache->getValues(), static fn (mixed $value): bool => $value !== null);

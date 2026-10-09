@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\Tests\Unit\RequestListener;
 
+use Patchlevel\EventSourcing\Subscription\Engine\Command\Boot;
+use Patchlevel\EventSourcing\Subscription\Engine\Command\Command;
+use Patchlevel\EventSourcing\Subscription\Engine\Command\Remove;
+use Patchlevel\EventSourcing\Subscription\Engine\Command\Setup;
 use Patchlevel\EventSourcing\Subscription\Engine\ProcessedResult;
 use Patchlevel\EventSourcing\Subscription\Engine\Result;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
-use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngineCriteria;
 use Patchlevel\EventSourcingBundle\RequestListener\SubscriptionRebuildAfterFileChangeListener;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\FromBeginningSubscriber;
 use Patchlevel\EventSourcingBundle\Tests\Fixtures\FromNowSubscriber;
@@ -27,9 +30,7 @@ final class SubscriptionRebuildAfterFileChangeListenerTest extends TestCase
     public function testSkipSubRequest(): void
     {
         $subscriptionEngine = $this->createMock(SubscriptionEngine::class);
-        $subscriptionEngine->expects($this->never())->method('remove');
-        $subscriptionEngine->expects($this->never())->method('setup');
-        $subscriptionEngine->expects($this->never())->method('boot');
+        $subscriptionEngine->expects($this->never())->method('execute');
 
         $cache = $this->createMock(CacheItemPoolInterface::class);
         $cache->expects($this->never())->method('getItem');
@@ -46,9 +47,7 @@ final class SubscriptionRebuildAfterFileChangeListenerTest extends TestCase
     public function testSkipExcludedUrl(): void
     {
         $subscriptionEngine = $this->createMock(SubscriptionEngine::class);
-        $subscriptionEngine->expects($this->never())->method('remove');
-        $subscriptionEngine->expects($this->never())->method('setup');
-        $subscriptionEngine->expects($this->never())->method('boot');
+        $subscriptionEngine->expects($this->never())->method('execute');
 
         $cache = $this->createMock(CacheItemPoolInterface::class);
         $cache->expects($this->never())->method('getItem');
@@ -74,11 +73,23 @@ final class SubscriptionRebuildAfterFileChangeListenerTest extends TestCase
         $cache->expects($this->once())->method('save')->with($item)->willReturn(true);
 
         $subscriptionEngine = $this->createMock(SubscriptionEngine::class);
-        $criteriaMatcher = $this->callback(static fn (SubscriptionEngineCriteria|null $criteria): bool => $criteria instanceof SubscriptionEngineCriteria && $criteria->ids === ['from-beginning'] && $criteria->groups === null);
+        $subscriptionEngine
+            ->expects($matcher = $this->exactly(3))
+            ->method('execute')
+            ->willReturnCallback(static function (Command $command) use ($matcher): Result {
+                self::assertInstanceOf(
+                    match ($matcher->numberOfInvocations()) {
+                        1 => Remove::class,
+                        2 => Setup::class,
+                        default => Boot::class,
+                    },
+                    $command,
+                );
+                self::assertSame(['from-beginning'], $command->ids);
+                self::assertNull($command->groups);
 
-        $subscriptionEngine->expects($this->once())->method('remove')->with($criteriaMatcher)->willReturn(new Result());
-        $subscriptionEngine->expects($this->once())->method('setup')->with($criteriaMatcher)->willReturn(new Result());
-        $subscriptionEngine->expects($this->once())->method('boot')->with($criteriaMatcher)->willReturn(new ProcessedResult(0));
+                return $command instanceof Boot ? new ProcessedResult(0) : new Result();
+            });
 
         $listener = new SubscriptionRebuildAfterFileChangeListener(
             $subscriptionEngine,
@@ -106,11 +117,22 @@ final class SubscriptionRebuildAfterFileChangeListenerTest extends TestCase
         $cache->expects($this->never())->method('save');
 
         $subscriptionEngine = $this->createMock(SubscriptionEngine::class);
-        $emptyCriteriaMatcher = $this->callback(static fn (SubscriptionEngineCriteria|null $criteria): bool => $criteria instanceof SubscriptionEngineCriteria && $criteria->ids === []);
+        $subscriptionEngine
+            ->expects($matcher = $this->exactly(3))
+            ->method('execute')
+            ->willReturnCallback(static function (Command $command) use ($matcher): Result {
+                self::assertInstanceOf(
+                    match ($matcher->numberOfInvocations()) {
+                        1 => Remove::class,
+                        2 => Setup::class,
+                        default => Boot::class,
+                    },
+                    $command,
+                );
+                self::assertSame([], $command->ids);
 
-        $subscriptionEngine->expects($this->once())->method('remove')->with($emptyCriteriaMatcher)->willReturn(new Result());
-        $subscriptionEngine->expects($this->once())->method('setup')->with($emptyCriteriaMatcher)->willReturn(new Result());
-        $subscriptionEngine->expects($this->once())->method('boot')->with($emptyCriteriaMatcher)->willReturn(new ProcessedResult(0));
+                return $command instanceof Boot ? new ProcessedResult(0) : new Result();
+            });
 
         $listener = new SubscriptionRebuildAfterFileChangeListener(
             $subscriptionEngine,

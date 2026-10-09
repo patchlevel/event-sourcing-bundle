@@ -6,7 +6,7 @@ namespace Patchlevel\EventSourcingBundle\Tests\Fixtures;
 
 use Patchlevel\EventSourcing\Attribute\Header;
 
-#[Header('custom')]
+#[Header('custom', aliases: ['legacyCustom'])]
 class CustomHeader
 {
     public function __construct(

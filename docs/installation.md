@@ -33,8 +33,6 @@ Now you have to add following recommended configuration file here `config/packag
 
 ```yaml
 patchlevel_event_sourcing:
-    aggregates: '%kernel.project_dir%/src'
-    events: '%kernel.project_dir%/src'
     connection:
       url: '%env(EVENTSTORE_URL)%'
       provide_dedicated_connection: true
@@ -50,15 +48,14 @@ patchlevel_event_sourcing:
       gap_detection: ~
 
     # enable this if you want to use sensitive data encryption
-    #cryptography: ~ 
-    #  use_encrypted_field_name: true
+    #hydrator:
+    #  cryptography: true
 
 when@dev:
   patchlevel_event_sourcing:
     subscription:
-      catch_up: true
-      throw_on_error: true
-      run_after_aggregate_save: true
+      sync:
+        throw_on_error: true
       rebuild_after_file_change: true
       auto_setup: true
 
@@ -67,9 +64,8 @@ when@test:
     subscription:
       store:
         type: 'static_in_memory'
-      catch_up: true
-      throw_on_error: true
-      run_after_aggregate_save: true
+      sync:
+        throw_on_error: true
 ```
 ## Dotenv
 

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\Tests\Fixtures;
 
-use Patchlevel\EventSourcing\Aggregate\CustomId;
 use Patchlevel\EventSourcing\Attribute\Event;
+use Patchlevel\EventSourcing\Identifier\CustomId;
 use Patchlevel\EventSourcing\Serializer\Normalizer\IdNormalizer;
 
-#[Event('profile.created')]
+#[Event('profile.created', aliases: ['profile.registered'])]
 class ProfileCreated
 {
     public function __construct(

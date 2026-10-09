@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcingBundle\Tests\Unit\RequestListener;
 
+use Patchlevel\EventSourcing\Subscription\Engine\Command\Setup;
 use Patchlevel\EventSourcing\Subscription\Engine\Result;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngine;
 use Patchlevel\EventSourcing\Subscription\Engine\SubscriptionEngineCriteria;
@@ -22,7 +23,7 @@ final class AutoSetupListenerTest extends TestCase
     {
         $subscriptionEngine = $this->createMock(SubscriptionEngine::class);
         $subscriptionEngine->expects($this->never())->method('subscriptions');
-        $subscriptionEngine->expects($this->never())->method('setup');
+        $subscriptionEngine->expects($this->never())->method('execute');
 
         $listener = new AutoSetupListener($subscriptionEngine, null, null);
         $listener->onKernelRequest($this->createRequestEvent('/foo', HttpKernelInterface::SUB_REQUEST));
@@ -32,7 +33,7 @@ final class AutoSetupListenerTest extends TestCase
     {
         $subscriptionEngine = $this->createMock(SubscriptionEngine::class);
         $subscriptionEngine->expects($this->never())->method('subscriptions');
-        $subscriptionEngine->expects($this->never())->method('setup');
+        $subscriptionEngine->expects($this->never())->method('execute');
 
         $listener = new AutoSetupListener($subscriptionEngine, null, null, '^/_profiler');
         $listener->onKernelRequest($this->createRequestEvent('/_profiler/test'));
@@ -57,12 +58,12 @@ final class AutoSetupListenerTest extends TestCase
 
         $subscriptionEngine
             ->expects($this->once())
-            ->method('setup')
-            ->with($this->callback(static function (SubscriptionEngineCriteria|null $criteria): bool {
-                return $criteria instanceof SubscriptionEngineCriteria
-                    && $criteria->ids === ['new-1', 'new-2']
-                    && $criteria->groups === null;
-            }), true)
+            ->method('execute')
+            ->with($this->callback(static function (Setup $command): bool {
+                return $command->ids === ['new-1', 'new-2']
+                    && $command->groups === null
+                    && $command->skipBooting === true;
+            }))
             ->willReturn(new Result());
 
         $listener = new AutoSetupListener($subscriptionEngine, ['id-1'], ['group-1'], '^/_profiler');

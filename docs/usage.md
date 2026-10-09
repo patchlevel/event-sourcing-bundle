@@ -3,9 +3,9 @@
 Here you will find some examples of how to use the bundle.
 But we provide only examples for specific symfony features.
 
-:::note
-You can find out more about event sourcing in the library 
-[documentation](/docs/event-sourcing/latest). 
+:::info
+You can find out more about event sourcing in the library
+[documentation](/docs/event-sourcing/latest).
 This documentation is limited to bundle integration and configuration.
 :::
 
@@ -17,7 +17,7 @@ argument name injection. For our aggregate `Hotel` it would be `$hotelRepository
 ```php
 namespace App\Hotel\Infrastructure\Controller;
 
-use Patchlevel\EventSourcing\Aggregate\Uuid;
+use Patchlevel\EventSourcing\Identifier\Uuid;
 use Patchlevel\EventSourcing\Repository\Repository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
@@ -43,18 +43,18 @@ final class HotelController
     }
 }
 ```
-## Aggregate Id Value Resolver
+## Identifier Value Resolver
 
-The bundle registers a controller argument value resolver for aggregate ids.
+The bundle registers a controller argument value resolver for identifiers.
 If you type-hint a controller argument with a class that implements
-`Patchlevel\EventSourcing\Aggregate\AggregateRootId`, the resolver builds it
+`Patchlevel\EventSourcing\Identifier\Identifier`, the resolver builds it
 from the matching request attribute (e.g. a route parameter with the same name)
 using `fromString()`.
 
 ```php
 namespace App\Hotel\Infrastructure\Controller;
 
-use Patchlevel\EventSourcing\Aggregate\Uuid;
+use Patchlevel\EventSourcing\Identifier\Uuid;
 use Patchlevel\EventSourcing\Repository\Repository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
@@ -88,8 +88,8 @@ the resolver is skipped and Symfony continues with the other value resolvers.
 :::
 
 :::tip
-This works with any of your own aggregate id classes, as long as they implement
-`AggregateRootId`. The library's `Patchlevel\EventSourcing\Aggregate\Uuid` already does.
+This works with any of your own identifier classes, as long as they implement
+`Identifier`. The library's `Patchlevel\EventSourcing\Identifier\Uuid` already does.
 :::
 ## Subscriber
 
@@ -188,9 +188,8 @@ services:
         - name: event_sourcing.listener
           priority: 16
 ```
-
 :::warning
-You have to deactivate the `autoconfigure` for this service, 
+You have to deactivate the `autoconfigure` for this service,
 otherwise the service will be added twice.
 :::
 
@@ -205,7 +204,7 @@ You can find the other build-in normalizers [here](/docs/event-sourcing/latest/n
 :::tip
 The Hydrator can automatically determine the appropriate normalizer based on the data type and annotations.
 You don't have to specify the normalizer manually like in the example below.
-:::
+:::    
 
 ### Uid
 
@@ -221,10 +220,9 @@ final class DTO
     public Uuid $id;
 }
 ```
-
 :::warning
-The symfony uuid don't implement the `AggregateId` interface, so it can not be used as an aggregate id directly.
-Use instead the `Patchlevel\EventSourcing\Aggregate\Uuid` class.
+The symfony uuid don't implement the `Identifier` interface, so it can not be used as an aggregate id directly.
+Use instead the `Patchlevel\EventSourcing\Identifier\Uuid` class.
 :::
 
 :::tip
@@ -245,27 +243,37 @@ final class DTO
     public DatePoint $createdAt;
 }
 ```
+
 ## Upcasting
 
 ```php
-use Patchlevel\EventSourcing\Serializer\Upcast\Upcast;
-use Patchlevel\EventSourcing\Serializer\Upcast\Upcaster;
+use Patchlevel\Hydrator\Extension\Upcast\Upcaster;
+use Patchlevel\Hydrator\Metadata\ClassMetadata;
 
 final class ProfileCreatedEmailLowerCastUpcaster implements Upcaster
 {
-    public function __invoke(Upcast $upcast): Upcast
+    /**
+     * @param array<string, mixed> $data
+     * @param array<string, mixed> $context
+     *
+     * @return array<string, mixed>
+     */
+    public function upcast(ClassMetadata $metadata, array $data, array $context): array
     {
         // ignore if other event is processed
-        if ($upcast->eventName !== 'profile_created') {
-            return $upcast;
+        if ($metadata->className !== ProfileCreated::class) {
+            return $data;
         }
 
-        return $upcast->replacePayloadByKey('email', strtolower($upcast->payload['email']));
+        $data['email'] = strtolower($data['email']);
+
+        return $data;
     }
 }
 ```
 If you have the symfony default service setting with `autowire`and `autoconfigure` enabled,
-the upcaster is automatically recognized and registered at the `Upcaster` interface.
+the upcaster is automatically recognized and registered in the `UpcastExtension` of the hydrator.
+The upcasters run right before the object is built, so encrypted fields are already decrypted.
 Otherwise you have to define the upcaster in the symfony service file:
 
 ```yaml
@@ -312,6 +320,7 @@ services:
     tags:
       - event_sourcing.message_decorator
 ```
+
 ## Profiler
 
 When the kernel is in debug mode (e.g. in the `dev` environment), the bundle registers a

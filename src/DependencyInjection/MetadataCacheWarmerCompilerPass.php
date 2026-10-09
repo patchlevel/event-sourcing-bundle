@@ -40,6 +40,6 @@ final class MetadataCacheWarmerCompilerPass implements CompilerPassInterface
         }
 
         $container->getDefinition(MetadataCacheWarmer::class)
-            ->setArgument(7, array_values(array_unique($subscriberClasses)));
+            ->setArgument(5, array_values(array_unique($subscriberClasses)));
     }
 }

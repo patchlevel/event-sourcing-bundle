@@ -1,93 +1,53 @@
 # Configuration
 
-:::note
-You can find out more about event sourcing in the library 
-[documentation](/docs/event-sourcing/latest). 
+:::info
+You can find out more about event sourcing in the library
+[documentation](/docs/event-sourcing/latest).
 This documentation is limited to bundle integration and configuration.
 :::
 
 :::tip
-We provide a [default configuration](installation.md#configuration-file) that should work for most projects.
+We provide a [default configuration](./installation.md#configuration-file) that should work for most projects.
 :::
 
-## Aggregate
+## Aggregates, Events and Headers
 
-A path must be specified for Event Sourcing to know where to look for your aggregates.
-If you want you can use glob patterns to specify multiple paths.
+Aggregates, events and custom headers are discovered via Symfony's service autoconfiguration.
+Every class marked with the `#[Aggregate]`, `#[Event]` or `#[Header]` attribute that is covered
+by a service resource with `autoconfigure` enabled is registered automatically.
+These classes are not registered as services, they are only collected and then excluded from the container.
 
-```yaml
-patchlevel_event_sourcing:
-  aggregates: '%kernel.project_dir%/src/*/Domain'
-```
-Or use an array to specify multiple paths.
+With the default Symfony configuration in `config/services.yaml` this works out of the box:
 
 ```yaml
-patchlevel_event_sourcing:
-  aggregates:
-    - '%kernel.project_dir%/src/Hotel/Domain'
-    - '%kernel.project_dir%/src/Room/Domain'
-```
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
 
+  App\:
+    resource: '../src/'
+```
 :::note
-The library will automatically register all classes marked with the `#[Aggregate]` attribute in the specified paths.
+Make sure the directories containing your aggregates, events and headers are not listed in the `exclude` option.
 :::
 
 :::tip
-If you want to learn more about aggregates, read the [library documentation](/docs/event-sourcing/latest/aggregate).
-:::
-
-## Events
-
-A path must be specified for Event Sourcing to know where to look for your events.
-If you want you can use glob patterns to specify multiple paths.
-
-```yaml
-patchlevel_event_sourcing:
-  events: '%kernel.project_dir%/src/*/Domain/Event'
-```
-Or use an array to specify multiple paths.
-
-```yaml
-patchlevel_event_sourcing:
-  events:
-    - '%kernel.project_dir%/src/Hotel/Domain/Event'
-    - '%kernel.project_dir%/src/Room/Domain/Event'
-```
-
-:::tip
-If you want to learn more about events, read the [library documentation](/docs/event-sourcing/latest/events).
-:::
-
-## Custom Headers
-
-If you want to implement custom headers for your application, you must specify the
-paths to look for those headers.
-If you want you can use glob patterns to specify multiple paths.
-
-```yaml
-patchlevel_event_sourcing:
-  headers: '%kernel.project_dir%/src/*/Domain/Header'
-```
-Or use an array to specify multiple paths.
-
-```yaml
-patchlevel_event_sourcing:
-  headers:
-    - '%kernel.project_dir%/src/Hotel/Domain/Header'
-    - '%kernel.project_dir%/src/Room/Domain/Header'
-```
-
-:::tip
-If you want to learn more about custom headers, read the [library documentation](/docs/event-sourcing/latest/message/#custom-headers).
+If you want to learn more about [aggregates](/docs/event-sourcing/latest/aggregate),
+[events](/docs/event-sourcing/latest/events)
+or [custom headers](/docs/event-sourcing/latest/message/#custom-headers),
+read the library documentation.
 :::
 
 ## Metadata Cache
 
 Aggregates, events and subscribers are described with attributes.
-In production, meaning without `kernel.debug`, the registries and the metadata are cached
+The aggregates, events and headers are already collected when the container is compiled,
+but their metadata is read via reflection at runtime.
+In production, meaning without `kernel.debug`, this metadata is cached
 in php files in the build directory, which are created by `cache:warmup`.
 This includes the hydrator metadata of your events, headers and aggregates with snapshots.
-Until then, they are created on every request.
+Until then, it is created on every request.
 There is nothing to configure, the cache is renewed with every new build, e.g. by `cache:clear`.
 
 :::note
@@ -103,9 +63,8 @@ patchlevel_event_sourcing:
   connection:
     url: '%env(EVENTSTORE_URL)%'
 ```
-
 :::note
-You can find out more about how to create a connection 
+You can find out more about how to create a connection
 [here](https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html)
 :::
 
@@ -120,7 +79,6 @@ patchlevel_event_sourcing:
     url: '%env(EVENTSTORE_URL)%'
     provide_dedicated_connection: true
 ```
-
 :::warning
 If you use doctrine migrations, you should exclude you projection tables from the schema generation.
 The schema is managed by the subscription engine and should not be managed by doctrine.
@@ -132,7 +90,7 @@ You can autowire the connection in your services like this:
 ```php
 use Doctrine\DBAL\Connection;
 
-class YourService
+class MyService
 {
     public function __construct(
         private readonly Connection $projectionConnection,
@@ -158,19 +116,18 @@ patchlevel_event_sourcing:
     connection:
         service: doctrine.dbal.eventstore_connection
 ```
-
 :::danger
 Do not use the same connection for event sourcing and your projections,
 otherwise you may run into transaction problems.
 :::
 
 :::warning
-If you want to use the same connection as doctrine orm, then you have to set the flag `merge_orm_schema`. 
+If you want to use the same connection as doctrine orm, then you have to set the flag `merge_orm_schema`.
 Otherwise you should avoid using the same connection as other tools.
 :::
 
 :::note
-You can find out more about the dbal configuration 
+You can find out more about the dbal configuration
 [here](https://symfony.com/bundles/DoctrineBundle/current/configuration.html).
 :::
 
@@ -191,7 +148,6 @@ patchlevel_event_sourcing:
     connection:
         service: doctrine.dbal.eventstore_connection
 ```
-
 :::warning
 You should exclude your projection tables from the schema generation.
 
@@ -236,13 +192,21 @@ patchlevel_event_sourcing:
 ```
 Following store types are available:
 
-- `dbal_aggregate` *default (deprecated)*
-- `dbal_stream` *recommended*
+- `dbal_stream` *default*
+- `dbal_taggable`
 - `in_memory`
 - `custom`
 
 :::note
 If you use `custom` store type, you need to set the service id under `patchlevel_event_sourcing.store.service`.
+:::
+
+:::tip
+With `dbal_taggable` the bundle registers the `PostgreSQLPlatformMiddleware` on the event store connection,
+so a GIN index on the `tags` column is created on PostgreSQL.
+This works automatically if you configure the connection via `url` or use a doctrine bundle connection
+like `doctrine.dbal.eventstore_connection`.
+For any other connection service you have to register the middleware yourself.
 :::
 
 ### Change table Name
@@ -257,7 +221,7 @@ patchlevel_event_sourcing:
 ```
 ### Read Only Mode
 
-For `dbal_aggregate` and `dbal_stream` store types you can activate the read only mode.
+For the `dbal_stream` store type you can activate the read only mode.
 Readings are possible, but if you try to write, an exception `StoreIsReadOnly` is thrown.
 
 ```yaml
@@ -265,7 +229,6 @@ patchlevel_event_sourcing:
     store:
         read_only: true
 ```
-
 :::tip
 This is useful if you have maintenance work on the event store and you want to avoid side effects.
 :::
@@ -279,9 +242,8 @@ patchlevel_event_sourcing:
     store:
         merge_orm_schema: true
 ```
-
 :::warning
-If you want to merge the schema, then the same doctrine connection must be used as with the doctrine orm. 
+If you want to merge the schema, then the same doctrine connection must be used as with the doctrine orm.
 Otherwise errors may occur!
 :::
 
@@ -308,19 +270,19 @@ patchlevel_event_sourcing:
 If you want to migrate from your current store to a new store, you can use the following configuration.
 This register a new store and a new cli command `event-sourcing:store:migrate`.
 You can define translators to translate the old events to the new store.
-Here is an example for a migration from `dbal_aggregate` to `dbal_stream`.
+Here is an example for a migration from `dbal_stream` to `dbal_taggable`,
+which adds the event tags to the existing events.
 
 ```yaml
 patchlevel_event_sourcing:
     store:
         migrate_to_new_store:
-            type: 'dbal_stream'
+            type: 'dbal_taggable'
             options:
-                table_name: 'my_stream_store'
+                table_name: 'my_taggable_store'
             translators:
-              - Patchlevel\EventSourcing\Message\Translator\AggregateToStreamHeaderTranslator
+              - Patchlevel\EventSourcing\Message\Translator\ExtractEventTagTranslator
 ```
-
 :::danger
 Make sure that you use different table names for the old and new store.
 Otherwise your event store will be destroyed.
@@ -344,7 +306,7 @@ patchlevel_event_sourcing:
 ## Subscription
 
 :::tip
-You can find out more about subscriptions in the library 
+You can find out more about subscriptions in the library
 [documentation](/docs/event-sourcing/latest/subscription).
 :::
 
@@ -369,7 +331,6 @@ patchlevel_event_sourcing:
       options:
         table_name: 'my_subscription_store'
 ```
-
 :::tip
 If you are using the [doctrine-test-bundle](https://github.com/dmaicher/doctrine-test-bundle),
 you can use the `static_in_memory` store for testing.
@@ -394,7 +355,6 @@ patchlevel_event_sourcing:
                 type: no_retry
         default_retry_strategy: default
 ```
-
 The following strategy types are available:
 
 - `clock_based`: retries with an increasing delay based on the clock. Configurable via `base_delay` (seconds),
@@ -412,7 +372,6 @@ patchlevel_event_sourcing:
                 service: my_retry_strategy_service
         default_retry_strategy: my_strategy
 ```
-
 :::note
 If you don't configure anything, a `default` (`clock_based`) and a `no_retry` strategy are registered and `default` is used.
 :::
@@ -422,71 +381,76 @@ You can select the retry strategy per subscriber. If you want to learn more abou
 [library documentation](/docs/event-sourcing/latest/subscription/#retry-strategy).
 :::
 
-### Catch Up
+### Sync Subscriptions
 
-If aggregates are used in the processors and new events are generated there,
-then they are not part of the current subscription engine `run` and will only be processed during the next run or boot.
-This is usually not a problem in dev or prod environment because a worker is used
-and these events will be processed at some point. But in testing it is not so easy.
-For this reason, you can activate the `catch_up` option.
+By default, all subscriptions are processed asynchronously by a worker
+that runs the `event-sourcing:subscription:run` command.
+If you want subscriptions to be processed directly after an aggregate has been saved,
+you can activate the `sync` option.
+Without further configuration, all subscriptions are processed synchronously.
+This is useful for development and testing, so you don't have to run a worker.
+
+```yaml
+when@dev:
+    patchlevel_event_sourcing:
+        subscription:
+            sync: true
+```
+In production you usually want only some subscriptions to be processed synchronously,
+e.g. projections that must be up to date in the same request.
+For this you can filter the subscriptions by `ids` and `groups`.
 
 ```yaml
 patchlevel_event_sourcing:
     subscription:
-        catch_up: true
+        sync:
+            groups: ['sync']
 ```
+The group can be defined directly on the subscriber.
 
-You can also limit how many messages are processed per catch up run with the `limit` option.
+```php
+use Patchlevel\EventSourcing\Attribute\Projector;
+
+#[Projector('profile', group: 'sync')]
+final class ProfileProjector
+{
+    // ...
+}
+```
+:::note
+If you define both `ids` and `groups`, a subscription must match both to be processed synchronously.
+:::
+
+:::note
+Sync subscriptions are processed in the same process as the request.
+Keep them fast, otherwise your requests will be slowed down.
+The worker still processes sync subscriptions as well, for example to retry failed ones.
+:::
+
+If a sync subscriber saves an aggregate itself, the new events are processed in the same run as well.
+You can limit how often the subscription engine catches up with the `catch_up_limit` option.
 
 ```yaml
 patchlevel_event_sourcing:
     subscription:
-        catch_up:
-            limit: 100
+        sync:
+            catch_up_limit: 10
 ```
-### Throw on Error
-
-You can activate the `throw_on_error` option to throw an exception if a subscription engine run has an error.
+You can also activate the `throw_on_error` option to throw an exception if a sync subscription has an error.
 This is useful for testing or development to get directly feedback if something is wrong.
 
 ```yaml
-patchlevel_event_sourcing:
-    subscription:
-        throw_on_error: true
+when@dev:
+    patchlevel_event_sourcing:
+        subscription:
+            sync:
+                throw_on_error: true
 ```
-
 :::warning
 This option should not be used in production. The normal behavior is to log the error and continue.
+This option only affects the sync run after an aggregate has been saved. The worker and the console commands are not affected.
 :::
 
-### Run After Aggregate Save
-
-If you want to run the subscription engine after an aggregate is saved, you can activate this option.
-This is useful for testing or development, so you don't have run a worker to process the events.
-
-```yaml
-patchlevel_event_sourcing:
-    subscription:
-        run_after_aggregate_save: true
-```
-
-You can also restrict which subscribers are run and limit how many messages are processed.
-Use `ids` and `groups` to only run specific subscribers and `limit` to cap the number of processed messages.
-
-```yaml
-patchlevel_event_sourcing:
-    subscription:
-        run_after_aggregate_save:
-            ids:
-                - 'profile_projection'
-            groups:
-                - 'default'
-            limit: 100
-```
-
-:::note
-If `ids` and `groups` are empty, all subscribers are run.
-:::
 ### Auto Setup
 
 If you want to automatically setup the subscription engine, you can activate this option.
@@ -497,7 +461,6 @@ patchlevel_event_sourcing:
     subscription:
         auto_setup: true
 ```
-
 :::note
 This works only before each http requests and not if you use the console commands.
 :::
@@ -527,7 +490,6 @@ patchlevel_event_sourcing:
     subscription:
         rebuild_after_file_change: true
 ```
-
 :::note
 This works only before each http requests and not if you use the console commands.
 :::
@@ -561,8 +523,7 @@ patchlevel_event_sourcing:
     subscription:
         gap_detection: ~
 ```
-
-:::note
+:::info
 For more context you can read more about this in [this issue](https://github.com/patchlevel/event-sourcing/issues/727#issuecomment-2757297536).
 :::
 
@@ -589,6 +550,46 @@ patchlevel_event_sourcing:
         gap_detection:
             detection_window: 'PT5M'
 ```
+### Engine Events
+
+The subscription engine dispatches events while processing, e.g. `OnHandleMessageError` or `OnResult`.
+It uses its own event dispatcher `event_sourcing.subscription.event_dispatcher`,
+so you have to pass it to the `AsEventListener` attribute.
+
+```php
+use Patchlevel\EventSourcing\Subscription\Engine\Event\OnHandleMessageError;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+
+#[AsEventListener(dispatcher: 'event_sourcing.subscription.event_dispatcher')]
+final class SubscriptionErrorListener
+{
+    public function __invoke(OnHandleMessageError $event): void
+    {
+        // logging, metrics, ...
+    }
+}
+```
+:::note
+You can find all available events in the [library documentation](/docs/event-sourcing/latest/subscription).
+:::
+
+### Event Emitter
+
+Subscribers can emit new events into their own `subscription_<id>` stream with the `EventEmitter`.
+This is disabled by default and can be enabled like this:
+
+```yaml
+patchlevel_event_sourcing:
+    subscription:
+        event_emitter: true
+```
+:::warning
+If a subscription is removed, its `subscription_<id>` stream is removed from the event store as well.
+:::
+
+:::note
+The event emitter does not work with a read only store.
+:::
 ## Command Bus
 
 You can enable the command bus integration to use your aggregates as command handlers.
@@ -610,7 +611,6 @@ patchlevel_event_sourcing:
     command_bus:
         service: command.bus
 ```
-
 :::note
 You can find out more about the command bus and the aggregate handlers [here](/docs/event-sourcing/latest/command-bus).
 :::
@@ -626,7 +626,6 @@ patchlevel_event_sourcing:
         service: command.bus
         register_aggregate_handlers: false
 ```
-
 ### Instant Retry
 
 You can define the default instant retry configuration for the command bus.
@@ -640,7 +639,6 @@ patchlevel_event_sourcing:
             default_exceptions:
                 - Patchlevel\EventSourcing\Repository\AggregateOutdated
 ```
-
 :::note
 You can find out more about instant retry [here](/docs/event-sourcing/latest/command-bus/#instant-retry).
 :::
@@ -664,7 +662,6 @@ patchlevel_event_sourcing:
     query_bus:
         service: query.bus
 ```
-
 :::note
 You can find out more about the query bus [here](/docs/event-sourcing/latest/query-bus).
 :::
@@ -678,7 +675,6 @@ But you should consider using the subscription engine for this.
 patchlevel_event_sourcing:
     event_bus: ~
 ```
-
 :::note
 Default is the patchlevel [event bus](/docs/event-sourcing/latest/event-bus).
 :::
@@ -693,7 +689,6 @@ patchlevel_event_sourcing:
     event_bus:
         type: default
 ```
-
 :::note
 You don't have to specify this as it is the default value.
 :::
@@ -750,7 +745,6 @@ patchlevel_event_sourcing:
         type: psr14
         service: my.event.bus.service
 ```
-
 :::note
 Like the Symfony event bus, the event sourcing attributes no longer work here.
 You have to use the system that comes with the respective psr14 implementation.
@@ -766,7 +760,6 @@ patchlevel_event_sourcing:
         type: custom
         service: my.event.bus.service
 ```
-
 :::note
 Like the Symfony event bus, the event sourcing attributes no longer work here.
 You have to use the system that comes with the respective custom implementation.
@@ -794,7 +787,6 @@ patchlevel_event_sourcing:
         default:
             service: event_sourcing.cache
 ```
-
 You can also choose the store type. The following types are available:
 
 - `psr6` *default*
@@ -808,10 +800,9 @@ patchlevel_event_sourcing:
             type: psr16
             service: event_sourcing.cache
 ```
-
 :::note
 If you use the `custom` type, the `service` has to implement the
-`Patchlevel\EventSourcing\Snapshot\SnapshotStore` interface.
+`Patchlevel\EventSourcing\Snapshot\Adapter\SnapshotAdapter` interface.
 :::
 
 Finally, you have to tell the aggregate that it should use this snapshot store.
@@ -830,48 +821,11 @@ final class Profile extends BasicAggregateRoot
     // ...
 }
 ```
-
 :::note
 You can find out more about snapshots [here](/docs/event-sourcing/latest/snapshots).
 :::
 
-## Cryptography
-
-You can use the library to encrypt and decrypt personal data.
-For this you need to enable the crypto shredding.
-
-```yaml
-patchlevel_event_sourcing:
-    cryptography:
-      use_encrypted_field_name: true
-```
-
-:::tip
-You should activate `use_encrypted_field_name` to mark the fields that are encrypted.
-That allows you later to migrate not encrypted fields to encrypted fields.
-If you have already encrypted fields, you can activate `fallback_to_field_name` to use the old field name as fallback.
-:::
-
-If you want to use another algorithm, you can specify this here:
-
-```yaml
-patchlevel_event_sourcing:
-    cryptography:
-        algorithm: 'aes-256-gcm'
-```
-
-:::note
-You can find out more about personal data [here](/docs/event-sourcing/latest/personal-data).
-:::
-
 ## Hydrator
-
-You can enable the extension based hydrator, which replaces the legacy metadata hydrator.
-
-```yaml
-patchlevel_event_sourcing:
-    hydrator: ~
-```
 
 ### Default Lazy
 
@@ -882,20 +836,6 @@ patchlevel_event_sourcing:
     hydrator:
         default_lazy: true
 ```
-
-### Cryptography
-
-The hydrator brings its own cryptography extension to encrypt and decrypt personal data.
-You can enable it and optionally choose the algorithm.
-
-```yaml
-patchlevel_event_sourcing:
-    hydrator:
-        cryptography:
-            enabled: true
-            algorithm: 'aes-256-gcm'
-```
-
 ### Lifecycle
 
 You can enable the lifecycle extension to run lifecycle hooks during hydration.
@@ -903,9 +843,30 @@ You can enable the lifecycle extension to run lifecycle hooks during hydration.
 ```yaml
 patchlevel_event_sourcing:
     hydrator:
-        lifecycle:
-            enabled: true
+        lifecycle: true
 ```
+## Cryptography
+
+You can use the library to encrypt and decrypt sensitive data.
+For this you need to enable the cryptography extension of the hydrator.
+
+```yaml
+patchlevel_event_sourcing:
+    hydrator:
+        cryptography: true
+```
+The cipher keys are stored in the same database as the event store.
+If you want to use another algorithm, you can specify this here:
+
+```yaml
+patchlevel_event_sourcing:
+    hydrator:
+        cryptography:
+            algorithm: 'aes-256-gcm'
+```
+:::note
+You can find out more about sensitive data [here](/docs/event-sourcing/latest/sensitive-data).
+:::
 
 ## Clock
 
@@ -921,7 +882,6 @@ when@test:
         clock:
             freeze: '2020-01-01 22:00:00'
 ```
-
 :::note
 If freeze is not set, then the system clock is used.
 :::
@@ -950,3 +910,24 @@ patchlevel_event_sourcing:
     clock:
         service: 'my_own_clock_service'
 ```
+
+## Dynamic Consistency Boundary
+
+You can enable the experimental dynamic consistency boundary (DCB).
+This registers the `DecisionModelBuilder` and the `EventAppender` services.
+
+```yaml
+patchlevel_event_sourcing:
+    store:
+        type: 'dbal_taggable'
+    dcb: true
+```
+:::note
+DCB needs a store that supports appending, like `dbal_taggable` or `in_memory` for tests.
+:::
+
+:::tip
+We recommend PostgreSQL for DCB, because only there the tag queries can use an index.
+:::
+
+If you want to learn more about DCB, read the [library documentation](/docs/event-sourcing/latest/dynamic-consistency-boundary).
