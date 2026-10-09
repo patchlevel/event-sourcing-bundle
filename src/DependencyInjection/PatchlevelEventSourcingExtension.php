@@ -59,14 +59,19 @@ use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootMetadataAwareMe
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AttributeAggregateRootRegistryFactory;
+use Patchlevel\EventSourcing\Metadata\AggregateRoot\Psr6AggregateRootMetadataFactory;
+use Patchlevel\EventSourcing\Metadata\AggregateRoot\Psr6AggregateRootRegistryFactory;
 use Patchlevel\EventSourcing\Metadata\Event\AttributeEventMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Event\AttributeEventRegistryFactory;
 use Patchlevel\EventSourcing\Metadata\Event\EventMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
+use Patchlevel\EventSourcing\Metadata\Event\Psr6EventMetadataFactory;
+use Patchlevel\EventSourcing\Metadata\Event\Psr6EventRegistryFactory;
 use Patchlevel\EventSourcing\Metadata\Message\AttributeMessageHeaderRegistryFactory;
 use Patchlevel\EventSourcing\Metadata\Message\MessageHeaderRegistry;
 use Patchlevel\EventSourcing\Metadata\Message\MessageHeaderRegistryFactory;
 use Patchlevel\EventSourcing\Metadata\Subscriber\AttributeSubscriberMetadataFactory;
+use Patchlevel\EventSourcing\Metadata\Subscriber\Psr6SubscriberMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Subscriber\SubscriberMetadataFactory;
 use Patchlevel\EventSourcing\QueryBus\QueryBus;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
@@ -121,6 +126,8 @@ use Patchlevel\EventSourcing\Subscription\Subscriber\MetadataSubscriberAccessorR
 use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberAccessorRepository;
 use Patchlevel\EventSourcing\Subscription\Subscriber\SubscriberHelper;
 use Patchlevel\EventSourcingBundle\Attribute\AsListener;
+use Patchlevel\EventSourcingBundle\CacheWarmer\HydratorMetadataCacheWarmer;
+use Patchlevel\EventSourcingBundle\CacheWarmer\MetadataCacheWarmer;
 use Patchlevel\EventSourcingBundle\Clock\FrozenClockFactory;
 use Patchlevel\EventSourcingBundle\CommandBus\SymfonyCommandBus;
 use Patchlevel\EventSourcingBundle\DataCollector\EventSourcingCollector;
@@ -155,14 +162,18 @@ use Patchlevel\Hydrator\Guesser\Guesser;
 use Patchlevel\Hydrator\Hydrator;
 use Patchlevel\Hydrator\Metadata\AttributeMetadataFactory;
 use Patchlevel\Hydrator\Metadata\MetadataFactory;
+use Patchlevel\Hydrator\Metadata\Psr6MetadataFactory as Psr6HydratorMetadataFactory;
 use Patchlevel\Hydrator\MetadataHydrator;
 use Patchlevel\Hydrator\StackHydrator;
 use Patchlevel\Hydrator\StackHydratorBuilder;
 use Patchlevel\Worker\Event\WorkerRunningEvent;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Cache\Adapter\PhpArrayAdapter;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Reference;
@@ -208,6 +219,7 @@ final class PatchlevelEventSourcingExtension extends Extension
         $this->configureMigration($config, $container);
         $this->configureValueResolver($container);
         $this->configureStoreMigration($config, $container);
+        $this->configureMetadataCache($config, $container);
     }
 
     /** @param Config $config */
@@ -1001,6 +1013,97 @@ final class PatchlevelEventSourcingExtension extends Extension
             ->addTag('monolog.logger', ['channel' => 'event_sourcing']);
 
         $container->setAlias(RepositoryManager::class, DefaultRepositoryManager::class);
+    }
+
+    /**
+     * Like in the doctrine bundle, the metadata is only cached without debug, in php files in the build dir.
+     * The event sourcing metadata and the hydrator metadata of events, headers and snapshot aggregates
+     * each have their own file, which is created by its own cache warmer.
+     * Until then, the metadata is created on every request.
+     * With debug, nothing is cached, so that changes are picked up immediately.
+     *
+     * @param Config $config
+     */
+    private function configureMetadataCache(array $config, ContainerBuilder $container): void
+    {
+        if (!$container->hasParameter('kernel.debug') || $container->getParameter('kernel.debug')) {
+            return;
+        }
+
+        $phpArrayFile = '%kernel.build_dir%/event_sourcing/metadata.php';
+
+        $container->register('event_sourcing.metadata_cache', PhpArrayAdapter::class)
+            ->setArguments([$phpArrayFile, new Definition(ArrayAdapter::class)]);
+
+        $pool = new Reference('event_sourcing.metadata_cache');
+
+        $container->register(Psr6AggregateRootRegistryFactory::class)
+            ->setArguments([new Reference(AttributeAggregateRootRegistryFactory::class), $pool]);
+
+        $container->getDefinition(AggregateRootRegistry::class)
+            ->setFactory([new Reference(Psr6AggregateRootRegistryFactory::class), 'create']);
+
+        $container->register(Psr6EventRegistryFactory::class)
+            ->setArguments([new Reference(AttributeEventRegistryFactory::class), $pool]);
+
+        $container->getDefinition(EventRegistry::class)
+            ->setFactory([new Reference(Psr6EventRegistryFactory::class), 'create']);
+
+        $container->register(Psr6AggregateRootMetadataFactory::class)
+            ->setArguments([new Reference(AggregateRootMetadataAwareMetadataFactory::class), $pool]);
+        $container->setAlias(AggregateRootMetadataFactory::class, Psr6AggregateRootMetadataFactory::class);
+
+        $container->register(Psr6EventMetadataFactory::class)
+            ->setArguments([new Reference(AttributeEventMetadataFactory::class), $pool]);
+        $container->setAlias(EventMetadataFactory::class, Psr6EventMetadataFactory::class);
+
+        $container->register(Psr6SubscriberMetadataFactory::class)
+            ->setArguments([new Reference(AttributeSubscriberMetadataFactory::class), $pool]);
+        $container->setAlias(SubscriberMetadataFactory::class, Psr6SubscriberMetadataFactory::class);
+
+        $container->register(MetadataCacheWarmer::class)
+            ->setArguments([
+                new Reference(AttributeAggregateRootRegistryFactory::class),
+                new Reference(AttributeEventRegistryFactory::class),
+                new Reference(AggregateRootMetadataAwareMetadataFactory::class),
+                new Reference(AttributeEventMetadataFactory::class),
+                new Reference(AttributeSubscriberMetadataFactory::class),
+                $config['aggregates'],
+                $config['events'],
+                [], // the subscriber classes are set by the MetadataCacheWarmerCompilerPass
+                $phpArrayFile,
+            ])
+            ->addTag('kernel.cache_warmer');
+
+        $hydratorPhpArrayFile = '%kernel.build_dir%/event_sourcing/hydrator_metadata.php';
+
+        $container->register('event_sourcing.hydrator_metadata_cache', PhpArrayAdapter::class)
+            ->setArguments([$hydratorPhpArrayFile, new Definition(ArrayAdapter::class)]);
+
+        $hydratorPool = new Reference('event_sourcing.hydrator_metadata_cache');
+
+        if ($config['hydrator']['enabled']) {
+            $container->getDefinition(StackHydratorBuilder::class)->addMethodCall('setCache', [$hydratorPool]);
+            $hydrator = new Reference(StackHydratorBuilder::class);
+        } else {
+            $container->register(Psr6HydratorMetadataFactory::class)
+                ->setArguments([new Reference(AttributeMetadataFactory::class), $hydratorPool]);
+            $container->setAlias(MetadataFactory::class, Psr6HydratorMetadataFactory::class);
+            $hydrator = new Reference(AttributeMetadataFactory::class);
+        }
+
+        $container->register(HydratorMetadataCacheWarmer::class)
+            ->setArguments([
+                $hydrator,
+                new Reference(AttributeAggregateRootRegistryFactory::class),
+                new Reference(AttributeEventRegistryFactory::class),
+                new Reference(AggregateRootMetadataAwareMetadataFactory::class),
+                new Reference(MessageHeaderRegistry::class),
+                $config['aggregates'],
+                $config['events'],
+                $hydratorPhpArrayFile,
+            ])
+            ->addTag('kernel.cache_warmer');
     }
 
     private function configureCommands(ContainerBuilder $container): void
