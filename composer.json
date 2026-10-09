@@ -20,7 +20,7 @@
   "require": {
     "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
     "patchlevel/event-sourcing": "4.0.x-dev",
-    "patchlevel/hydrator": "^2.0.2",
+    "patchlevel/hydrator": "^2.0.3",
     "symfony/cache": "^7.3.0 || ^8.0.0",
     "symfony/config": "^7.3.0 || ^8.0.0",
     "symfony/console": "^7.3.0 || ^8.0.0",

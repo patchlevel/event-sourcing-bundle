@@ -39,6 +39,21 @@ or [custom headers](/docs/event-sourcing/latest/message/#custom-headers),
 read the library documentation.
 :::
 
+## Metadata Cache
+
+Aggregates, events and subscribers are described with attributes.
+The aggregates, events and headers are already collected when the container is compiled,
+but their metadata is read via reflection at runtime.
+In production, meaning without `kernel.debug`, this metadata is cached
+in php files in the build directory, which are created by `cache:warmup`.
+This includes the hydrator metadata of your events, headers and aggregates with snapshots.
+Until then, it is created on every request.
+There is nothing to configure, the cache is renewed with every new build, e.g. by `cache:clear`.
+
+:::note
+With `kernel.debug`, nothing is cached, so that changes to your classes are picked up immediately.
+:::
+
 ## Connection
 
 You have to specify the connection url to the event store.

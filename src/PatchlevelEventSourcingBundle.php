@@ -8,6 +8,7 @@ use Patchlevel\EventSourcingBundle\DependencyInjection\CommandHandlerCompilerPas
 use Patchlevel\EventSourcingBundle\DependencyInjection\DoctrineCleanupCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\HandlerServiceLocatorCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\HydratorCompilerPass;
+use Patchlevel\EventSourcingBundle\DependencyInjection\MetadataCacheWarmerCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\QueryHandlerCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\RepositoryCompilerPass;
 use Patchlevel\EventSourcingBundle\DependencyInjection\ResourceCompilerPass;
@@ -29,5 +30,6 @@ final class PatchlevelEventSourcingBundle extends Bundle
         $container->addCompilerPass(new TranslatorCompilerPass());
         $container->addCompilerPass(new DoctrineCleanupCompilerPass());
         $container->addCompilerPass(new HydratorCompilerPass());
+        $container->addCompilerPass(new MetadataCacheWarmerCompilerPass());
     }
 }

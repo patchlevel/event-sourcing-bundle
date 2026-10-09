@@ -45,15 +45,23 @@ use Patchlevel\EventSourcing\DecisionModel\StoreEventAppender;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\Psr14EventBus;
+use Patchlevel\EventSourcing\Identifier\CustomId;
 use Patchlevel\EventSourcing\Message\Translator\ExcludeEventWithHeaderTranslator;
 use Patchlevel\EventSourcing\Message\Translator\RecalculatePlayheadTranslator;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootAlreadyInRegistry;
+use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\NoAggregateRoot;
+use Patchlevel\EventSourcing\Metadata\AggregateRoot\Psr6AggregateRootMetadataFactory;
+use Patchlevel\EventSourcing\Metadata\Event\AttributeEventMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Event\EventAlreadyInRegistry;
+use Patchlevel\EventSourcing\Metadata\Event\EventMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Event\EventRegistry;
+use Patchlevel\EventSourcing\Metadata\Event\Psr6EventMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Message\HeaderAlreadyInRegistry;
 use Patchlevel\EventSourcing\Metadata\Message\MessageHeaderRegistry;
+use Patchlevel\EventSourcing\Metadata\Subscriber\Psr6SubscriberMetadataFactory;
+use Patchlevel\EventSourcing\Metadata\Subscriber\SubscriberMetadataFactory;
 use Patchlevel\EventSourcing\QueryBus\QueryBus;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
@@ -100,6 +108,8 @@ use Patchlevel\EventSourcing\Subscription\Store\DoctrineSubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\InMemorySubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Store\SubscriptionStore;
 use Patchlevel\EventSourcing\Subscription\Subscriber\ArgumentResolver\EventEmitterResolver;
+use Patchlevel\EventSourcingBundle\CacheWarmer\HydratorMetadataCacheWarmer;
+use Patchlevel\EventSourcingBundle\CacheWarmer\MetadataCacheWarmer;
 use Patchlevel\EventSourcingBundle\DependencyInjection\PatchlevelEventSourcingExtension;
 use Patchlevel\EventSourcingBundle\EventBus\SymfonyEventBus;
 use Patchlevel\EventSourcingBundle\Normalizer\SymfonyExtension;
@@ -127,6 +137,9 @@ use Patchlevel\Hydrator\Extension\Cryptography\CryptographyExtension;
 use Patchlevel\Hydrator\Extension\Lifecycle\LifecycleExtension;
 use Patchlevel\Hydrator\Extension\Upcast\UpcastExtension;
 use Patchlevel\Hydrator\Hydrator;
+use Patchlevel\Hydrator\Metadata\ClassMetadata;
+use Patchlevel\Hydrator\Metadata\MetadataFactory as HydratorMetadataFactory;
+use Patchlevel\Hydrator\Metadata\Psr6MetadataFactory as Psr6HydratorMetadataFactory;
 use Patchlevel\Hydrator\StackHydrator;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemPoolInterface;
@@ -134,6 +147,9 @@ use Psr\Clock\ClockInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
+use ReflectionClass;
+use Symfony\Component\Cache\Adapter\NullAdapter;
+use Symfony\Component\Cache\Adapter\PhpArrayAdapter;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -143,6 +159,9 @@ use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpKernel\DependencyInjection\ServicesResetter;
 use Symfony\Component\Messenger\MessageBusInterface;
+
+use function sys_get_temp_dir;
+use function uniqid;
 
 final class PatchlevelEventSourcingBundleTest extends TestCase
 {
@@ -1133,6 +1152,144 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         );
     }
 
+    public function testMetadataIsNotCachedWithDebug(): void
+    {
+        $container = new ContainerBuilder();
+        $container->setParameter('kernel.debug', true);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
+                ],
+            ],
+        );
+
+        self::assertFalse($container->hasDefinition(MetadataCacheWarmer::class));
+        self::assertFalse($container->hasDefinition(HydratorMetadataCacheWarmer::class));
+        self::assertInstanceOf(AttributeEventMetadataFactory::class, $container->get(EventMetadataFactory::class));
+    }
+
+    public function testMetadataCache(): void
+    {
+        $buildDir = sys_get_temp_dir() . '/' . uniqid('event_sourcing_build_', true);
+
+        $container = new ContainerBuilder();
+        $container->setParameter('kernel.debug', false);
+        $container->setParameter('kernel.build_dir', $buildDir);
+        $container->setDefinition(Profile::class, new Definition(Profile::class))
+            ->setAutoconfigured(true);
+        $container->setDefinition(ProfileCreated::class, new Definition(ProfileCreated::class))
+            ->setAutoconfigured(true);
+        $container->setDefinition(ProfileSubscriber::class, new Definition(ProfileSubscriber::class))
+            ->setAutoconfigured(true);
+
+        $this->compileContainer(
+            $container,
+            [
+                'patchlevel_event_sourcing' => [
+                    'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
+                ],
+            ],
+        );
+
+        self::assertInstanceOf(
+            Psr6AggregateRootMetadataFactory::class,
+            $container->get(AggregateRootMetadataFactory::class),
+        );
+        self::assertInstanceOf(Psr6EventMetadataFactory::class, $container->get(EventMetadataFactory::class));
+        self::assertInstanceOf(Psr6SubscriberMetadataFactory::class, $container->get(SubscriberMetadataFactory::class));
+        self::assertTrue($container->getDefinition(MetadataCacheWarmer::class)->hasTag('kernel.cache_warmer'));
+        self::assertTrue($container->getDefinition(HydratorMetadataCacheWarmer::class)->hasTag('kernel.cache_warmer'));
+
+        $warmer = $container->get(MetadataCacheWarmer::class);
+
+        self::assertInstanceOf(MetadataCacheWarmer::class, $warmer);
+        self::assertTrue($warmer->isOptional());
+
+        $warmer->warmUp($buildDir, $buildDir);
+
+        $cache = new PhpArrayAdapter($buildDir . '/event_sourcing/metadata.php', new NullAdapter());
+
+        $aggregateRootMetadataFactory = $this->createMock(AggregateRootMetadataFactory::class);
+        $aggregateRootMetadataFactory->expects($this->never())->method('metadata');
+        $eventMetadataFactory = $this->createMock(EventMetadataFactory::class);
+        $eventMetadataFactory->expects($this->never())->method('metadata');
+        $subscriberMetadataFactory = $this->createMock(SubscriberMetadataFactory::class);
+        $subscriberMetadataFactory->expects($this->never())->method('metadata');
+
+        self::assertSame(
+            'profile',
+            (new Psr6AggregateRootMetadataFactory($aggregateRootMetadataFactory, $cache))->metadata(Profile::class)->name,
+        );
+        self::assertSame(
+            'profile.created',
+            (new Psr6EventMetadataFactory($eventMetadataFactory, $cache))->metadata(ProfileCreated::class)->name,
+        );
+        self::assertSame(
+            'profile',
+            (new Psr6SubscriberMetadataFactory($subscriberMetadataFactory, $cache))->metadata(ProfileSubscriber::class)->id,
+        );
+    }
+
+    public function testHydratorMetadataCache(): void
+    {
+        $buildDir = sys_get_temp_dir() . '/' . uniqid('event_sourcing_build_', true);
+        $config = [
+            'patchlevel_event_sourcing' => [
+                'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
+            ],
+        ];
+
+        $container = new ContainerBuilder();
+        $container->setParameter('kernel.debug', false);
+        $container->setParameter('kernel.build_dir', $buildDir);
+        $this->registerHydratedClasses($container);
+
+        $this->compileContainer($container, $config);
+
+        $warmer = $container->get(HydratorMetadataCacheWarmer::class);
+
+        self::assertInstanceOf(HydratorMetadataCacheWarmer::class, $warmer);
+
+        $warmer->warmUp($buildDir, $buildDir);
+
+        $cache = new PhpArrayAdapter($buildDir . '/event_sourcing/hydrator_metadata.php', new NullAdapter());
+
+        $metadataFactory = $this->createMock(HydratorMetadataFactory::class);
+        $metadataFactory->expects($this->once())->method('metadata')->with(Profile::class)
+            ->willReturn(new ClassMetadata(new ReflectionClass(Profile::class)));
+
+        $cachedMetadataFactory = new Psr6HydratorMetadataFactory($metadataFactory, $cache);
+
+        self::assertSame(ProfileCreated::class, $cachedMetadataFactory->metadata(ProfileCreated::class)->className);
+        self::assertSame(CustomHeader::class, $cachedMetadataFactory->metadata(CustomHeader::class)->className);
+        self::assertSame(
+            SnapshotableProfile::class,
+            $cachedMetadataFactory->metadata(SnapshotableProfile::class)->className,
+        );
+
+        // aggregates without snapshots are not hydrated, so they are not cached
+        $cachedMetadataFactory->metadata(Profile::class);
+
+        $container = new ContainerBuilder();
+        $container->setParameter('kernel.debug', false);
+        $container->setParameter('kernel.build_dir', $buildDir);
+        $this->registerHydratedClasses($container);
+
+        $this->compileContainer($container, $config);
+
+        $hydrator = $container->get(Hydrator::class);
+
+        self::assertInstanceOf(StackHydrator::class, $hydrator);
+        self::assertEquals(
+            new ProfileCreated(CustomId::fromString('1')),
+            $hydrator->hydrate(ProfileCreated::class, ['id' => '1']),
+        );
+        self::assertSame(['id' => '1'], $hydrator->extract(new ProfileCreated(CustomId::fromString('1'))));
+    }
+
     public function testRepositoryManager(): void
     {
         $container = new ContainerBuilder();
@@ -1798,6 +1955,14 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertInstanceOf(Repository::class, $namedArgumentProfileRepository);
 
         self::assertSame($profileRepository, $namedArgumentProfileRepository);
+    }
+
+    private function registerHydratedClasses(ContainerBuilder $container): void
+    {
+        foreach ([Profile::class, SnapshotableProfile::class, ProfileCreated::class, CustomHeader::class] as $class) {
+            $container->setDefinition($class, new Definition($class))
+                ->setAutoconfigured(true);
+        }
     }
 
     /** @param array{patchlevel_event_sourcing: array<string, mixed>} $config */

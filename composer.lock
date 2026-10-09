@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6e0134267927896dc554ae6c3f44dcd2",
+    "content-hash": "6a6604c75d21e691e0f8d598b6baef77",
     "packages": [
         {
             "name": "brick/math",
@@ -420,19 +420,19 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/event-sourcing.git",
-                "reference": "542b287b76c17450c3c049989dcb7a4864c99877"
+                "reference": "106c90ee5df01a3a06a8bef0823ac7fc16999297"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/542b287b76c17450c3c049989dcb7a4864c99877",
-                "reference": "542b287b76c17450c3c049989dcb7a4864c99877",
+                "url": "https://api.github.com/repos/patchlevel/event-sourcing/zipball/106c90ee5df01a3a06a8bef0823ac7fc16999297",
+                "reference": "106c90ee5df01a3a06a8bef0823ac7fc16999297",
                 "shasum": ""
             },
             "require": {
                 "doctrine/dbal": "^4.4.0",
                 "doctrine/migrations": "^3.3.2",
                 "patchlevel/hydrator": "^2.0.2",
-                "patchlevel/worker": "^1.4.0",
+                "patchlevel/worker": "^1.7.0",
                 "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
                 "psr/cache": "^2.0.0 || ^3.0.0",
                 "psr/clock": "^1.0",
@@ -507,20 +507,20 @@
                 "issues": "https://github.com/patchlevel/event-sourcing/issues",
                 "source": "https://github.com/patchlevel/event-sourcing/tree/4.0.x"
             },
-            "time": "2026-10-05T07:55:57+00:00"
+            "time": "2026-10-09T12:15:13+00:00"
         },
         {
             "name": "patchlevel/hydrator",
-            "version": "2.0.2",
+            "version": "2.0.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/hydrator.git",
-                "reference": "73aee5f6d9e35ba074ff2d4ade17cb1429475af7"
+                "reference": "9d6b80571097daaaa00cdeb9cd6248dc2985885e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/hydrator/zipball/73aee5f6d9e35ba074ff2d4ade17cb1429475af7",
-                "reference": "73aee5f6d9e35ba074ff2d4ade17cb1429475af7",
+                "url": "https://api.github.com/repos/patchlevel/hydrator/zipball/9d6b80571097daaaa00cdeb9cd6248dc2985885e",
+                "reference": "9d6b80571097daaaa00cdeb9cd6248dc2985885e",
                 "shasum": ""
             },
             "require": {
@@ -573,22 +573,22 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/hydrator/issues",
-                "source": "https://github.com/patchlevel/hydrator/tree/2.0.2"
+                "source": "https://github.com/patchlevel/hydrator/tree/2.0.3"
             },
-            "time": "2026-09-23T17:48:35+00:00"
+            "time": "2026-10-09T11:56:42+00:00"
         },
         {
             "name": "patchlevel/worker",
-            "version": "1.6.0",
+            "version": "1.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patchlevel/worker.git",
-                "reference": "eae43edaeb4a96f275c7e8ed05dfa95fc1a3ee9c"
+                "reference": "100b0b2b960c8cd32a6e5a717777d56d81791425"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patchlevel/worker/zipball/eae43edaeb4a96f275c7e8ed05dfa95fc1a3ee9c",
-                "reference": "eae43edaeb4a96f275c7e8ed05dfa95fc1a3ee9c",
+                "url": "https://api.github.com/repos/patchlevel/worker/zipball/100b0b2b960c8cd32a6e5a717777d56d81791425",
+                "reference": "100b0b2b960c8cd32a6e5a717777d56d81791425",
                 "shasum": ""
             },
             "require": {
@@ -639,9 +639,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patchlevel/worker/issues",
-                "source": "https://github.com/patchlevel/worker/tree/1.6.0"
+                "source": "https://github.com/patchlevel/worker/tree/1.7.0"
             },
-            "time": "2026-10-02T17:54:07+00:00"
+            "time": "2026-10-05T07:23:26+00:00"
         },
         {
             "name": "psr/cache",
