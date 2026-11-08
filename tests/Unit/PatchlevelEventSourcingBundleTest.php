@@ -38,9 +38,8 @@ use Patchlevel\EventSourcing\Console\Command\SubscriptionSetupCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionStatusCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionTeardownCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
-use Patchlevel\EventSourcing\DecisionModel\DecisionModelBuilder;
+use Patchlevel\EventSourcing\DecisionModel\DecisionFactory;
 use Patchlevel\EventSourcing\DecisionModel\EventAppender;
-use Patchlevel\EventSourcing\DecisionModel\StoreDecisionModelBuilder;
 use Patchlevel\EventSourcing\DecisionModel\StoreEventAppender;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
@@ -644,7 +643,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(StoreEventAppender::class, $container->get(EventAppender::class));
-        self::assertInstanceOf(StoreDecisionModelBuilder::class, $container->get(DecisionModelBuilder::class));
+        self::assertInstanceOf(DecisionFactory::class, $container->get(DecisionFactory::class));
     }
 
     public function testDCBWithInMemoryStore(): void
@@ -663,7 +662,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(StoreEventAppender::class, $container->get(EventAppender::class));
-        self::assertInstanceOf(StoreDecisionModelBuilder::class, $container->get(DecisionModelBuilder::class));
+        self::assertInstanceOf(DecisionFactory::class, $container->get(DecisionFactory::class));
     }
 
     public function testDCBWithStreamStore(): void
