@@ -122,13 +122,36 @@ otherwise you may run into transaction problems.
 :::
 
 :::warning
-If you want to use the same connection as doctrine orm, then you have to set the flag `merge_orm_schema`.
+If you want to use the same connection as doctrine orm, then you have to set the flag `use_doctrine_bundle`.
 Otherwise you should avoid using the same connection as other tools.
 :::
 
 :::note
 You can find out more about the dbal configuration
 [here](https://symfony.com/bundles/DoctrineBundle/current/configuration.html).
+:::
+
+If your application already uses the doctrine bundle, you can let event sourcing use it completely
+instead of the own tooling of this bundle.
+
+```yaml
+patchlevel_event_sourcing:
+    connection:
+        service: doctrine.dbal.default_connection
+    use_doctrine_bundle: true
+```
+With `use_doctrine_bundle` enabled:
+
+* The connection comes from the doctrine bundle, so configure `connection.service` with a doctrine connection.
+* The database, schema and migration commands of event sourcing are not registered.
+  Use the doctrine commands like `doctrine:database:create`, `doctrine:schema:update` and `doctrine:migrations:diff`.
+* A doctrine event listener adds the tables of event sourcing, like the store and the subscription store,
+  to the doctrine orm schema, so the doctrine commands manage them too.
+* The `migration` configuration of this bundle is ignored, configure the doctrine migrations bundle instead.
+
+:::warning
+The event sourcing tables are added to the schema of the doctrine orm.
+So the same connection must be used as with the doctrine orm, otherwise errors may occur!
 :::
 
 If you are using Doctrine for your projections too, you need to create a dedicated connection for this.
@@ -231,24 +254,6 @@ patchlevel_event_sourcing:
 ```
 :::tip
 This is useful if you have maintenance work on the event store and you want to avoid side effects.
-:::
-
-### Merge ORM Schema
-
-You can also merge the schema with doctrine orm. You have to set the following flag for this:
-
-```yaml
-patchlevel_event_sourcing:
-    store:
-        merge_orm_schema: true
-```
-:::warning
-If you want to merge the schema, then the same doctrine connection must be used as with the doctrine orm.
-Otherwise errors may occur!
-:::
-
-:::note
-All schema relevant commands are removed if you activate this option. You should use the doctrine commands then.
 :::
 
 :::tip

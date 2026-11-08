@@ -1162,7 +1162,7 @@ final class PatchlevelEventSourcingExtension extends Extension
     /** @param Config $config */
     private function configureMigration(array $config, ContainerBuilder $container): void
     {
-        if (!class_exists(DependencyFactory::class) || $config['store']['merge_orm_schema'] !== false) {
+        if (!class_exists(DependencyFactory::class) || $config['use_doctrine_bundle']) {
             return;
         }
 
@@ -1271,7 +1271,7 @@ final class PatchlevelEventSourcingExtension extends Extension
 
         $container->setAlias(DoctrineSchemaConfigurator::class, ChainDoctrineSchemaConfigurator::class);
 
-        if ($config['store']['merge_orm_schema']) {
+        if ($config['use_doctrine_bundle']) {
             $container->register(DoctrineSchemaListener::class)
                 ->setArguments([new Reference(DoctrineSchemaConfigurator::class)])
                 ->addTag('doctrine.event_listener', ['event' => ToolEvents::postGenerateSchema]);

@@ -62,7 +62,6 @@ use Throwable;
  *          provide_dedicated_connection: bool
  *      },
  *      store: array{
- *          merge_orm_schema: bool,
  *          options: array<string, mixed>,
  *          type: string,
  *          service: ?string,
@@ -79,6 +78,7 @@ use Throwable;
  *      migration: array{path: string, namespace: string},
  *      clock: array{freeze: ?string, service: ?string},
  *      dcb: array{enabled: bool},
+ *      use_doctrine_bundle: bool,
  *      hydrator: array{
  *          default_lazy: bool,
  *          cryptography: array{
@@ -117,7 +117,6 @@ final class Configuration implements ConfigurationInterface
                         ->defaultValue('dbal_stream')
                     ->end()
                     ->scalarNode('service')->defaultNull()->end()
-                    ->booleanNode('merge_orm_schema')->defaultFalse()->end()
                     ->arrayNode('options')->variablePrototype()->end()->end()
                     ->booleanNode('read_only')->defaultFalse()->end()
                     ->arrayNode('migrate_to_new_store')
@@ -305,6 +304,8 @@ final class Configuration implements ConfigurationInterface
             ->arrayNode('dcb')
                 ->canBeEnabled()
             ->end()
+
+            ->booleanNode('use_doctrine_bundle')->defaultFalse()->end()
 
             ->arrayNode('hydrator')
                 ->addDefaultsIfNotSet()
