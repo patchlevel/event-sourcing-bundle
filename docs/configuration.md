@@ -638,6 +638,7 @@ patchlevel_event_sourcing:
             default_max_retries: 3
             default_exceptions:
                 - Patchlevel\EventSourcing\Repository\AggregateOutdated
+                - Patchlevel\EventSourcing\Store\AppendConditionNotMet
 ```
 :::note
 You can find out more about instant retry [here](/docs/event-sourcing/latest/command-bus/#instant-retry).
@@ -914,7 +915,7 @@ patchlevel_event_sourcing:
 ## Dynamic Consistency Boundary
 
 You can enable the experimental dynamic consistency boundary (DCB).
-This registers the `DecisionModelBuilder` and the `EventAppender` services.
+This registers the `DecisionFactory` and the `EventAppender` services.
 
 ```yaml
 patchlevel_event_sourcing:
@@ -928,6 +929,40 @@ DCB needs a store that supports appending, like `dbal_taggable` or `in_memory` f
 
 :::tip
 We recommend PostgreSQL for DCB, because only there the tag queries can use an index.
+:::
+
+Command handlers are messenger handlers, so they only get the command.
+Inject the `DecisionFactory` and begin a new `Decision` for every command.
+
+```php
+use Patchlevel\EventSourcing\DecisionModel\DecisionFactory;
+use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+
+#[AsMessageHandler(bus: 'command.bus')]
+final class CreateHotelHandler
+{
+    public function __construct(
+        private readonly DecisionFactory $decisionFactory,
+    ) {
+    }
+
+    public function __invoke(CreateHotel $command): void
+    {
+        $decision = $this->decisionFactory->begin();
+
+        if ($decision->read(new HotelExists($command->hotelId))) {
+            throw new RuntimeException('Hotel already exists');
+        }
+
+        $decision->append([
+            new HotelCreated($command->hotelId, $command->hotelName),
+        ]);
+    }
+}
+```
+:::note
+If something the decision has read changed in the meantime, an `AppendConditionNotMet` exception is thrown.
+If you dispatch the command with the `CommandBus` service, its instant retry retries the command.
 :::
 
 If you want to learn more about DCB, read the [library documentation](/docs/event-sourcing/latest/dynamic-consistency-boundary).

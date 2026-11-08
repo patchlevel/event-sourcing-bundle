@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Patchlevel\EventSourcingBundle\DependencyInjection;
 
 use Patchlevel\EventSourcing\Repository\AggregateOutdated;
+use Patchlevel\EventSourcing\Store\AppendConditionNotMet;
 use Patchlevel\Hydrator\Extension\Cryptography\Cipher\OpensslCipherKeyFactory;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -285,7 +286,7 @@ final class Configuration implements ConfigurationInterface
                                 ->defaultValue(3)
                             ->end()
                             ->arrayNode('default_exceptions')
-                                ->defaultValue([AggregateOutdated::class])
+                                ->defaultValue([AggregateOutdated::class, AppendConditionNotMet::class])
                                 ->scalarPrototype()->end()
                             ->end()
                         ->end()

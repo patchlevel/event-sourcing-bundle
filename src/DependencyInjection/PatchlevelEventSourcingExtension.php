@@ -46,9 +46,8 @@ use Patchlevel\EventSourcing\Console\Command\SubscriptionTeardownCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
 use Patchlevel\EventSourcing\Console\DoctrineHelper;
 use Patchlevel\EventSourcing\Cryptography\DoctrineCipherKeyStore;
-use Patchlevel\EventSourcing\DecisionModel\DecisionModelBuilder;
+use Patchlevel\EventSourcing\DecisionModel\DecisionFactory;
 use Patchlevel\EventSourcing\DecisionModel\EventAppender;
-use Patchlevel\EventSourcing\DecisionModel\StoreDecisionModelBuilder;
 use Patchlevel\EventSourcing\DecisionModel\StoreEventAppender;
 use Patchlevel\EventSourcing\EventBus\AttributeListenerProvider;
 use Patchlevel\EventSourcing\EventBus\Consumer;
@@ -1337,16 +1336,18 @@ final class PatchlevelEventSourcingExtension extends Extension
             );
         }
 
-        $container->register(StoreDecisionModelBuilder::class)
-            ->setArguments([new Reference(Store::class)]);
-        $container->setAlias(DecisionModelBuilder::class, StoreDecisionModelBuilder::class);
-
         $container->register(StoreEventAppender::class)
             ->setArguments([
                 new Reference(Store::class),
                 new Reference(EventTagExtractor::class),
             ]);
         $container->setAlias(EventAppender::class, StoreEventAppender::class);
+
+        $container->register(DecisionFactory::class)
+            ->setArguments([
+                new Reference(Store::class),
+                new Reference(EventAppender::class),
+            ]);
     }
 
     private function configureValueResolver(ContainerBuilder $container): void

@@ -38,9 +38,8 @@ use Patchlevel\EventSourcing\Console\Command\SubscriptionSetupCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionStatusCommand;
 use Patchlevel\EventSourcing\Console\Command\SubscriptionTeardownCommand;
 use Patchlevel\EventSourcing\Console\Command\WatchCommand;
-use Patchlevel\EventSourcing\DecisionModel\DecisionModelBuilder;
+use Patchlevel\EventSourcing\DecisionModel\DecisionFactory;
 use Patchlevel\EventSourcing\DecisionModel\EventAppender;
-use Patchlevel\EventSourcing\DecisionModel\StoreDecisionModelBuilder;
 use Patchlevel\EventSourcing\DecisionModel\StoreEventAppender;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
@@ -63,6 +62,7 @@ use Patchlevel\EventSourcing\Metadata\Message\MessageHeaderRegistry;
 use Patchlevel\EventSourcing\Metadata\Subscriber\Psr6SubscriberMetadataFactory;
 use Patchlevel\EventSourcing\Metadata\Subscriber\SubscriberMetadataFactory;
 use Patchlevel\EventSourcing\QueryBus\QueryBus;
+use Patchlevel\EventSourcing\Repository\AggregateOutdated;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\ChainMessageDecorator;
@@ -79,6 +79,7 @@ use Patchlevel\EventSourcing\Snapshot\Adapter\Psr16SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\Adapter\Psr6SnapshotAdapter;
 use Patchlevel\EventSourcing\Snapshot\DefaultSnapshotStore;
 use Patchlevel\EventSourcing\Snapshot\SnapshotStore;
+use Patchlevel\EventSourcing\Store\AppendConditionNotMet;
 use Patchlevel\EventSourcing\Store\ArchivedHeader;
 use Patchlevel\EventSourcing\Store\Dbal\PostgreSQLPlatform as EventSourcingPostgreSQLPlatform;
 use Patchlevel\EventSourcing\Store\Dbal\PostgreSQLPlatformMiddleware;
@@ -592,6 +593,10 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         self::assertEquals(CreateProfile::class, $tag['handles']);
         self::assertEquals('command.bus', $tag['bus']);
         self::assertInstanceOf(InstantRetryCommandBus::class, $container->get(CommandBus::class));
+        self::assertSame(
+            [AggregateOutdated::class, AppendConditionNotMet::class],
+            $container->getDefinition(InstantRetryCommandBus::class)->getArgument(2),
+        );
     }
 
     public function testQueryBus(): void
@@ -644,7 +649,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(StoreEventAppender::class, $container->get(EventAppender::class));
-        self::assertInstanceOf(StoreDecisionModelBuilder::class, $container->get(DecisionModelBuilder::class));
+        self::assertInstanceOf(DecisionFactory::class, $container->get(DecisionFactory::class));
     }
 
     public function testDCBWithInMemoryStore(): void
@@ -663,7 +668,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
         );
 
         self::assertInstanceOf(StoreEventAppender::class, $container->get(EventAppender::class));
-        self::assertInstanceOf(StoreDecisionModelBuilder::class, $container->get(DecisionModelBuilder::class));
+        self::assertInstanceOf(DecisionFactory::class, $container->get(DecisionFactory::class));
     }
 
     public function testDCBWithStreamStore(): void
