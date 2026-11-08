@@ -38,8 +38,8 @@ patchlevel_event_sourcing:
       provide_dedicated_connection: true
     store:
       type: dbal_stream
-      # if you are using doctrine bundle you should enable this
-      #merge_orm_schema: true
+    # if you are using doctrine bundle you should enable this
+    #use_doctrine_bundle: true
     command_bus:
       service: messenger.default_bus
     query_bus:

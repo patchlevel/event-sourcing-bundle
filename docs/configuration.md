@@ -122,13 +122,30 @@ otherwise you may run into transaction problems.
 :::
 
 :::warning
-If you want to use the same connection as doctrine orm, then you have to set the flag `merge_orm_schema`.
+If you want to use the same connection as doctrine orm, then you have to set the flag `use_doctrine_bundle`.
 Otherwise you should avoid using the same connection as other tools.
 :::
 
 :::note
 You can find out more about the dbal configuration
 [here](https://symfony.com/bundles/DoctrineBundle/current/configuration.html).
+:::
+
+With `use_doctrine_bundle` the schema of event sourcing is merged with the doctrine orm schema.
+Then the doctrine bundle manages the whole schema, including the tables of the store and the subscription store.
+
+```yaml
+patchlevel_event_sourcing:
+    use_doctrine_bundle: true
+```
+:::warning
+If you want to merge the schema, then the same doctrine connection must be used as with the doctrine orm.
+Otherwise errors may occur!
+:::
+
+:::note
+All schema relevant commands and the migration integration are removed if you activate this option.
+You should use the doctrine commands then.
 :::
 
 If you are using Doctrine for your projections too, you need to create a dedicated connection for this.
@@ -231,24 +248,6 @@ patchlevel_event_sourcing:
 ```
 :::tip
 This is useful if you have maintenance work on the event store and you want to avoid side effects.
-:::
-
-### Merge ORM Schema
-
-You can also merge the schema with doctrine orm. You have to set the following flag for this:
-
-```yaml
-patchlevel_event_sourcing:
-    store:
-        merge_orm_schema: true
-```
-:::warning
-If you want to merge the schema, then the same doctrine connection must be used as with the doctrine orm.
-Otherwise errors may occur!
-:::
-
-:::note
-All schema relevant commands are removed if you activate this option. You should use the doctrine commands then.
 :::
 
 :::tip

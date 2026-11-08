@@ -818,7 +818,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
             [
                 'patchlevel_event_sourcing' => [
                     'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
-                    'store' => ['merge_orm_schema' => true],
+                    'use_doctrine_bundle' => true,
                 ],
             ],
         );
@@ -1805,7 +1805,7 @@ final class PatchlevelEventSourcingBundleTest extends TestCase
             [
                 'patchlevel_event_sourcing' => [
                     'connection' => ['service' => 'doctrine.dbal.eventstore_connection'],
-                    'store' => ['merge_orm_schema' => true],
+                    'use_doctrine_bundle' => true,
                 ],
             ],
         );
