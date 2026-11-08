@@ -638,6 +638,7 @@ patchlevel_event_sourcing:
             default_max_retries: 3
             default_exceptions:
                 - Patchlevel\EventSourcing\Repository\AggregateOutdated
+                - Patchlevel\EventSourcing\Store\AppendConditionNotMet
 ```
 :::note
 You can find out more about instant retry [here](/docs/event-sourcing/latest/command-bus/#instant-retry).
