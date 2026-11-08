@@ -132,8 +132,8 @@ while you are still on 3.x, otherwise your events can no longer be read.
 ### Use Doctrine Bundle
 
 The option `store.merge_orm_schema` has been renamed to `use_doctrine_bundle` and moved to the top level.
-It does not only affect the store, but hands the whole schema to the doctrine bundle
-and removes the schema and migration commands of the bundle.
+It does not only affect the store, but means that event sourcing fully uses the doctrine bundle:
+its connection, its commands, its schema and its migrations instead of the own tooling of this bundle.
 
 before:
 

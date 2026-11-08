@@ -131,21 +131,27 @@ You can find out more about the dbal configuration
 [here](https://symfony.com/bundles/DoctrineBundle/current/configuration.html).
 :::
 
-With `use_doctrine_bundle` the schema of event sourcing is merged with the doctrine orm schema.
-Then the doctrine bundle manages the whole schema, including the tables of the store and the subscription store.
+If your application already uses the doctrine bundle, you can let event sourcing use it completely
+instead of the own tooling of this bundle.
 
 ```yaml
 patchlevel_event_sourcing:
+    connection:
+        service: doctrine.dbal.default_connection
     use_doctrine_bundle: true
 ```
-:::warning
-If you want to merge the schema, then the same doctrine connection must be used as with the doctrine orm.
-Otherwise errors may occur!
-:::
+With `use_doctrine_bundle` enabled:
 
-:::note
-All schema relevant commands and the migration integration are removed if you activate this option.
-You should use the doctrine commands then.
+* The connection comes from the doctrine bundle, so configure `connection.service` with a doctrine connection.
+* The database, schema and migration commands of event sourcing are not registered.
+  Use the doctrine commands like `doctrine:database:create`, `doctrine:schema:update` and `doctrine:migrations:diff`.
+* A doctrine event listener adds the tables of event sourcing, like the store and the subscription store,
+  to the doctrine orm schema, so the doctrine commands manage them too.
+* The `migration` configuration of this bundle is ignored, configure the doctrine migrations bundle instead.
+
+:::warning
+The event sourcing tables are added to the schema of the doctrine orm.
+So the same connection must be used as with the doctrine orm, otherwise errors may occur!
 :::
 
 If you are using Doctrine for your projections too, you need to create a dedicated connection for this.
