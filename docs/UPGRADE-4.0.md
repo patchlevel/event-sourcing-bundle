@@ -281,3 +281,7 @@ patchlevel_event_sourcing:
 `Patchlevel\EventSourcingBundle\ValueResolver\IdentifierValueResolver`.
 It now resolves every controller argument that implements `Patchlevel\EventSourcing\Identifier\Identifier`.
 You only have to change something if you reference the class directly, e.g. in `#[ValueResolver]`.
+## Data Collector
+
+`Patchlevel\EventSourcingBundle\DataCollector\MessageCollectorEventBus` is now final.
+If you extended it, decorate the `EventBus` service instead.
