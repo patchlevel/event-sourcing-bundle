@@ -7,7 +7,7 @@ namespace Patchlevel\EventSourcingBundle\DataCollector;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\Message\Message;
 
-class MessageCollectorEventBus implements EventBus
+final class MessageCollectorEventBus implements EventBus
 {
     /** @var list<Message<object>> */
     private array $messages = [];
